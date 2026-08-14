@@ -1714,7 +1714,6 @@ section {
     padding: 0.2rem 0.4rem;
   }
 }
-}
 
 /* Specificity fix for hidden interactive overlays */
 .viz-overlay[hidden],

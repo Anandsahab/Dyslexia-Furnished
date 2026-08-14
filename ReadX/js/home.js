@@ -668,19 +668,7 @@ public:
         }
       });
     }
-        runBinarySearchViz();
-      } else if (data.vizType === 'linked') {
-        runLinkedListViz();
-      } else if (data.vizType === 'arrayAccess') {
-        runArrayAccessViz();
-      } else if (data.vizType === 'recursion') {
-        runRecursionViz();
-      } else if (data.vizType === 'tree') {
-        runTreeTraversalViz();
-      } else {
-        runGenericGraphViz();
-      }
-    });
+
 
     // Array Binary Search Visualization
     function runBinarySearchViz() {
