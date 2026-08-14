@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - My Content</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+</head>
+<body>
+  <main class="page-main container">
+    <header class="page-header" data-reveal>
+      <div class="page-header-row">
+        <div>
+          <span class="text-label">My Content</span>
+          <h1 class="page-title">Your reading materials.</h1>
+          <p class="page-desc">Upload notes, lecture slides, or study documents. Read them with full ReadX accessibility features.</p>
+        </div>
+        <a href="reader.html" class="btn btn-outline">Start Reading →</a>
+      </div>
+    </header>
+
+    <div class="upload-zone" id="uploadZone" data-reveal="fade" data-reveal-delay="100">
+      <div class="upload-zone-icon">↑</div>
+      <h3>Upload a document</h3>
+      <p>Drag and drop a .txt file here, or click to browse. Content is stored locally in your browser.</p>
+      <button class="btn btn-primary" id="uploadBrowseBtn">Choose File</button>
+      <input type="file" id="uploadInput" accept=".txt,.md" aria-label="Upload document">
+    </div>
+
+    <section class="section-block" data-reveal="fade" data-reveal-delay="180">
+      <h2 class="section-block-title">Uploaded Documents</h2>
+      <div class="upload-list" id="uploadList"></div>
+      <div class="empty-state" id="uploadEmpty">
+        <span class="text-label">No uploads yet</span>
+        <p>Upload a text file to start reading with ReadX adaptations.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/upload.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+</html>

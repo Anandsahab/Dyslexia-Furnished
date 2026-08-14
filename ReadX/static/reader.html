@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Reading Studio</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+</head>
+<body>
+  <main class="page-main container">
+    <div class="studio-layout">
+      <aside class="studio-sidebar" data-reveal="left">
+        <div class="studio-sidebar-label">Document</div>
+        <select class="studio-doc-select" id="studioDocSelect" aria-label="Select document"></select>
+
+        <div class="studio-sidebar-label">Contents</div>
+        <ul class="studio-toc" id="studioToc"></ul>
+
+        <div class="studio-meta" id="studioMeta">
+          Enable Dyslexia Relief in the navbar to access typography, focus, and read-aloud tools.
+        </div>
+      </aside>
+
+      <article class="reading-article">
+        <header data-reveal="fade">
+          <span class="text-label" id="articleCategory">Computer Science Core</span>
+          <h1 class="article-title" id="articleTitle">Understanding Binary Search</h1>
+          <p class="article-desc" id="articleDesc">A fundamental algorithm that demonstrates the power of divide and conquer.</p>
+        </header>
+
+        <div class="reading-content text-readx" id="articleContent"></div>
+      </article>
+    </div>
+  </main>
+
+  <div id="readingProgressContainer" class="reading-progress-container">
+    <div class="reading-progress-text">Reading progress <span id="readingProgressText">0%</span></div>
+    <div class="reading-progress-bar-bg">
+      <div id="readingProgressBar" class="reading-progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/reader.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+</html>

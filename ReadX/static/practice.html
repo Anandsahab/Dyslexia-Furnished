@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Practice</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+  <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+  <main class="page-main container">
+    <header class="page-header" data-reveal>
+      <span class="text-label">Practice Zone</span>
+      <h1 class="page-title">Test your understanding.</h1>
+      <p class="page-desc">Interactive quizzes on DSA and AI/ML topics. Scores are tracked in your Profile.</p>
+    </header>
+
+    <!-- Category selection -->
+    <div id="quizCategories" data-reveal="fade" data-reveal-delay="120">
+      <div class="quiz-category-grid" id="categoryGrid"></div>
+    </div>
+
+    <!-- SECTION: PRACTICE -->
+    <section class="section-practice" style="margin-top: 3rem; border-radius: 16px;">
+      <div class="container">
+        <div class="practice-grid">
+          <div class="practice-info" data-reveal="left">
+            <span class="eyebrow">Verify Knowledge</span>
+            <h2>Understand it.<br>Then prove it.</h2>
+            <p class="section-subtitle">
+              Reinforce what you learn with targeted exercises. Instant feedback ensures you master coding concepts before moving forward.
+            </p>
+            <div class="practice-cta-wrap">
+              <a href="practice.html" class="btn btn-primary btn-lg">Go to Practice Page</a>
+            </div>
+          </div>
+
+          <div class="practice-interactive-preview" data-reveal="right">
+            <div class="practice-quiz-card">
+              <div class="quiz-header">
+                <span class="quiz-kicker">DSA PRACTICE</span>
+                <h4 class="quiz-topic">BINARY SEARCH</h4>
+                <div class="quiz-progress-bar-wrap">
+                  <div class="quiz-progress-bar-fill" style="width: 80%;"></div>
+                </div>
+                <div class="quiz-progress-text">Question 04 / 05</div>
+              </div>
+
+              <div class="quiz-body">
+                <p class="quiz-question">“What is the time complexity of Binary Search in the worst case?”</p>
+                <div class="quiz-options" id="practiceQuizOptions">
+                  <button class="quiz-option" data-correct="false" type="button">
+                    <span class="option-indicator"></span>
+                    <span class="option-text">O(n)</span>
+                  </button>
+                  <button class="quiz-option" data-correct="true" type="button">
+                    <span class="option-indicator"></span>
+                    <span class="option-text">O(log n)</span>
+                  </button>
+                  <button class="quiz-option" data-correct="false" type="button">
+                    <span class="option-indicator"></span>
+                    <span class="option-text">O(n²)</span>
+                  </button>
+                  <button class="quiz-option" data-correct="false" type="button">
+                    <span class="option-indicator"></span>
+                    <span class="option-text">O(1)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Result Widget overlaying or sliding inside -->
+              <div class="quiz-result-overlay" id="quizResultOverlay" hidden>
+                <div class="result-score">4 / 5</div>
+                <div class="result-label">80% Accuracy</div>
+                <p class="result-msg">Mastery level achieved! Excellent job.</p>
+                <button class="btn btn-outline btn-sm" id="resetQuizBtn" type="button">Retry Quiz</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active quiz -->
+    <div id="quizActive" hidden>
+      <div class="quiz-layout">
+        <div class="quiz-progress-header">
+          <span id="quizCategoryLabel">DSA</span>
+          <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+          <span id="quizProgressText">1 / 5</span>
+        </div>
+        <div class="quiz-card">
+          <p class="text-label" id="quizQuestionNum">Question 1</p>
+          <h2 class="quiz-question" id="quizQuestion"></h2>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+          <div class="quiz-actions">
+            <button class="btn btn-primary" id="quizNextBtn" disabled>Next Question →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="quizResult" hidden>
+      <div class="quiz-result">
+        <span class="text-label">Quiz Complete</span>
+        <div class="quiz-result-score" id="resultScore">4/5</div>
+        <p style="color:var(--text-secondary); margin-bottom:2rem;" id="resultMessage">Great work on DSA Fundamentals.</p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="quizRetryBtn">Try Again</button>
+          <button class="btn btn-outline" id="quizBackBtn">All Quizzes</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/home.js"></script>
+  <script src="../js/practice.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Assistive Reading Platform</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/home.css">
+</head>
+
+<body>
+
+  <main>
+    <!-- SECTION 1: HERO / FIRST VIEW -->
+    <section class="hero-section">
+      <div class="hero-grid container">
+        <div class="hero-content hero-reveal" style="--d:.05s">
+          <span class="eyebrow">ASSISTIVE READING PLATFORM · READX</span>
+          <h1 class="hero-title">
+            Reading should<br>
+            <span class="text-accent">work for you.</span>
+          </h1>
+          <p class="hero-desc">
+            READX adapts digital learning content to the way you read — with better typography, spacing, focus and reading assistance.
+          </p>
+          <div class="hero-actions">
+            <a href="reader.html" class="btn btn-primary btn-lg">Start Reading <span class="btn-arrow">→</span></a>
+            <a href="library.html" class="btn btn-outline btn-lg">Explore Library</a>
+          </div>
+        </div>
+
+        <div class="hero-visual hero-reveal" style="--d:.2s">
+          <!-- LIVE READX READING INTERFACE -->
+          <div class="live-reading-card" id="heroLiveCard">
+            <div class="live-reading-header">
+              <div class="mode-tabs">
+                <button class="mode-tab-btn active" id="tabStandard">STANDARD READING</button>
+                <button class="mode-tab-btn" id="tabReadX">READX</button>
+              </div>
+              <div class="window-decor" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <div class="live-reading-surface" id="heroSurface">
+              <div class="live-reading-doc">
+                <span class="live-kicker">DSA · ADAPTATION</span>
+                <h4 class="live-doc-title">The way we learn matters.</h4>
+                <div class="live-text-container" id="heroTextContainer">
+                  <span class="live-sentence" data-s-idx="0">Learning is not only about understanding information.</span>
+                  <span class="live-sentence" data-s-idx="1">The way information is presented can change how easily we process, follow, and remember it.</span>
+                  <span class="live-sentence" data-s-idx="2">Traditional layouts often force the reader's eyes to struggle with dense words.</span>
+                  <span class="live-sentence" data-s-idx="3">ReadX removes these barriers by introducing structural, clean pacing.</span>
+                  <span class="live-sentence" data-s-idx="4">With custom letter-spacing and lines, your focus is entirely preserved.</span>
+                  <span class="live-sentence" data-s-idx="5">This adaptation turns a standard page into a comfortable reading experience.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="live-reading-footer">
+              <button class="live-control-btn" id="heroReadAloudBtn" type="button">
+                <span class="control-icon" id="heroPlayIcon">▶</span>
+                <span class="control-text" id="heroPlayText">Read Aloud</span>
+              </button>
+              <div class="live-footer-divider" aria-hidden="true"></div>
+              <div class="live-control-badge">
+                <span class="badge-icon">◎</span>
+                <span class="badge-text">Focus · Sentence</span>
+              </div>
+              <div class="live-footer-divider" aria-hidden="true"></div>
+              <div class="live-progress-info">
+                Reading <span id="heroProgressCount" class="progress-count">01</span> / <span class="progress-total">06</span>
+              </div>
+            </div>
+            
+            <div class="live-progress-bar-track">
+              <div class="live-progress-bar-fill" id="heroProgressBar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: THE DIFFERENCE -->
+    <section class="section-difference surface-tint">
+      <div class="container">
+        <header class="section-header" data-reveal="fade">
+          <span class="eyebrow">The Difference</span>
+          <h2>SAME CONTENT.<br>A DIFFERENT EXPERIENCE.</h2>
+          <p class="section-subtitle">Compare the exact same sample paragraph in two side-by-side environments.</p>
+        </header>
+
+        <div class="difference-grid">
+          <!-- Standard Card -->
+          <div class="diff-card standard-card" data-reveal="left">
+            <div class="diff-card-header">
+              <span class="diff-card-badge">Standard Reading Experience</span>
+            </div>
+            <div class="diff-card-body">
+              <h4 class="diff-doc-title">The way we learn matters.</h4>
+              <p class="diff-doc-text">
+                Learning is not only about understanding information. The way information is presented can change how easily we process, follow, and remember it.
+              </p>
+            </div>
+            <div class="diff-card-footer">
+              <span class="diff-meta-label">Standard typography &amp; default layout</span>
+            </div>
+          </div>
+
+          <!-- ReadX Adaptive Card -->
+          <div class="diff-card readx-card" id="diffReadXCard" data-reveal="right">
+            <div class="diff-card-header">
+              <span class="diff-card-badge readx-badge">READX Adaptive Experience</span>
+              <div class="diff-interactive-pills">
+                <button class="diff-pill active" data-layer="typography">Typography</button>
+                <button class="diff-pill active" data-layer="spacing">Spacing</button>
+                <button class="diff-pill active" data-layer="focus">Focus</button>
+                <button class="diff-pill active" data-layer="listen">Listen</button>
+              </div>
+            </div>
+            <div class="diff-card-body">
+              <h4 class="diff-doc-title">The way we learn matters.</h4>
+              <p class="diff-doc-text readx-adapted-text" id="diffTextContainer">
+                <span class="diff-sentence" data-diff-idx="0">Learning is not only about understanding information.</span>
+                <span class="diff-sentence" data-diff-idx="1">The way information is presented can change how easily we process, follow, and remember it.</span>
+              </p>
+              
+              <div class="diff-progress-wrap" id="diffProgressWrap">
+                <div class="diff-progress-track">
+                  <div class="diff-progress-fill" id="diffProgressFill"></div>
+                </div>
+                <div class="diff-progress-labels">
+                  <span>Reading progress</span>
+                  <span id="diffProgressText">01 / 02</span>
+                </div>
+              </div>
+            </div>
+            <div class="diff-card-footer" id="diffFooter">
+              <span class="diff-meta-label" id="diffFooterLabel">▶ Read Aloud Active · 1.0x</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: WHAT READX CHANGES -->
+    <section class="section-changes">
+      <div class="container">
+        <header class="section-header" data-reveal="fade">
+          <span class="eyebrow">Capabilities</span>
+          <h2>What READX Changes</h2>
+          <p class="section-subtitle">Four integrated improvements designed to reduce cognitive fatigue and improve readability.</p>
+        </header>
+
+        <div class="changes-grid">
+          <!-- Typography: 2/3 wide card -->
+          <div class="change-card change-card--typography" data-reveal="zoom">
+            <div class="change-card-content">
+              <span class="change-num">01</span>
+              <h3>Typography</h3>
+              <p class="change-desc">Make digital text easier to scan. Avoid crowded lettering and visual tracking errors.</p>
+              <div class="interactive-preview-box">
+                <p id="typoPreviewText" class="typo-preview-text">Assistive layout reduces reading fatigue.</p>
+                <div class="typo-controls">
+                  <div class="control-row">
+                    <label for="typoSizeSlider">Size</label>
+                    <input type="range" id="typoSizeSlider" min="15" max="22" value="18">
+                    <span id="typoSizeVal">18px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Focus: 1/3 narrow card -->
+          <div class="change-card change-card--focus" data-reveal="zoom" data-reveal-delay="100">
+            <div class="change-card-content">
+              <span class="change-num">02</span>
+              <h3>Focus</h3>
+              <p class="change-desc">Follow content sentence by sentence. Isolates text segments to preserve flow and concentration.</p>
+              <div class="focus-bar-preview">
+                <div class="preview-sentence focused">Active reading tracking.</div>
+                <div class="preview-sentence dimmed">Subdued secondary text.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Listen: 1/3 narrow card -->
+          <div class="change-card change-card--listen" data-reveal="zoom">
+            <div class="change-card-content">
+              <span class="change-num">03</span>
+              <h3>Listen</h3>
+              <p class="change-desc">Read along with Read Aloud. Synchronized text-to-speech provides multimodal learning reinforcement.</p>
+              <div class="listen-audio-preview">
+                <button class="listen-play-btn" id="listenPlayBtn" type="button">▶</button>
+                <div class="waveform">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Adapt: 2/3 wide card -->
+          <div class="change-card change-card--adapt" data-reveal="zoom" data-reveal-delay="100">
+            <div class="change-card-content">
+              <span class="change-num">04</span>
+              <h3>Adapt</h3>
+              <p class="change-desc">Create a reading environment suited to the reader. Instantly customize colors to reduce visual strain.</p>
+              <div class="theme-picker-widget" id="themePickerWidget">
+                <div class="theme-card-preview" id="themePreviewBox">
+                  <span>Responsive Theme</span>
+                </div>
+                <div class="theme-swatches">
+                  <button class="swatch-btn swatch-btn--warm active" data-theme="warm" title="Warm paper theme"></button>
+                  <button class="swatch-btn swatch-btn--dark" data-theme="dark" title="Sober dark theme"></button>
+                  <button class="swatch-btn swatch-btn--light" data-theme="light" title="Clean light theme"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: FINAL CTA -->
+    <section class="surface-dark section-final-cta">
+      <div class="container" data-reveal="fade">
+        <span class="eyebrow eyebrow--light">READ WITHOUT LIMITS</span>
+        <h2>Your content.<br>Your pace.<br>Your way.</h2>
+        <p class="final-cta-desc">Make digital learning easier to read, understand and follow.</p>
+        <div class="final-cta-actions">
+          <a href="reader.html" class="btn btn-primary btn-lg">Start Reading <span class="btn-arrow">→</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/home.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+
+</html>

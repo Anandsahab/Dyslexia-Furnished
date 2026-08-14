@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Profile</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+</head>
+<body>
+  <main class="page-main container">
+    <!-- Profile header -->
+    <header class="dash-header" data-reveal="fade">
+      <div class="dash-avatar" id="profileAvatar">C</div>
+      <div class="dash-identity">
+        <h1 class="dash-name" id="profileDisplayName">Chaitanya Anand</h1>
+        <p class="dash-bio" id="profileDisplayBio">Computer Science student · ReadX learner</p>
+        <p class="dash-email" id="profileDisplayEmail">chaitanya@readx.app</p>
+      </div>
+      <form id="profileForm" class="dash-edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="profileName">Display Name</label>
+            <input type="text" class="form-input" id="profileName">
+          </div>
+          <div class="form-group">
+            <label for="profileEmail">Email</label>
+            <input type="email" class="form-input" id="profileEmail">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-outline btn-sm">Save profile</button>
+      </form>
+    </header>
+
+    <!-- Learning overview stats -->
+    <section class="dash-section" data-reveal="fade" data-reveal-delay="80">
+      <span class="text-label">Learning Overview</span>
+      <div class="stat-grid dash-stat-grid">
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="120">
+          <div class="stat-card-label">Topics Completed</div>
+          <div class="stat-card-value" id="statTopics">6</div>
+        </div>
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="160">
+          <div class="stat-card-label">Reading Sessions</div>
+          <div class="stat-card-value" id="statSessions">24</div>
+        </div>
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="200">
+          <div class="stat-card-label">Practice Accuracy</div>
+          <div class="stat-card-value" id="statAccuracy">82%</div>
+        </div>
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="240">
+          <div class="stat-card-label">Questions Attempted</div>
+          <div class="stat-card-value" id="statQuestions">45</div>
+        </div>
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="280">
+          <div class="stat-card-label">Words Read</div>
+          <div class="stat-card-value" id="statWords">12.4k</div>
+        </div>
+        <div class="stat-card" data-reveal="fade" data-reveal-delay="320">
+          <div class="stat-card-label">Reading Time</div>
+          <div class="stat-card-value" id="statReadTime">186m</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="dash-two-col">
+      <!-- Recent activity -->
+      <section class="dash-panel" data-reveal="left">
+        <h2 class="dash-panel-title">Recent Activity</h2>
+        <div class="activity-list" id="recentActivity"></div>
+      </section>
+
+      <!-- Learning progress by category -->
+      <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
+        <h2 class="dash-panel-title">Learning Progress</h2>
+        <div class="dash-progress-list" id="categoryProgress"></div>
+      </section>
+    </div>
+
+    <div class="dash-two-col">
+      <!-- Practice performance -->
+      <section class="dash-panel" data-reveal="left">
+        <h2 class="dash-panel-title">Practice Performance</h2>
+        <div class="dash-perf-grid">
+          <div class="dash-perf-item">
+            <span class="dash-perf-label">Overall accuracy</span>
+            <span class="dash-perf-value" id="perfAccuracy">82%</span>
+          </div>
+          <div class="dash-perf-item">
+            <span class="dash-perf-label">Questions attempted</span>
+            <span class="dash-perf-value" id="perfAttempted">45</span>
+          </div>
+          <div class="dash-perf-item">
+            <span class="dash-perf-label">Correct answers</span>
+            <span class="dash-perf-value" id="perfCorrect">37</span>
+          </div>
+        </div>
+        <div class="dash-revision" id="revisionList">
+          <span class="text-label">Topics needing revision</span>
+          <ul class="dash-revision-list" id="revisionTopics"></ul>
+        </div>
+      </section>
+
+      <!-- Reading activity -->
+      <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
+        <h2 class="dash-panel-title">Reading Activity</h2>
+        <div class="dash-reading-chart" id="readingChart"></div>
+        <div class="activity-list" id="readingHistory"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../js/topics.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+</html>

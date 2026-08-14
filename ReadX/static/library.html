@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Library</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/pages.css">
+  <link rel="stylesheet" href="../css/library.css">
+  <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+  <main class="page-main container">
+    <!-- Browse view -->
+    <div id="libraryBrowse">
+      <header class="page-header" data-reveal>
+        <span class="text-label">Content Library</span>
+        <h1 class="page-title">Learn DSA &amp; AI/ML.</h1>
+        <p class="page-desc">Select a topic to enter the interactive workspace — read, focus, listen, and explore code.</p>
+      </header>
+
+      <div class="toolbar" data-reveal data-reveal-delay="100">
+        <div class="search-wrap">
+          <input type="search" class="search-input" id="librarySearch" placeholder="Search topics…" aria-label="Search library">
+        </div>
+        <div class="filter-tabs" id="libraryFilters">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="DSA">DSA</button>
+          <button class="filter-tab" data-filter="AI/ML">AI/ML</button>
+        </div>
+      </div>
+
+      <div class="card-grid" id="libraryGrid" data-reveal="fade" data-reveal-delay="180"></div>
+      <div class="empty-state" id="libraryEmpty" hidden>
+        <span class="text-label">No results</span>
+        <p>Try a different search term or filter.</p>
+      </div>
+
+      <!-- SECTION: LEARN -->
+      <section class="section-learn surface-tint" style="margin-top: 3rem; border-radius: 16px;">
+        <div class="container">
+          <header class="section-header" data-reveal="fade">
+            <span class="eyebrow">Learning Platform</span>
+            <h2>Learn without leaving the flow.</h2>
+            <p class="section-subtitle">Read study guides with the power of ReadX adaptation and verify understanding in-line.</p>
+          </header>
+
+          <div class="learn-workspace-preview" data-reveal="zoom">
+            <!-- Library selector sidebar -->
+            <div class="workspace-sidebar">
+              <span class="sidebar-title">TOPICS</span>
+              <div class="topic-list">
+                <button class="topic-item active" data-topic="binary-search">Binary Search</button>
+                <button class="topic-item" data-topic="arrays">Arrays</button>
+                <button class="topic-item" data-topic="linked-lists">Linked Lists</button>
+                <button class="topic-item" data-topic="recursion">Recursion</button>
+                <button class="topic-item" data-topic="trees">Trees</button>
+                <button class="topic-item" data-topic="graphs">Graphs</button>
+              </div>
+            </div>
+
+            <!-- Code and Visualization Area -->
+            <div class="workspace-panel">
+              <div class="workspace-panel-header">
+                <div class="workspace-breadcrumbs">
+                  <span>LIBRARY</span> / <span id="wsTopicCategory">SEARCHING</span> / <span id="wsTopicName">BINARY SEARCH</span>
+                </div>
+                <div class="code-lang-selector">
+                  <button class="lang-tab active" data-lang="java">Java</button>
+                  <button class="lang-tab" data-lang="cpp">C++</button>
+                </div>
+              </div>
+
+              <div class="workspace-grid">
+                <!-- Code view -->
+                <div class="workspace-code-pane">
+                  <div class="pane-header">
+                    <span>Source Code</span>
+                  </div>
+                  <div class="code-display">
+                    <pre><code id="workspaceCodeBlock">int binarySearch(int[] arr, int target) {
+    int low = 0, high = arr.length - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] == target) return mid;
+        if (arr[mid] < target) low = mid + 1;
+        else high = mid - 1;
+    }
+    return -1;
+}</code></pre>
+                  </div>
+                  <div class="workspace-code-actions">
+                    <button class="btn btn-outline btn-sm" id="wsVisualizeBtn" type="button">Visualize</button>
+                    <button class="btn btn-primary btn-sm" id="wsRunBtn" type="button">Run Code</button>
+                  </div>
+                </div>
+
+                <!-- Console and Visualizer -->
+                <div class="workspace-visual-pane">
+                  <div class="pane-header">
+                    <span>Console &amp; Execution Output</span>
+                  </div>
+                  <div class="console-output" id="workspaceConsole">
+                    <div class="console-line console-system">> Ready. Click 'Run Code' to execute.</div>
+                  </div>
+                  
+                  <!-- Algorithm visualization overlay -->
+                  <div class="viz-overlay" id="workspaceViz" hidden>
+                    <div class="viz-header">
+                      <span>Algorithm Visualizer</span>
+                      <button class="viz-close-btn" id="closeVizBtn" type="button">×</button>
+                    </div>
+                    <div class="viz-body" id="workspaceVizBody">
+                      <!-- Dynamic visualization elements go here -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="learn-footer-cta">
+            <a href="library.html" class="btn btn-outline btn-lg">Explore Full Library</a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Topic workspace view -->
+    <div id="libraryWorkspace" class="topic-workspace" hidden>
+      <!-- TOPIC HEADER -->
+      <div class="ws-header">
+        <div class="ws-header-top">
+          <button class="ws-back btn-ghost" id="wsBack" type="button">← Back to Library</button>
+          <div class="ws-breadcrumb">
+            <span class="ws-breadcrumb-cat" id="wsCategory">DSA</span>
+            <span class="ws-breadcrumb-sep">/</span>
+            <span class="ws-breadcrumb-sub" id="wsSubcategory">Searching</span>
+          </div>
+        </div>
+        <h1 class="ws-title" id="wsTitle">Binary Search</h1>
+        <p class="ws-summary" id="wsSummary"></p>
+      </div>
+
+      <!-- INTERACTIVE LEARNING AREA -->
+      <div class="ws-interactive">
+        <!-- CODE LAB -->
+        <div class="ws-code-lab">
+          <div class="ws-code-tabs">
+            <button class="ws-code-tab active" data-lang="java">Java</button>
+            <button class="ws-code-tab" data-lang="cpp">C++</button>
+          </div>
+          <div class="code-editor" id="codeEditor">
+            <div class="code-editor-gutter" id="codeGutter"></div>
+            <pre class="code-editor-backdrop" id="codeBackdrop" aria-hidden="true"><code id="codeHighlight"></code></pre>
+            <textarea class="code-editor-textarea" id="codeTextarea" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          </div>
+          <div class="ws-code-actions">
+            <button class="ws-copy-btn" id="wsCopyBtn" type="button">Copy</button>
+            <button class="ws-run-btn btn btn-primary btn-sm" id="wsRunCode" type="button">Run</button>
+          </div>
+          <div class="ws-io">
+            <div class="ws-io-section">
+              <span class="ws-io-label">Input</span>
+              <pre class="ws-io-content" id="wsInput"></pre>
+            </div>
+            <div class="ws-io-section">
+              <span class="ws-io-label">Output</span>
+              <pre class="ws-io-content ws-io-output" id="wsOutput">Click Run to execute.</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISUAL LESSON -->
+        <div class="ws-visual">
+          <div class="ws-visual-tabs">
+            <button class="ws-visual-tab active" data-tab="video">Video</button>
+            <button class="ws-visual-tab" data-tab="visualize">Visualize</button>
+          </div>
+          <div class="ws-visual-panel ws-visual-panel--active" id="visualVideo">
+            <div class="video-placeholder">
+              <div class="video-placeholder-thumb">
+                <div class="video-placeholder-play" role="button" aria-label="Play video">▶</div>
+              </div>
+              <p class="video-placeholder-text">Educational video for this topic</p>
+            </div>
+          </div>
+          <div class="ws-visual-panel" id="visualVisualize" hidden>
+            <div class="viz-container" id="vizContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPLANATION -->
+      <div class="ws-explanation reading-content" id="wsContent"></div>
+
+      <!-- COMPLEXITY -->
+      <div class="ws-complexity" id="wsComplexity"></div>
+
+      <!-- READX TOOLS -->
+      <div class="ws-tools">
+        <span class="text-label">ReadX Tools</span>
+        <div class="ws-tools-row">
+          <button class="ws-tool-btn" id="wsToggleReadX" type="button">ReadX Mode</button>
+          <button class="ws-tool-btn" id="wsToggleFocus" type="button">Linear Focus</button>
+          <button class="ws-tool-btn" id="wsToggleTTS" type="button">Read Aloud</button>
+        </div>
+      </div>
+
+      <!-- PRACTICE CTA -->
+      <a class="btn btn-primary ws-practice-cta" id="wsPracticeLink" href="practice.html">Practice this topic →</a>
+    </div>
+  </main>
+
+  <script src="../js/topics.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/home.js"></script>
+  <script src="../js/library.js"></script>
+  <script src="../js/animations.js"></script>
+</body>
+</html>

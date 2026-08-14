@@ -1,0 +1,623 @@
+/* ============================================================
+   css/style.css — READX DESIGN SYSTEM
+   Premium editorial × education technology × accessibility.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ---- Surfaces (premium graphite, layered depth) ---- */
+  --bg-primary: #151713;            /* Primary Background: Deep Graphite */
+  --bg-secondary: #1E211B;          /* Secondary Background: Dark Olive-Graphite */
+  --bg-tertiary: #1A1C17;           /* Deeper Tonal Graphite */
+  --surface-primary: #1E211B;       /* Surface */
+  --surface-secondary: #272A22;     /* Elevated Surface */
+  --surface-hover: #2E3328;         /* Subtle Olive-Graphite Hover */
+  --surface-raised: #2C3027;        /* Elevated Surface / Modals */
+
+  /* ---- Text (warm cream scale) ---- */
+  --text-primary: #F1EFE7;          /* Primary Text: Warm Cream */
+  --text-secondary: #AAA99D;        /* Secondary Text */
+  --text-muted: #77796F;            /* Muted Text */
+
+  /* ---- Accent: Sophisticated Olive — primary brand accent ---- */
+  --accent: #8A9560;                /* Primary Accent: Sophisticated Olive */
+  --accent-hover: #9CA86E;          /* Hover Olive */
+  --accent-strong: #8A9560;
+  --accent-soft: rgba(138, 149, 96, 0.12);
+  --accent-soft-strong: rgba(138, 149, 96, 0.22);
+  --accent-border: rgba(138, 149, 96, 0.4);
+  --accent-glow: rgba(138, 149, 96, 0.15);
+
+  /* ---- Secondary Highlight: Muted Sage ---- */
+  --sage: #B7B98A;                  /* Secondary Highlight: Muted Sage */
+  --sage-bright: #C5C799;
+  --sage-soft: rgba(183, 185, 138, 0.14);
+  --sage-border: rgba(183, 185, 138, 0.35);
+
+  /* ---- Optional Warm Accent: Subtle Copper ---- */
+  --copper: #B08A5A;                /* Optional Warm Accent: Subtle Copper */
+  --copper-bright: #BF9969;
+  --copper-soft: rgba(176, 138, 90, 0.12);
+  --copper-border: rgba(176, 138, 90, 0.4);
+
+  /* ---- Status (sober, warm; avoid bright neon) ---- */
+  --success: #8A9560;               /* Olive = success / completion */
+  --success-soft: rgba(138, 149, 96, 0.14);
+  --success-border: rgba(138, 149, 96, 0.35);
+  --danger: #C2654F;                /* Muted brick */
+  --danger-soft: rgba(194, 101, 79, 0.12);
+  --danger-border: rgba(194, 101, 79, 0.35);
+  --warning: #B08A5A;
+  --warning-soft: rgba(176, 138, 90, 0.12);
+
+  /* ---- Borders (warm olive graphite) ---- */
+  --border-color: #34372D;          /* Borders */
+  --border-subtle: #282B23;
+  --border-strong: #424639;
+
+  /* ---- Dark technical surfaces (footer, CTA, code) ---- */
+  --dark-1: #10120E;
+  --dark-2: #151713;
+  --dark-3: #1E211B;
+  --dark-text: #F1EFE7;
+  --dark-muted: rgba(241, 239, 231, 0.62);
+  --dark-faint: rgba(241, 239, 231, 0.4);
+  --dark-border: rgba(241, 239, 231, 0.09);
+  --dark-border-strong: rgba(241, 239, 231, 0.16);
+
+  /* ---- Reading-preview surfaces — warm cream reading environment ---- */
+  --preview-bg: #F1EFE7;            /* Warm cream surface */
+  --preview-border: #D8D5C8;
+  --preview-text: #1D201A;          /* Dark ink on cream */
+  --preview-dim: #77796F;
+
+  /* ---- Code lab ---- */
+  --code-bg: #10120E;
+
+  /* ---- Typography ---- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code',
+               'Consolas', 'Courier New', monospace;
+
+  /* ---- Type scale ---- */
+  --fs-label: 0.6875rem;      /* 11px  eyebrows */
+  --fs-caption: 0.75rem;      /* 12px  metadata */
+  --fs-small: 0.8125rem;      /* 13px  compact body */
+  --fs-body: 0.9375rem;       /* 15px  base body */
+  --fs-lead: 1.0625rem;       /* 17px  lead / desc */
+  --fs-h4: 1.125rem;          /* 18px */
+  --fs-h3: 1.375rem;          /* 22px */
+  --fs-h2: clamp(1.9rem, 3.6vw, 2.875rem);
+  --fs-h1: clamp(2.6rem, 5.2vw, 4.1rem);
+  --fs-display: clamp(3rem, 7vw, 5.5rem);
+
+  /* ---- User dynamic reading defaults (fallback) ---- */
+  --user-font-size: 18px;
+  --user-letter-spacing: 0.02em;
+  --user-reading-width: 70ch;
+
+  /* ---- Layout ---- */
+  --navbar-height: 68px;
+  --container-max: 1280px;
+  --container-gutter: clamp(24px, 4.5vw, 52px);
+  --reading-max: 70ch;
+
+  /* ---- Spacing scale ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+  --space-12: 5rem;
+  --space-16: 7rem;
+
+  /* ---- Radii (restrained) ---- */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows (ambient dark; depth via surface contrast + borders) ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 3px 10px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 5px rgba(0, 0, 0, 0.35), 0 12px 30px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.4), 0 28px 64px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.45), 0 44px 96px rgba(0, 0, 0, 0.55);
+  --shadow-accent: 0 1px 3px rgba(0, 0, 0, 0.35), 0 8px 22px rgba(138, 149, 96, 0.14);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 150ms var(--ease);
+  --transition: 220ms var(--ease);
+  --transition-slow: 380ms var(--ease);
+
+  /* ---- Legacy alias (kept for inline-style compat) ---- */
+  --accent-color: #F1EFE7;
+}
+
+/* ============================================================
+   READX MODE — presentation switch (content never changes)
+   ============================================================ */
+body {
+  --readx-font: var(--font-sans);
+  --readx-font-size: 16px;
+  --readx-line-height: 1.55;
+  --readx-letter-spacing: 0;
+  --readx-word-spacing: 0;
+
+  font-family: var(--readx-font);
+  font-size: var(--readx-font-size);
+  line-height: var(--readx-line-height);
+  letter-spacing: var(--readx-letter-spacing);
+  word-spacing: var(--readx-word-spacing);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  transition:
+    background-color 380ms var(--ease),
+    color 380ms var(--ease),
+    font-size 380ms var(--ease),
+    line-height 380ms var(--ease),
+    letter-spacing 380ms var(--ease),
+    word-spacing 380ms var(--ease);
+}
+
+body.dyslexia-mode {
+  --readx-font: 'OpenDyslexic', 'Open Sans', Verdana, Arial, sans-serif;
+  --readx-font-size: var(--user-font-size);
+  --readx-line-height: 1.7;
+  --readx-letter-spacing: var(--user-letter-spacing);
+  --readx-word-spacing: 0.08em;
+  --readx-para-spacing: 1.6em;
+  --readx-max-width: var(--user-reading-width);
+  --readx-text-align: left;
+  --font-display: var(--readx-font);
+}
+
+/* Ambient depth layer — quiet tonal washes + subtle film grain.
+   Sits behind all content; adapts to active theme via color-mix.
+   (Very low opacity neutral tones only — no colour glow.) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1200px 640px at 88% -12%, color-mix(in srgb, var(--copper) 4%, transparent), transparent 62%),
+    radial-gradient(960px 600px at -8% 30%, color-mix(in srgb, var(--border-strong) 38%, transparent), transparent 58%),
+    radial-gradient(1400px 900px at 50% 125%, color-mix(in srgb, var(--accent) 4%, transparent), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.025' fill='%23F1EFE7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+}
+
+/* Reading environment themes (presentation only) */
+body.dyslexia-mode[data-theme="warm"] {
+  --bg-primary: #F5F1E6;
+  --bg-secondary: #ECE7D8;
+  --bg-tertiary: #E4DECC;
+  --surface-primary: #FDFAF3;
+  --surface-secondary: #F8F4E9;
+  --surface-hover: #F0EBDD;
+  --text-primary: #26261F;
+  --text-secondary: #5F5B52;
+  --text-muted: #8A8578;
+  --border-color: #DCD6C6;
+  --border-subtle: #E6E0D1;
+  --border-strong: #CEC7B4;
+}
+
+body.dyslexia-mode[data-theme="dark"] {
+  --bg-primary: #14131A;
+  --bg-secondary: #1C1B24;
+  --bg-tertiary: #242230;
+  --surface-primary: #1F1E28;
+  --surface-secondary: #26242F;
+  --surface-hover: #2B2936;
+  --text-primary: #EDEBF5;
+  --text-secondary: #9D9AA8;
+  --text-muted: #6E6B7C;
+  --border-color: #31303D;
+  --border-subtle: #292836;
+  --border-strong: #3A3948;
+  --accent: #818CF8;
+  --accent-hover: #A5B4FC;
+  --accent-lav: #C4B5FD;
+  --accent-glow: rgba(129, 140, 248, 0.22);
+  --accent-soft: rgba(129, 140, 248, 0.12);
+  --accent-soft-strong: rgba(129, 140, 248, 0.2);
+  --accent-border: rgba(129, 140, 248, 0.45);
+  --success: #6BBF8F;
+  --danger: #E0938D;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 3px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 12px 28px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.35), 0 28px 64px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 20px rgba(0, 0, 0, 0.4), 0 44px 96px rgba(0, 0, 0, 0.6);
+  --shadow-accent: 0 6px 22px rgba(129, 140, 248, 0.4);
+}
+
+body.dyslexia-mode[data-theme="light"] {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F2F1EC;
+  --surface-primary: #FFFFFF;
+  --surface-secondary: #F9F8F5;
+  --surface-hover: #F1F0EB;
+  --text-primary: #191917;
+  --text-secondary: #5A574F;
+  --text-muted: #8B877C;
+  --border-color: #E4E0D6;
+  --border-subtle: #ECE8DF;
+  --border-strong: #D4CFC1;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: clip;
+  scroll-behavior: smooth;
+}
+
+main {
+  flex: 1;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+::selection {
+  background: var(--accent-soft-strong);
+  color: var(--text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid var(--bg-primary);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.08;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); }
+
+.display {
+  font-size: var(--fs-display);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+p {
+  margin-bottom: var(--readx-para-spacing, 1rem);
+}
+
+.text-label {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Editorial eyebrow with accent tick */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 20px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--copper);
+}
+
+/* Solid accent word (no gradients on headings).
+   Copper reads clearly on graphite; burgundy is reserved for
+   fills, focus and paper surfaces. */
+.text-accent {
+  color: var(--copper);
+}
+
+/* Legacy gradient class — kept as a solid copper accent so any
+   remaining references never render a gradient. */
+.text-gradient {
+  color: var(--copper);
+}
+
+/* Applied to reading-adjacent content so ReadX width/spacing applies */
+p, .mockup-text, .text-standard, .text-readx, .step-desc {
+  max-width: var(--readx-max-width, none);
+  text-align: var(--readx-text-align, inherit);
+  transition: max-width 380ms var(--ease), margin-bottom 380ms var(--ease);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-gutter);
+}
+
+/* Section background treatments */
+.surface-tint {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.surface-dark {
+  background:
+    radial-gradient(1000px 560px at 82% -12%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
+    radial-gradient(800px 500px at -6% 108%, color-mix(in srgb, var(--copper) 6%, transparent), transparent 55%),
+    var(--dark-1);
+  color: var(--dark-text);
+}
+
+.surface-dark h1,
+.surface-dark h2,
+.surface-dark h3,
+.surface-dark h4 {
+  color: var(--dark-text);
+}
+
+/* ============================================================
+   REVEAL / MOTION SYSTEM
+   ============================================================ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms var(--ease-out),
+    transform 700ms var(--ease-out);
+  will-change: opacity, transform;
+}
+
+[data-reveal="left"]  { transform: translateX(-28px); }
+[data-reveal="right"] { transform: translateX(28px); }
+[data-reveal="zoom"]  { transform: scale(0.965) translateY(10px); }
+[data-reveal="fade"]  { transform: none; }
+
+[data-reveal].in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Staggered page-load entrance (hero) */
+.hero-reveal {
+  opacity: 0;
+  animation: riseIn 850ms var(--ease-out) forwards;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================================
+   READING CONTENT — sentence chunking & focus treatments
+   ============================================================ */
+.reading-content {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+.reading-content h2 {
+  font-family: var(--font-sans);
+  font-size: 1.6rem;
+  font-weight: 650;
+  margin: 3rem 0 1rem;
+}
+
+.reading-content h3 {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 2.25rem 0 0.75rem;
+}
+
+.reading-content p {
+  max-width: var(--reading-max, 65ch);
+  margin-bottom: 1.25rem;
+}
+
+/* Visual chunk separation in ReadX mode */
+body.dyslexia-mode .reading-content p {
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+body.dyslexia-mode .reading-content p:last-child {
+  border-bottom: none;
+}
+
+/* Sentence atoms */
+.reading-content .sentence {
+  display: inline;
+  border-radius: 2px;
+  cursor: pointer;
+  transition:
+    background-color 220ms var(--ease),
+    opacity 220ms var(--ease),
+    color 220ms var(--ease),
+    box-shadow 220ms var(--ease);
+}
+
+/* Focus mode: dim everything except the active sentence */
+body.dyslexia-mode[data-focus="on"].sentence-focus-active .reading-content .sentence {
+  opacity: 0.32;
+}
+body.dyslexia-mode[data-focus="on"].sentence-focus-active .reading-content .sentence.focused {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+/* Focus-mode highlight bar — sits BELOW the active sentence,
+   never over the text, so the sentence stays fully readable.
+   Gap between sentence and bar is handled in JS (10px). */
+.focus-highlight {
+  position: fixed;
+  z-index: 95;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 10px var(--accent-glow);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    top 240ms var(--ease),
+    left 240ms var(--ease),
+    width 240ms var(--ease),
+    opacity 200ms var(--ease);
+}
+
+.focus-highlight.visible {
+  opacity: 1;
+}
+
+/* While scrolling, track the sentence immediately instead of lagging */
+.focus-highlight.scrolling {
+  transition:
+    top 80ms linear,
+    left 80ms linear,
+    width 80ms linear;
+}
+
+/* Read-aloud active sentence */
+body.dyslexia-mode .reading-content .sentence.tts-active {
+  opacity: 1 !important;
+  font-weight: 500;
+  background: var(--accent-soft-strong);
+  box-shadow: inset 0 -0.12em 0 var(--accent);
+  padding: 0 0.1em;
+}
+
+/* Key information emphasis in ReadX mode */
+body.dyslexia-mode .reading-content strong,
+body.dyslexia-mode .reading-content b,
+body.dyslexia-mode .reading-content h1,
+body.dyslexia-mode .reading-content h2,
+body.dyslexia-mode .reading-content h3 {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Focus / clutter reduction on marketing surfaces */
+body.dyslexia-mode[data-focus="on"] .hero-visual,
+body.dyslexia-mode[data-focus="on"] .tools-grid,
+body.dyslexia-mode[data-focus="on"] .section-comparison {
+  opacity: 0.72;
+  filter: saturate(0.85);
+  transition: opacity 380ms var(--ease), filter 380ms var(--ease);
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-reveal {
+    opacity: 1;
+    animation: none;
+  }
+}
