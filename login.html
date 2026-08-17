@@ -142,10 +142,15 @@
 
       // Check URL parameters for any notification (e.g. signup success or protected redirect)
       const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
       if (urlParams.get('registered') === 'true') {
         showAlert('Account created successfully! Please sign in.', 'success');
-      } else if (urlParams.get('redirect')) {
+      } else if (redirectParam) {
         showAlert('Please sign in to access that page.', 'error');
+        const signupLink = document.querySelector('.auth-footer a[href="signup.html"]');
+        if (signupLink) {
+          signupLink.href = `signup.html?redirect=${encodeURIComponent(redirectParam)}`;
+        }
       }
 
       // Toggle password visibility

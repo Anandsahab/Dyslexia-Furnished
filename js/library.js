@@ -714,6 +714,11 @@ const Visualizer = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Protect page: require login
+  if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.protectPage()) {
+    return;
+  }
+
   const browse = document.getElementById('libraryBrowse');
   const workspace = document.getElementById('libraryWorkspace');
   const grid = document.getElementById('libraryGrid');

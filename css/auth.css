@@ -11,17 +11,21 @@
   color: var(--text-primary);
 }
 
+.auth-page .site-footer {
+  display: none !important;
+}
+
 .auth-main {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--navbar-height) + 2rem) var(--container-gutter) 4rem;
+  padding: calc(var(--navbar-height) + 0.4rem) var(--container-gutter) 0.4rem;
 }
 
 .auth-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
   margin: 0 auto;
 }
 
@@ -29,14 +33,14 @@
   background: var(--surface-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: clamp(1.75rem, 5vw, 2.75rem);
+  padding: clamp(1rem, 2.5vw, 1.25rem);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), var(--shadow-sm);
   position: relative;
   overflow: hidden;
 }
 
 .auth-header {
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   text-align: left;
 }
 
@@ -44,7 +48,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.35rem;
 }
 
 .auth-logo-link {
@@ -81,23 +85,23 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.15rem;
 }
 
 .auth-title {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.2vw, 2.1rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.65rem);
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--text-primary);
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.2rem;
   letter-spacing: -0.01em;
 }
 
 .auth-desc {
-  font-size: var(--fs-small);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.35;
   margin: 0;
 }
 
@@ -105,12 +109,12 @@
 .auth-alert {
   display: none;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-small);
-  line-height: 1.45;
-  margin-bottom: 1.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
   animation: authAlertIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -163,7 +167,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.65rem;
 }
 
 .auth-form .form-group {
@@ -181,15 +185,15 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-secondary);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.25rem;
 }
 
 .auth-form .form-input {
   width: 100%;
-  height: 44px;
-  padding: 0 0.875rem;
+  height: 38px;
+  padding: 0 0.75rem;
   font-family: var(--font-sans);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--bg-primary);
@@ -224,7 +228,7 @@
 }
 
 .input-password-wrap .form-input {
-  padding-right: 2.75rem;
+  padding-right: 2.5rem;
 }
 
 .password-toggle-btn {
@@ -232,7 +236,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 44px;
+  width: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,7 +279,7 @@
   display: none;
   font-size: 0.75rem;
   color: #E8A598;
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
   line-height: 1.35;
 }
 
@@ -291,13 +295,13 @@
   justify-content: space-between;
   gap: 1rem;
   font-size: var(--fs-small);
-  margin-top: -0.25rem;
+  margin-top: -0.1rem;
 }
 
 .auth-checkbox-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
   cursor: pointer;
   user-select: none;
   color: var(--text-secondary);
@@ -307,8 +311,8 @@
 .auth-checkbox-label input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-primary);
@@ -378,7 +382,7 @@
 /* Submit Button */
 .auth-submit-btn {
   width: 100%;
-  height: 46px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +395,7 @@
   font-size: var(--fs-body);
   font-weight: 600;
   cursor: pointer;
-  margin-top: 0.5rem;
+  margin-top: 0.2rem;
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast),
@@ -426,24 +430,24 @@
 
 /* Footer Switch (Don't have account / Already have account) */
 .auth-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
   border-top: 1px solid var(--border-subtle);
   text-align: center;
-  font-size: var(--fs-small);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
 }
 
 /* Demo account hint box */
 .auth-demo-hint {
-  margin-top: 1.5rem;
-  padding: 0.875rem 1rem;
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.75rem;
   background: var(--surface-secondary);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .auth-demo-hint-title {
@@ -554,6 +558,14 @@
 }
 
 /* Responsive adjustments */
+@media (min-height: 600px) and (min-width: 768px) {
+  .auth-page {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
 @media (max-width: 580px) {
   .auth-main {
     padding: calc(var(--navbar-height) + 1.25rem) 1rem 3rem;

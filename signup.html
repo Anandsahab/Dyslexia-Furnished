@@ -158,6 +158,15 @@
       // If already logged in, redirect away
       if (ReadXAuth.redirectIfLoggedIn()) return;
 
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
+      if (redirectParam) {
+        const loginLink = document.querySelector('.auth-footer a[href="login.html"]');
+        if (loginLink) {
+          loginLink.href = `login.html?redirect=${encodeURIComponent(redirectParam)}`;
+        }
+      }
+
       const form = document.getElementById('signupForm');
       const nameInput = document.getElementById('signupName');
       const emailInput = document.getElementById('signupEmail');

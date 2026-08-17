@@ -95,8 +95,10 @@ const ReadXAuth = {
   // Get user avatar initial
   getAvatarInitial() {
     const user = this.getCurrentUser();
-    if (!user || !user.name) return 'R';
-    return user.name.trim().charAt(0).toUpperCase();
+    if (!user) return 'R';
+    const nameStr = (user.name || user.email || '').trim();
+    if (!nameStr) return 'R';
+    return nameStr.charAt(0).toUpperCase();
   },
 
   // Register a new user
@@ -241,9 +243,11 @@ const ReadXAuth = {
   // Guard protected pages
   protectPage({ redirectUrl = 'login.html' } = {}) {
     if (!this.isLoggedIn()) {
-      const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      const currentPath = page + search;
       const target = `${redirectUrl}?redirect=${encodeURIComponent(currentPath)}`;
-      window.location.href = target;
+      window.location.replace(target);
       return false;
     }
     return true;

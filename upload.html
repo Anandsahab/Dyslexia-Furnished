@@ -7,6 +7,15 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
+  <script src="js/auth.js"></script>
+  <script>
+    if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.isLoggedIn()) {
+      const page = window.location.pathname.split('/').pop() || 'upload.html';
+      const search = window.location.search || '';
+      const target = (page || 'upload.html') + search;
+      window.location.replace('login.html?redirect=' + encodeURIComponent(target));
+    }
+  </script>
 </head>
 <body>
   <main class="page-main container">

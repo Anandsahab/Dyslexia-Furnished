@@ -434,28 +434,27 @@ const App = {
     const currentUser = (typeof ReadXAuth !== 'undefined') ? ReadXAuth.getCurrentUser() : null;
     const profile = currentUser || (typeof ReadXData !== 'undefined' ? ReadXData.getProfile() : { name: 'R' });
     const isLoggedIn = !!currentUser;
-    const avatarLetter = (profile.name || 'R').charAt(0).toUpperCase();
+
+    let avatarLetter = 'R';
+    if (typeof ReadXAuth !== 'undefined' && ReadXAuth.getAvatarInitial) {
+      avatarLetter = ReadXAuth.getAvatarInitial();
+    } else {
+      const rawName = (currentUser && (currentUser.name || currentUser.email)) || profile.name || 'R';
+      avatarLetter = (rawName.trim().charAt(0) || 'R').toUpperCase();
+    }
+
+    const userName = (currentUser && (currentUser.name || currentUser.email)) || profile.name || 'User';
 
     const authActionHTML = isLoggedIn
-      ? `<a href="profile.html" class="nav-avatar" id="navAvatar" title="Profile (${profile.name})" aria-label="Profile (${profile.name})">${avatarLetter}</a>`
+      ? `<a href="profile.html" class="nav-avatar" id="navAvatar" title="Profile (${userName})" aria-label="Profile (${userName})">${avatarLetter}</a>`
       : `<a href="login.html" class="nav-login-btn" id="navLoginBtn">Login</a>`;
 
-    const mobileLinksHTML = isLoggedIn
-      ? `
-        <a href="index.html">Home</a>
-        <a href="library.html">Library</a>
-        <a href="upload.html">My Content</a>
-        <a href="practice.html">Practice</a>
-        <a href="profile.html">Profile (${profile.name})</a>
-        <a href="#" id="mobileLogoutLink" style="color: #E8A598;">Logout</a>
-      `
-      : `
-        <a href="index.html">Home</a>
-        <a href="library.html">Library</a>
-        <a href="upload.html">My Content</a>
-        <a href="practice.html">Practice</a>
-        <a href="login.html">Login</a>
-      `;
+    const mobileLinksHTML = `
+      <a href="index.html">Home</a>
+      <a href="library.html">Library</a>
+      <a href="upload.html">My Content</a>
+      <a href="practice.html">Practice</a>
+    `;
 
     const navHTML = `
       <nav class="navbar">
@@ -629,6 +628,23 @@ const App = {
         if (typeof ReadXAuth !== 'undefined') ReadXAuth.logout();
       });
     }
+
+    // Intercept clicks on protected links (Library & My Content) when logged out
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.includes('://')) return;
+
+      const pathPart = href.split('?')[0].split('#')[0];
+      const protectedPages = ['library.html', 'upload.html'];
+
+      if (protectedPages.includes(pathPart) && typeof ReadXAuth !== 'undefined' && !ReadXAuth.isLoggedIn()) {
+        e.preventDefault();
+        window.location.href = `login.html?redirect=${encodeURIComponent(href)}`;
+      }
+    });
   },
 
   initMobileNav() {
