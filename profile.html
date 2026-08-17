@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
 <body>
   <main class="page-main container">
@@ -29,7 +30,10 @@
             <input type="email" class="form-input" id="profileEmail">
           </div>
         </div>
-        <button type="submit" class="btn btn-outline btn-sm">Save profile</button>
+        <div class="dash-form-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top:0.75rem;">
+          <button type="submit" class="btn btn-outline btn-sm">Save profile</button>
+          <button type="button" id="profileLogoutBtn" class="btn btn-outline btn-sm btn-logout">Log out</button>
+        </div>
       </form>
     </header>
 
@@ -113,6 +117,7 @@
 
   <script src="js/topics.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/animations.js"></script>

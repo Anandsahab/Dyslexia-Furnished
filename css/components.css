@@ -159,6 +159,42 @@
   transform: translateY(0);
 }
 
+/* Nav login pill button — matches ReadX Mode pill */
+.nav-login-btn {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.44rem 1rem;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 180ms var(--ease),
+    border-color 180ms var(--ease),
+    color 180ms var(--ease),
+    box-shadow 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+.nav-login-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent-border);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.nav-login-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
 /* Mobile toggle */
 .nav-toggle {
   display: none;

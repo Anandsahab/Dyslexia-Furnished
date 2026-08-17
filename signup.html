@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadX - Create Account</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+
+  <main class="auth-main">
+    <div class="auth-container">
+      <div class="auth-card" data-reveal="fade">
+        <header class="auth-header">
+          <div class="auth-logo-badge">
+            <a href="index.html" class="auth-logo-link">READX</a>
+          </div>
+          <span class="auth-eyebrow">GET STARTED · READX</span>
+          <h1 class="auth-title">Create your account</h1>
+          <p class="auth-desc">Join ReadX to personalize your reading workspace, track topics, and build mastery.</p>
+        </header>
+
+        <!-- System / Form Alert -->
+        <div id="authAlert" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
+          <span class="auth-alert-icon">⚠</span>
+          <span id="authAlertMsg" class="auth-alert-msg"></span>
+        </div>
+
+        <form id="signupForm" class="auth-form" novalidate>
+          <!-- Full Name -->
+          <div class="form-group" id="groupName">
+            <label for="signupName">
+              <span>Full Name</span>
+            </label>
+            <input
+              type="text"
+              id="signupName"
+              class="form-input"
+              placeholder="e.g. Tanisha Awla"
+              autocomplete="name"
+              required
+              aria-describedby="nameError"
+            >
+            <span class="input-error-msg" id="nameError">Please enter your full name (minimum 2 characters).</span>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group" id="groupEmail">
+            <label for="signupEmail">
+              <span>Email Address</span>
+            </label>
+            <input
+              type="email"
+              id="signupEmail"
+              class="form-input"
+              placeholder="name@example.com"
+              autocomplete="email"
+              required
+              aria-describedby="emailError"
+            >
+            <span class="input-error-msg" id="emailError">Please enter a valid email address.</span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group" id="groupPassword">
+            <label for="signupPassword">
+              <span>Password</span>
+            </label>
+            <div class="input-password-wrap">
+              <input
+                type="password"
+                id="signupPassword"
+                class="form-input"
+                placeholder="At least 6 characters"
+                autocomplete="new-password"
+                required
+                aria-describedby="passwordError"
+              >
+              <button
+                type="button"
+                id="togglePassBtn"
+                class="password-toggle-btn"
+                aria-label="Show password"
+                title="Toggle password visibility"
+              >
+                <svg id="eyeIcon1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <span class="input-error-msg" id="passwordError">Password must be at least 6 characters.</span>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group" id="groupConfirmPassword">
+            <label for="signupConfirmPassword">
+              <span>Confirm Password</span>
+            </label>
+            <div class="input-password-wrap">
+              <input
+                type="password"
+                id="signupConfirmPassword"
+                class="form-input"
+                placeholder="Re-enter your password"
+                autocomplete="new-password"
+                required
+                aria-describedby="confirmPasswordError"
+              >
+              <button
+                type="button"
+                id="toggleConfirmPassBtn"
+                class="password-toggle-btn"
+                aria-label="Show confirm password"
+                title="Toggle password visibility"
+              >
+                <svg id="eyeIcon2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <span class="input-error-msg" id="confirmPasswordError">Passwords do not match.</span>
+          </div>
+
+          <!-- Terms Checkbox -->
+          <div class="form-group" id="groupTerms">
+            <label class="auth-checkbox-label" id="labelTerms">
+              <input type="checkbox" id="signupTerms" required>
+              <span>I agree to the <a href="#" class="auth-text-link" onclick="event.preventDefault()">Terms of Service</a> and <a href="#" class="auth-text-link" onclick="event.preventDefault()">Privacy Policy</a></span>
+            </label>
+            <span class="input-error-msg" id="termsError">You must agree to the Terms to continue.</span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="auth-submit-btn">
+            <span>Create Account</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <footer class="auth-footer">
+          Already have an account? <a href="login.html" class="auth-link">Sign In</a>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/animations.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already logged in, redirect away
+      if (ReadXAuth.redirectIfLoggedIn()) return;
+
+      const form = document.getElementById('signupForm');
+      const nameInput = document.getElementById('signupName');
+      const emailInput = document.getElementById('signupEmail');
+      const passInput = document.getElementById('signupPassword');
+      const confirmInput = document.getElementById('signupConfirmPassword');
+      const termsInput = document.getElementById('signupTerms');
+      const labelTerms = document.getElementById('labelTerms');
+
+      const alertBox = document.getElementById('authAlert');
+      const alertMsg = document.getElementById('authAlertMsg');
+
+      const groupName = document.getElementById('groupName');
+      const groupEmail = document.getElementById('groupEmail');
+      const groupPassword = document.getElementById('groupPassword');
+      const groupConfirmPassword = document.getElementById('groupConfirmPassword');
+      const groupTerms = document.getElementById('groupTerms');
+
+      const togglePassBtn = document.getElementById('togglePassBtn');
+      const eyeIcon1 = document.getElementById('eyeIcon1');
+      const toggleConfirmPassBtn = document.getElementById('toggleConfirmPassBtn');
+      const eyeIcon2 = document.getElementById('eyeIcon2');
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      // Toggle password 1
+      togglePassBtn.addEventListener('click', () => {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        toggleEyeIcon(eyeIcon1, isPass);
+      });
+
+      // Toggle password 2
+      toggleConfirmPassBtn.addEventListener('click', () => {
+        const isPass = confirmInput.type === 'password';
+        confirmInput.type = isPass ? 'text' : 'password';
+        toggleEyeIcon(eyeIcon2, isPass);
+      });
+
+      function toggleEyeIcon(svgEl, isHiddenNow) {
+        if (isHiddenNow) {
+          svgEl.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          `;
+        } else {
+          svgEl.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          `;
+        }
+      }
+
+      function showAlert(msg, type = 'error') {
+        alertMsg.textContent = msg;
+        alertBox.className = `auth-alert auth-alert--${type} visible`;
+        if (type === 'error') {
+          alertBox.classList.remove('auth-alert--shake');
+          void alertBox.offsetWidth;
+          alertBox.classList.add('auth-alert--shake');
+        }
+      }
+
+      function hideAlert() {
+        alertBox.className = 'auth-alert';
+      }
+
+      // Inline validation helpers
+      nameInput.addEventListener('blur', () => {
+        const val = nameInput.value.trim();
+        if (!val || val.length < 2) {
+          groupName.classList.add('has-error');
+        } else {
+          groupName.classList.remove('has-error');
+        }
+      });
+
+      emailInput.addEventListener('blur', () => {
+        const val = emailInput.value.trim();
+        if (!val || !emailRegex.test(val)) {
+          groupEmail.classList.add('has-error');
+        } else {
+          groupEmail.classList.remove('has-error');
+        }
+      });
+
+      passInput.addEventListener('blur', () => {
+        const val = passInput.value;
+        if (!val || val.length < 6) {
+          groupPassword.classList.add('has-error');
+        } else {
+          groupPassword.classList.remove('has-error');
+        }
+      });
+
+      confirmInput.addEventListener('blur', () => {
+        const pass = passInput.value;
+        const conf = confirmInput.value;
+        if (!conf || conf !== pass) {
+          groupConfirmPassword.classList.add('has-error');
+        } else {
+          groupConfirmPassword.classList.remove('has-error');
+        }
+      });
+
+      termsInput.addEventListener('change', () => {
+        if (termsInput.checked) {
+          groupTerms.classList.remove('has-error');
+          labelTerms.classList.remove('has-error');
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passInput.value;
+        const confirmPass = confirmInput.value;
+        const termsAccepted = termsInput.checked;
+
+        let hasError = false;
+
+        if (!name || name.length < 2) {
+          groupName.classList.add('has-error');
+          hasError = true;
+        } else {
+          groupName.classList.remove('has-error');
+        }
+
+        if (!email || !emailRegex.test(email)) {
+          groupEmail.classList.add('has-error');
+          hasError = true;
+        } else {
+          groupEmail.classList.remove('has-error');
+        }
+
+        if (!password || password.length < 6) {
+          groupPassword.classList.add('has-error');
+          hasError = true;
+        } else {
+          groupPassword.classList.remove('has-error');
+        }
+
+        if (!confirmPass || confirmPass !== password) {
+          groupConfirmPassword.classList.add('has-error');
+          hasError = true;
+        } else {
+          groupConfirmPassword.classList.remove('has-error');
+        }
+
+        if (!termsAccepted) {
+          groupTerms.classList.add('has-error');
+          labelTerms.classList.add('has-error');
+          hasError = true;
+        } else {
+          groupTerms.classList.remove('has-error');
+          labelTerms.classList.remove('has-error');
+        }
+
+        if (hasError) {
+          showAlert('Please correct the highlighted fields.');
+          return;
+        }
+
+        const result = ReadXAuth.signup({ name, email, password });
+        if (result.success) {
+          // Check if there was a redirected destination
+          const params = new URLSearchParams(window.location.search);
+          const redirectParam = params.get('redirect');
+          const destination = (redirectParam && !redirectParam.includes('://'))
+            ? redirectParam
+            : 'index.html';
+
+          window.location.href = destination;
+        } else {
+          showAlert(result.error || 'Failed to create account.');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

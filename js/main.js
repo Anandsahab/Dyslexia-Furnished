@@ -431,8 +431,31 @@ const App = {
 
   injectSharedComponents() {
     const isComfortOn = localStorage.getItem('readx-dyslexia-mode') === 'true';
-    const profile = typeof ReadXData !== 'undefined' ? ReadXData.getProfile() : { name: 'R' };
+    const currentUser = (typeof ReadXAuth !== 'undefined') ? ReadXAuth.getCurrentUser() : null;
+    const profile = currentUser || (typeof ReadXData !== 'undefined' ? ReadXData.getProfile() : { name: 'R' });
+    const isLoggedIn = !!currentUser;
     const avatarLetter = (profile.name || 'R').charAt(0).toUpperCase();
+
+    const authActionHTML = isLoggedIn
+      ? `<a href="profile.html" class="nav-avatar" id="navAvatar" title="Profile (${profile.name})" aria-label="Profile (${profile.name})">${avatarLetter}</a>`
+      : `<a href="login.html" class="nav-login-btn" id="navLoginBtn">Login</a>`;
+
+    const mobileLinksHTML = isLoggedIn
+      ? `
+        <a href="index.html">Home</a>
+        <a href="library.html">Library</a>
+        <a href="upload.html">My Content</a>
+        <a href="practice.html">Practice</a>
+        <a href="profile.html">Profile (${profile.name})</a>
+        <a href="#" id="mobileLogoutLink" style="color: #E8A598;">Logout</a>
+      `
+      : `
+        <a href="index.html">Home</a>
+        <a href="library.html">Library</a>
+        <a href="upload.html">My Content</a>
+        <a href="practice.html">Practice</a>
+        <a href="login.html">Login</a>
+      `;
 
     const navHTML = `
       <nav class="navbar">
@@ -444,10 +467,7 @@ const App = {
             <span></span><span></span><span></span>
           </button>
           <div class="nav-links" id="navLinks">
-            <a href="index.html">Home</a>
-            <a href="library.html">Library</a>
-            <a href="upload.html">My Content</a>
-            <a href="practice.html">Practice</a>
+            ${mobileLinksHTML}
           </div>
           <div class="nav-actions" style="display:flex; align-items:center; gap:0.75rem; position:relative;">
             <button class="comfort-toggle-btn ${isComfortOn ? 'active' : ''}" id="comfortModeBtn" aria-pressed="${isComfortOn}" aria-label="ReadX Mode">
@@ -535,11 +555,15 @@ const App = {
               <button class="settings-reset-btn" id="btnResetSettings">Reset to recommended</button>
             </div>
 
-            <a href="profile.html" class="nav-avatar" id="navAvatar" aria-label="Profile">${avatarLetter}</a>
+            ${authActionHTML}
           </div>
         </div>
       </nav>
     `;
+
+    const footerAuthHTML = isLoggedIn
+      ? `<a href="profile.html">Profile</a><a href="#" id="footerLogoutLink">Logout</a>`
+      : `<a href="login.html">Login</a><a href="signup.html">Sign Up</a>`;
 
     const footerHTML = `
       <footer class="site-footer">
@@ -557,7 +581,7 @@ const App = {
             </div>
             <div class="site-footer-col">
               <span class="site-footer-col-label">Account</span>
-              <a href="profile.html">Profile</a>
+              ${footerAuthHTML}
               <a href="index.html">Home</a>
             </div>
           </div>
@@ -572,6 +596,7 @@ const App = {
     document.body.insertAdjacentHTML('beforeend', footerHTML);
     this.setActiveNavLink();
     this.initMobileNav();
+    this.initAuthListeners();
 
     // Scroll event listener for sticky shrink effect
     const navbar = document.querySelector('.navbar');
@@ -585,6 +610,24 @@ const App = {
       };
       window.addEventListener('scroll', handleScroll);
       handleScroll(); // Initialize on load
+    }
+  },
+
+  initAuthListeners() {
+    const mobileLogout = document.getElementById('mobileLogoutLink');
+    if (mobileLogout) {
+      mobileLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof ReadXAuth !== 'undefined') ReadXAuth.logout();
+      });
+    }
+
+    const footerLogout = document.getElementById('footerLogoutLink');
+    if (footerLogout) {
+      footerLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof ReadXAuth !== 'undefined') ReadXAuth.logout();
+      });
     }
   },
 
@@ -623,6 +666,8 @@ const App = {
     const navAvatar = document.getElementById('navAvatar');
     if (navAvatar && name) {
       navAvatar.textContent = name.charAt(0).toUpperCase();
+      navAvatar.setAttribute('title', `Profile (${name})`);
+      navAvatar.setAttribute('aria-label', `Profile (${name})`);
     }
   },
 

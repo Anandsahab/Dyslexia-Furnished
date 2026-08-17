@@ -1,6 +1,11 @@
 // js/upload.js
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Protect page: require login
+  if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.protectPage()) {
+    return;
+  }
+
   const zone = document.getElementById('uploadZone');
   const input = document.getElementById('uploadInput');
   const browseBtn = document.getElementById('uploadBrowseBtn');

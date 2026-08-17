@@ -1,12 +1,32 @@
 // js/profile.js — personal learning dashboard
 
 document.addEventListener('DOMContentLoaded', () => {
-  const profile = ReadXData.getProfile();
-  const stats = ReadXData.getLearningStats();
+  // Protect page: require login
+  if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.protectPage()) {
+    return;
+  }
+
+  const currentUser = typeof ReadXAuth !== 'undefined' ? ReadXAuth.getCurrentUser() : null;
+  const profile = currentUser || (typeof ReadXData !== 'undefined' ? ReadXData.getProfile() : {
+    name: 'Chaitanya Anand',
+    email: 'chaitanya@readx.app',
+    bio: 'Computer Science student · ReadX learner'
+  });
+  const stats = typeof ReadXData !== 'undefined' ? ReadXData.getLearningStats() : {};
 
   const nameInput = document.getElementById('profileName');
   const emailInput = document.getElementById('profileEmail');
   const form = document.getElementById('profileForm');
+  const logoutBtn = document.getElementById('profileLogoutBtn');
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof ReadXAuth !== 'undefined') {
+        ReadXAuth.logout();
+      }
+    });
+  }
 
   nameInput.value = profile.name;
   emailInput.value = profile.email;
@@ -112,7 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
       name: nameInput.value.trim() || profile.name,
       email: emailInput.value.trim() || profile.email
     };
-    ReadXData.saveProfile(updated);
+    if (typeof ReadXAuth !== 'undefined') {
+      ReadXAuth.updateCurrentUserProfile(updated);
+    }
+    if (typeof ReadXData !== 'undefined') {
+      ReadXData.saveProfile(updated);
+    }
     document.getElementById('profileDisplayName').textContent = updated.name;
     document.getElementById('profileDisplayEmail').textContent = updated.email;
     document.getElementById('profileAvatar').textContent = updated.name.charAt(0).toUpperCase();
