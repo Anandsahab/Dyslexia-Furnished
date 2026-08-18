@@ -1200,3 +1200,183 @@ body.dyslexia-mode .reading-progress-container.visible {
     max-width: none;
   }
 }
+
+/* ============================================================
+   GLOBAL RX LOADER COMPONENT
+   ============================================================ */
+.rx-loader {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 99999;
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 450ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+.rx-loader.loaded {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.rx-loader.fast-fade {
+  transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rx-loader-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.rx-lettermark {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 8vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  line-height: 1;
+  position: relative;
+  display: inline-block;
+  user-select: none;
+  animation: rxFocusPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.rx-lettermark .rx-accent {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--accent);
+  margin-left: 0.04em;
+  position: relative;
+}
+
+.rx-lettermark::after {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  border-radius: 1px;
+  margin-left: 5px;
+  transform: translateY(-4px);
+  vertical-align: baseline;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.rx-glow-bar {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 1px;
+  background: var(--border-color);
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.rx-glow-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 50%,
+    transparent 100%
+  );
+  animation: rxGlowSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.rx-loader-inner::before {
+  content: '';
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-soft-strong) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: rxAmbientPulse 3s ease-in-out infinite alternate;
+}
+
+/* KEYFRAMES */
+@keyframes rxFocusPulse {
+  0% {
+    filter: blur(4px);
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+  35% {
+    filter: blur(0px);
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    filter: blur(0px);
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  100% {
+    filter: blur(4px);
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes rxGlowSweep {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
+@keyframes rxAmbientPulse {
+  0% {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  100% {
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* ACCESSIBILITY: Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .rx-lettermark,
+  .rx-glow-bar::after,
+  .rx-loader-inner::before {
+    animation: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .rx-loader {
+    transition: opacity 200ms linear, visibility 200ms linear !important;
+  }
+}
+

@@ -422,11 +422,84 @@ const App = {
   },
 
   init() {
+    this.initGlobalLoader();
     this.injectSharedComponents();
     this.initComfortToggle();
     this.initSettingsPanel();
     this.initScrollToTop();
     ReadingAssist.init();
+  },
+
+  initGlobalLoader() {
+    let loader = document.getElementById('rxLoader');
+    if (!loader) {
+      loader = document.createElement('div');
+      loader.id = 'rxLoader';
+      loader.className = 'rx-loader';
+      loader.setAttribute('aria-hidden', 'true');
+      loader.innerHTML = `
+        <div class="rx-loader-inner">
+          <span class="rx-lettermark">R<span class="rx-accent">x</span></span>
+          <div class="rx-glow-bar"></div>
+        </div>
+      `;
+      document.body.prepend(loader);
+    }
+
+    // Determine navigation context
+    const isReload = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]?.type === 'reload') ||
+                     (performance.navigation && performance.navigation.type === 1);
+
+    let isInternalNav = false;
+    try {
+      isInternalNav = !isReload && sessionStorage.getItem('readx-nav-type') === 'internal';
+      sessionStorage.removeItem('readx-nav-type');
+    } catch (e) {
+      isInternalNav = false;
+    }
+
+    // 200ms for internal navbar navigation, 2000ms for initial load / refresh / direct URL access
+    const MIN_VISIBLE_MS = isInternalNav ? 200 : 2000;
+    const fadeOutCleanupMs = isInternalNav ? 280 : 500;
+
+    if (isInternalNav && loader) {
+      loader.classList.add('fast-fade');
+    }
+
+    const startTime = performance.now();
+    let pageReady = false;
+    let dismissed = false;
+
+    const dismissLoader = () => {
+      if (dismissed || !loader) return;
+      dismissed = true;
+      loader.classList.add('loaded');
+      setTimeout(() => {
+        if (loader && loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, fadeOutCleanupMs);
+    };
+
+    const tryDismiss = () => {
+      if (!pageReady || dismissed) return;
+      const elapsedTime = performance.now() - startTime;
+      const remainingTime = Math.max(0, MIN_VISIBLE_MS - elapsedTime);
+      setTimeout(dismissLoader, remainingTime);
+    };
+
+    const onPageReady = () => {
+      pageReady = true;
+      tryDismiss();
+    };
+
+    if (document.readyState === 'complete') {
+      onPageReady();
+    } else {
+      window.addEventListener('load', onPageReady);
+      // Safety fallback so page is never blocked indefinitely (e.g. 5s max)
+      setTimeout(onPageReady, 5000);
+    }
   },
 
   injectSharedComponents() {
@@ -629,13 +702,18 @@ const App = {
       });
     }
 
-    // Intercept clicks on protected links (Library & My Content) when logged out
+    // Intercept clicks on links for navigation context tracking & auth protection
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a');
       if (!link) return;
 
       const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || href.includes('://')) return;
+      if (!href || href.startsWith('#') || href.includes('://') || href.startsWith('javascript:')) return;
+
+      // Mark internal navigation context
+      try {
+        sessionStorage.setItem('readx-nav-type', 'internal');
+      } catch (err) {}
 
       const pathPart = href.split('?')[0].split('#')[0];
       const protectedPages = ['library.html', 'upload.html'];
