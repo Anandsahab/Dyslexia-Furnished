@@ -460,8 +460,8 @@ const App = {
       isInternalNav = false;
     }
 
-    // 200ms for internal navbar navigation, 2000ms for initial load / refresh / direct URL access
-    const MIN_VISIBLE_MS = isInternalNav ? 200 : 2000;
+    // 180ms (0.18s) for internal navbar navigation, 2000ms for initial load / refresh / direct URL access
+    const MIN_VISIBLE_MS = isInternalNav ? 180 : 2000;
     const fadeOutCleanupMs = isInternalNav ? 280 : 500;
 
     if (isInternalNav && loader) {
