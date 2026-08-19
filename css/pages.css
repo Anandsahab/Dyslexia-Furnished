@@ -864,6 +864,7 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .rx-pdf-readx-bar {
@@ -875,6 +876,8 @@
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   font-size: var(--fs-caption);
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .rx-readx-badge {
@@ -883,6 +886,23 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.rx-pdf-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.rx-pdf-readx-layout {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .rx-pdf-view-stage {
@@ -891,85 +911,301 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  transition: background-color 380ms var(--ease);
+  background: var(--bg-primary);
+  transition: background-color 250ms var(--ease);
 }
 
-/* Accessibility paper theme background washes over PDF stage */
-body.dyslexia-mode[data-theme="warm"] .rx-pdf-view-stage {
-  background: #F5F1E6;
-}
-
-body.dyslexia-mode[data-theme="dark"] .rx-pdf-view-stage {
-  background: #14131A;
-}
-
-body.dyslexia-mode[data-theme="light"] .rx-pdf-view-stage {
-  background: #FAFAF8;
-}
+/* ============================================================
+   INDEPENDENT ACCESSIBILITY OVERLAYS (UNTOUCHED PDF CANVAS)
+   ============================================================ */
 
 /* Interactive Reading Ruler Overlay */
 .rx-reading-ruler-overlay {
   position: absolute;
   left: 0;
   right: 0;
-  height: 48px;
-  background: rgba(138, 149, 96, 0.18);
+  height: 38px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
   border-top: 2px solid var(--accent);
   border-bottom: 2px solid var(--accent);
   pointer-events: none;
-  z-index: 10;
-  box-shadow: 0 0 20px rgba(138, 149, 96, 0.25);
-  transition: top 80ms linear;
+  z-index: 12;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: top 40ms ease-out;
+  display: none;
 }
 
-/* Line Focus Overlay */
+/* Line Focus Highlight Overlay */
 .rx-focus-highlight-overlay {
   position: absolute;
   left: 0;
   right: 0;
-  height: 28px;
-  background: rgba(217, 131, 79, 0.22);
+  height: 32px;
+  background: color-mix(in srgb, var(--copper) 22%, transparent);
   border-top: 2px solid var(--copper);
   border-bottom: 2px solid var(--copper);
   pointer-events: none;
-  z-index: 11;
-  box-shadow: 0 0 16px rgba(217, 131, 79, 0.3);
-  transition: top 100ms ease-out;
+  z-index: 13;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--copper) 25%, transparent);
+  transition: top 40ms ease-out;
+  display: none;
 }
 
-/* READX Accessibility Text Overlay Panel */
+/* Backdrop Dimming Masks for Line Focus */
+.rx-focus-dim-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  z-index: 11;
+  display: none;
+  transition: top 40ms ease-out, height 40ms ease-out;
+}
+
+body[data-theme="light"] .rx-focus-dim-mask {
+  background: rgba(40, 44, 34, 0.32);
+}
+
+/* Focus Area Window Spotlight Overlay */
+.rx-focus-window-overlay {
+  position: absolute;
+  width: 90%;
+  max-width: 760px;
+  height: 120px;
+  left: 5%;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.46);
+  pointer-events: none;
+  z-index: 14;
+  display: none;
+  transition: top 40ms ease-out;
+}
+
+body[data-theme="light"] .rx-focus-window-overlay {
+  box-shadow: 0 0 0 9999px rgba(30, 35, 25, 0.35);
+}
+
+/* PDF frame iframe container */
+.rx-pdf-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border: none;
+  background: transparent;
+  transform-origin: top center;
+  transition: transform 180ms ease-out;
+}
+
+/* ============================================================
+   ACCESSIBILITY & READING PREFERENCES SIDE PANEL
+   ============================================================ */
+.rx-accessibility-panel {
+  width: 360px;
+  min-width: 320px;
+  max-width: 420px;
+  height: 100%;
+  background: var(--surface-primary);
+  border-left: 1px solid var(--border-color);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 20;
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s var(--ease), width 0.25s var(--ease), opacity 0.25s var(--ease);
+}
+
+.rx-accessibility-panel.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  border-left: none;
+  transform: translateX(100%);
+}
+
+.rx-panel-header {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-secondary);
+  flex-shrink: 0;
+}
+
+.rx-panel-header h3 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rx-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Accordion Group Section */
+.rx-panel-group {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.rx-group-header {
+  padding: 0.75rem 1rem;
+  background: var(--surface-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rx-group-header:hover {
+  background: var(--surface-hover);
+}
+
+.rx-group-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rx-group-content[hidden] {
+  display: none;
+}
+
+/* Control Row Items inside Panel */
+.rx-ctrl-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rx-ctrl-label-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.rx-ctrl-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--copper);
+  font-family: var(--font-mono, monospace);
+}
+
+.rx-ctrl-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Segmented Control Buttons */
+.rx-seg-control {
+  display: flex;
+  align-items: center;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.rx-seg-btn {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.rx-seg-btn:hover {
+  color: var(--text-primary);
+}
+
+.rx-seg-btn.active {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Toggle Switch Row */
+.rx-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Audio Player Box in Panel */
+.rx-audio-panel-box {
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rx-audio-btns-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Accessible Extracted Text Box */
 .rx-text-overlay-panel {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 440px;
+  width: 420px;
   max-width: 90%;
   z-index: 15;
-  padding: 1.75rem;
+  padding: 1.5rem;
   box-sizing: border-box;
   overflow-y: auto;
-  background: var(--surface-primary, rgba(21, 23, 19, 0.94));
-  border-left: 1px solid var(--copper);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-[data-theme="warm"] .rx-text-overlay-panel {
-  background: rgba(247, 243, 233, 0.96) !important;
-  color: #26241E !important;
-  border-left-color: #D9834F !important;
-}
-
-[data-theme="light"] .rx-text-overlay-panel {
-  background: rgba(255, 255, 255, 0.96) !important;
-  color: #111827 !important;
-}
-
-[data-theme="dark"] .rx-text-overlay-panel {
-  background: rgba(18, 20, 16, 0.96) !important;
-  color: #F3F4F6 !important;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s var(--ease);
 }
 
 .rx-text-overlay-panel .sentence {
@@ -982,11 +1218,11 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-view-stage {
 }
 
 .rx-text-overlay-panel .sentence:hover {
-  background-color: rgba(217, 131, 79, 0.15);
+  background-color: color-mix(in srgb, var(--copper) 16%, transparent);
 }
 
 .rx-text-overlay-panel .sentence.tts-active {
-  background-color: rgba(217, 131, 79, 0.35) !important;
+  background-color: color-mix(in srgb, var(--copper) 35%, transparent) !important;
   color: var(--copper) !important;
   border-left: 3px solid var(--copper);
   font-weight: 600;

@@ -69,10 +69,12 @@
           <h2 class="rx-modal-title" id="modalDocTitle">Document Viewer</h2>
         </div>
         <div class="rx-modal-mode-toggle">
-          <button class="rx-mode-btn active" id="modalBtnStandard">STANDARD READING</button>
-          <button class="rx-mode-btn" id="modalBtnReadX">READX</button>
+          <button class="rx-mode-btn active" id="modalBtnStandard" type="button">STANDARD READING</button>
+          <button class="rx-mode-btn" id="modalBtnReadX" type="button">READX</button>
         </div>
-        <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader">&times;</button>
+        <div class="rx-header-right-actions">
+          <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader" type="button">&times;</button>
+        </div>
       </header>
 
       <div class="rx-modal-body">
@@ -82,8 +84,18 @@
 
       <footer class="rx-modal-footer">
         <div class="rx-footer-meta" id="modalFooterMeta">Standard Reading Mode · Original Document</div>
-        <div class="rx-footer-actions">
-          <button class="btn btn-outline btn-sm" id="modalTtsBtn">🔊 Read Aloud</button>
+        <div class="rx-footer-actions" id="modalFooterActions">
+          <div class="rx-audio-controls-group" id="modalAudioBar" style="display:none;">
+            <button class="btn btn-outline btn-sm rx-audio-btn" id="modalTtsBtn" type="button">▶️ Read Aloud</button>
+            <button class="btn btn-ghost btn-sm rx-audio-btn" id="modalTtsStopBtn" type="button" style="display:none;">⏹️ Stop</button>
+            <select class="rx-audio-speed-select" id="modalTtsSpeedSelect" title="Reading speed">
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2.0x</option>
+            </select>
+          </div>
         </div>
       </footer>
     </div>
