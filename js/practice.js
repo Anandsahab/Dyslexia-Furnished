@@ -130,9 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
       pct >= 60 ? `Good effort on ${currentQuiz.title}. Review the topics and try again.` :
       `Keep studying ${currentQuiz.category} topics and retake the quiz.`;
 
-    ReadXData.recordQuizScore(currentQuiz.id, score, total);
-    if (sourceTopic && typeof ReadXData.recordTopicPractice === 'function') {
-      ReadXData.recordTopicPractice(sourceTopic, score, total);
+    if (typeof ReadXData !== 'undefined' && ReadXData.recordTopicPractice) {
+      ReadXData.recordTopicPractice(sourceTopic || currentQuiz.id, score, total, currentQuiz.title);
     }
   }
 

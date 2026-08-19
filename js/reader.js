@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const article = ReadXData.getArticle(id);
     if (!article) return;
 
+    if (currentId && currentId !== id) {
+      ReadXData.endReadingSession(currentId);
+    }
+
     currentId = id;
     titleEl.textContent = article.title;
     categoryEl.textContent = article.category;
@@ -50,10 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ReadingAssist.tts) ReadingAssist.tts.stop();
     ReadingAssist.chunkText();
     ReadingAssist.sentences = Array.from(document.querySelectorAll('.reading-content .sentence'));
+
+    // Start reading session
+    const words = (contentEl.textContent || '').trim().split(/\s+/).length || 350;
+    ReadXData.startReadingSession(id, article.title, words);
   }
 
   select.addEventListener('change', () => loadArticle(select.value));
   loadArticle(currentId);
+
+  window.addEventListener('beforeunload', () => {
+    if (currentId) ReadXData.endReadingSession(currentId);
+  });
 
   // Track reading progress
   const readTime = allItems.find(i => i.id === currentId)?.readTime;

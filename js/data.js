@@ -268,66 +268,112 @@ const ReadXData = {
       ]
     }
   },
+  // ============================================================
+  // USER-SCOPED DATA & LIVE TRACKING ENGINE
+  // ============================================================
 
-  getProfile() {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.profile);
-    return saved ? JSON.parse(saved) : {
-      name: 'Chaitanya Anand',
-      email: 'chaitanya@readx.app',
-      joined: '2026-01-15',
-      bio: 'Computer Science student · ReadX learner'
-    };
+  getCurrentUserId() {
+    if (typeof ReadXAuth !== 'undefined' && ReadXAuth.getCurrentUser) {
+      const user = ReadXAuth.getCurrentUser();
+      if (user && user.id) return user.id;
+    }
+    return 'usr_guest';
   },
 
-  saveProfile(profile) {
-    localStorage.setItem(this.STORAGE_KEYS.profile, JSON.stringify(profile));
+  getUserStorageKey(baseKey, userId) {
+    const uid = userId || this.getCurrentUserId();
+    return `readx_user_${uid}_${baseKey}`;
   },
 
-  getLearningStats() {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.learningStats);
-    const progress = this.getProgress();
-    const defaults = {
-      topicsCompleted: 6,
-      readingSessions: 24,
-      practiceAccuracy: 82,
-      questionsAttempted: 45,
-      questionsCorrect: 37,
-      wordsRead: 12400,
-      readingTimeMinutes: 186,
-      categoryProgress: { DSA: 80, 'AI/ML': 60 },
-      recentActivity: [
-        { topic: 'Binary Search', type: 'practice', accuracy: 90, date: '2026-08-12' },
-        { topic: 'Recursion', type: 'practice', accuracy: 70, date: '2026-08-11' },
-        { topic: 'Neural Networks', type: 'practice', accuracy: 85, date: '2026-08-10' },
-        { topic: 'Sorting Algorithms', type: 'read', progress: 100, date: '2026-08-09' },
-        { topic: 'Linear Regression', type: 'read', progress: 75, date: '2026-08-08' }
-      ],
-      topicsNeedingRevision: ['Recursion', 'Clustering'],
-      readingHistory: [
-        { topic: 'Binary Search', minutes: 12, date: '2026-08-12' },
-        { topic: 'Neural Networks', minutes: 18, date: '2026-08-10' },
-        { topic: 'Graphs', minutes: 15, date: '2026-08-08' },
-        { topic: 'Classification', minutes: 10, date: '2026-08-06' }
-      ]
-    };
+  getProfile(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('profile', uid);
+    const saved = localStorage.getItem(key);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...defaults, ...parsed, categoryProgress: { ...defaults.categoryProgress, ...parsed.categoryProgress } };
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    if (progress.quizAttempts.length > 0 || progress.articlesRead.length > 0) {
-      const correct = progress.quizAttempts.reduce((s, a) => s + a.score, 0);
-      const total = progress.quizAttempts.reduce((s, a) => s + a.total, 0);
-      defaults.questionsAttempted = total || defaults.questionsAttempted;
-      defaults.questionsCorrect = correct || defaults.questionsCorrect;
-      defaults.practiceAccuracy = total ? Math.round((correct / total) * 100) : defaults.practiceAccuracy;
-      defaults.topicsCompleted = progress.articlesRead.length || defaults.topicsCompleted;
-      defaults.readingTimeMinutes = progress.totalReadTime || defaults.readingTimeMinutes;
+
+    if (typeof ReadXAuth !== 'undefined') {
+      const u = ReadXAuth.getCurrentUser();
+      if (u && u.id === uid) {
+        return {
+          id: u.id,
+          name: u.name || 'ReadX Learner',
+          email: u.email || 'user@readx.app',
+          joined: u.joined || '2026-01-15',
+          bio: u.bio || 'Computer Science student · ReadX learner'
+        };
+      }
     }
+
+    return {
+      id: uid,
+      name: 'ReadX Learner',
+      email: 'user@readx.app',
+      joined: new Date().toISOString().split('T')[0],
+      bio: 'ReadX learner'
+    };
+  },
+
+  saveProfile(profile, userId) {
+    const uid = userId || profile?.id || this.getCurrentUserId();
+    const key = this.getUserStorageKey('profile', uid);
+    localStorage.setItem(key, JSON.stringify(profile));
+  },
+
+  getLearningStats(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('learning-stats', uid);
+    const saved = localStorage.getItem(key);
+    
+    const defaults = {
+      readingSessions: 0,
+      wordsRead: 0,
+      readingTimeMinutes: 0,
+      documentsOpened: 0,
+      documentsCompleted: 0,
+      questionsAttempted: 0,
+      questionsCorrect: 0,
+      questionsIncorrect: 0,
+      practiceAccuracy: 0,
+      topicsPracticed: [],
+      topicsCompleted: [],
+      readxSessionsCount: 0,
+      readAloudUsageCount: 0,
+      lineFocusUsageCount: 0,
+      readingGuideUsageCount: 0,
+      recentActivity: [],
+      readingHistory: {},
+      continueReading: null,
+      streak: {
+        current: 0,
+        longest: 0,
+        historyDates: []
+      }
+    };
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...defaults,
+          ...parsed,
+          readingHistory: parsed.readingHistory || {},
+          recentActivity: parsed.recentActivity || [],
+          streak: { ...defaults.streak, ...(parsed.streak || {}) }
+        };
+      } catch (e) {
+        console.error('Error parsing user learning stats', e);
+      }
+    }
+
     return defaults;
   },
 
-  saveLearningStats(stats) {
-    localStorage.setItem(this.STORAGE_KEYS.learningStats, JSON.stringify(stats));
+  saveLearningStats(stats, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('learning-stats', uid);
+    localStorage.setItem(key, JSON.stringify(stats));
   },
 
   getTopic(id) {
@@ -336,101 +382,314 @@ const ReadXData = {
   },
 
   markTopicVisited(id) {
-    const visits = JSON.parse(localStorage.getItem(this.STORAGE_KEYS.topicVisits) || '[]');
+    const uid = this.getCurrentUserId();
+    const visitsKey = this.getUserStorageKey('topic-visits', uid);
+    const visits = JSON.parse(localStorage.getItem(visitsKey) || '[]');
     if (!visits.includes(id)) visits.push(id);
-    localStorage.setItem(this.STORAGE_KEYS.topicVisits, JSON.stringify(visits));
-    const stats = this.getLearningStats();
-    stats.readingSessions = (stats.readingSessions || 0) + 1;
-    this.saveLearningStats(stats);
+    localStorage.setItem(visitsKey, JSON.stringify(visits));
     this.markArticleRead(id, 8);
   },
 
-  recordTopicPractice(topicId, score, total) {
-    this.recordQuizScore(topicId, score, total);
-    const stats = this.getLearningStats();
-    const accuracy = Math.round((score / total) * 100);
-    const topicTitle = this.getTopic(topicId)?.title || topicId;
-    stats.recentActivity.unshift({
-      topic: topicTitle,
-      type: 'practice',
-      accuracy,
-      date: new Date().toISOString().split('T')[0]
-    });
-    stats.recentActivity = stats.recentActivity.slice(0, 8);
-    stats.questionsAttempted = (stats.questionsAttempted || 0) + total;
-    stats.questionsCorrect = (stats.questionsCorrect || 0) + score;
-    stats.practiceAccuracy = Math.round((stats.questionsCorrect / stats.questionsAttempted) * 100);
-    this.saveLearningStats(stats);
-  },
-
-  getUploads() {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.uploads);
+  getUploads(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('uploads', uid);
+    const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : [];
   },
 
-  saveUploads(uploads) {
-    localStorage.setItem(this.STORAGE_KEYS.uploads, JSON.stringify(uploads));
+  saveUploads(uploads, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('uploads', uid);
+    localStorage.setItem(key, JSON.stringify(uploads));
   },
 
-  getProgress() {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.progress);
+  getProgress(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('progress', uid);
+    const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : {
       articlesRead: [],
       totalReadTime: 0,
       quizAttempts: [],
-      lastActive: null,
-      streak: 0
+      lastActive: null
     };
   },
 
-  saveProgress(progress) {
-    localStorage.setItem(this.STORAGE_KEYS.progress, JSON.stringify(progress));
+  saveProgress(progress, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('progress', uid);
+    localStorage.setItem(key, JSON.stringify(progress));
   },
 
-  getReadingProgress(articleId) {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.readingProgress);
+  getReadingProgress(articleId, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('reading-progress', uid);
+    const saved = localStorage.getItem(key);
     const all = saved ? JSON.parse(saved) : {};
     return all[articleId] || 0;
   },
 
-  setReadingProgress(articleId, percent) {
-    const saved = localStorage.getItem(this.STORAGE_KEYS.readingProgress);
+  setReadingProgress(articleId, percent, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const key = this.getUserStorageKey('reading-progress', uid);
+    const saved = localStorage.getItem(key);
     const all = saved ? JSON.parse(saved) : {};
-    all[articleId] = Math.max(all[articleId] || 0, percent);
-    localStorage.setItem(this.STORAGE_KEYS.readingProgress, JSON.stringify(all));
+    const clamped = Math.min(100, Math.max(all[articleId] || 0, percent));
+    all[articleId] = clamped;
+    localStorage.setItem(key, JSON.stringify(all));
+
+    const stats = this.getLearningStats(uid);
+    const topic = this.getTopic(articleId) || this.getUploads(uid).find(u => u.id === articleId);
+    if (topic) {
+      stats.continueReading = {
+        docId: articleId,
+        title: topic.title || topic.filename || 'Document',
+        progress: clamped,
+        timestamp: Date.now()
+      };
+      if (clamped >= 90 && !stats.topicsCompleted.includes(articleId)) {
+        stats.topicsCompleted.push(articleId);
+        stats.documentsCompleted = stats.topicsCompleted.length;
+      }
+      this.saveLearningStats(stats, uid);
+    }
   },
 
   markArticleRead(articleId, readTimeMin) {
-    const progress = this.getProgress();
+    const uid = this.getCurrentUserId();
+    const progress = this.getProgress(uid);
     if (!progress.articlesRead.includes(articleId)) {
       progress.articlesRead.push(articleId);
     }
-    progress.totalReadTime += readTimeMin || 5;
+    progress.totalReadTime = (progress.totalReadTime || 0) + (readTimeMin || 5);
     progress.lastActive = new Date().toISOString();
-    this.saveProgress(progress);
+    this.saveProgress(progress, uid);
   },
 
-  recordQuizScore(quizId, score, total) {
-    const progress = this.getProgress();
-    progress.quizAttempts.push({
-      quizId,
-      score,
-      total,
+  // ACTIVE READING SESSION LOGIC
+  startReadingSession(docId, docTitle, wordCount = 0, type = 'read') {
+    const uid = this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+    
+    const now = Date.now();
+    const sessionInfo = {
+      sessionId: 'sess_' + now,
+      docId: docId || 'general',
+      title: docTitle || 'Document',
+      startTime: now,
+      wordCount: wordCount || 0,
+      type
+    };
+
+    sessionStorage.setItem(`readx_active_session_${uid}`, JSON.stringify(sessionInfo));
+
+    stats.documentsOpened = (stats.documentsOpened || 0) + 1;
+    stats.continueReading = {
+      docId: docId || 'general',
+      title: docTitle || 'Document',
+      progress: this.getReadingProgress(docId, uid) || 10,
+      timestamp: now
+    };
+
+    this.addRecentActivity({
+      type: 'opened',
+      title: docTitle || 'Document',
+      detail: 'Opened reader session',
+      timestamp: now
+    }, uid);
+
+    this.saveLearningStats(stats, uid);
+    return sessionInfo;
+  },
+
+  endReadingSession(docId, wordCount = 0) {
+    const uid = this.getCurrentUserId();
+    const sessionStr = sessionStorage.getItem(`readx_active_session_${uid}`);
+    if (!sessionStr) return;
+
+    try {
+      const session = JSON.parse(sessionStr);
+      sessionStorage.removeItem(`readx_active_session_${uid}`);
+
+      const now = Date.now();
+      const elapsedMs = Math.max(0, now - session.startTime);
+      const elapsedMinutes = elapsedMs >= 5000 ? Math.max(1, Math.round(elapsedMs / 60000)) : 0;
+      
+      const stats = this.getLearningStats(uid);
+      stats.readingSessions = (stats.readingSessions || 0) + 1;
+      stats.readingTimeMinutes = (stats.readingTimeMinutes || 0) + elapsedMinutes;
+
+      const wordsToAdd = wordCount || session.wordCount || 0;
+      stats.wordsRead = (stats.wordsRead || 0) + wordsToAdd;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      stats.readingHistory[todayStr] = (stats.readingHistory[todayStr] || 0) + Math.max(1, elapsedMinutes);
+
+      this.recalculateStreak(stats, todayStr);
+      this.saveLearningStats(stats, uid);
+    } catch (e) {
+      console.error('Error ending reading session', e);
+    }
+  },
+
+  recalculateStreak(stats, todayStr) {
+    if (!stats.streak) {
+      stats.streak = { current: 0, longest: 0, historyDates: [] };
+    }
+    const history = stats.readingHistory || {};
+    const datesWithActivity = Object.keys(history).filter(d => history[d] > 0).sort();
+
+    stats.streak.historyDates = datesWithActivity;
+
+    if (datesWithActivity.length === 0) {
+      stats.streak.current = 0;
+      stats.streak.longest = 0;
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let checkDate = new Date(today);
+    let current = 0;
+    
+    const todayISO = checkDate.toISOString().split('T')[0];
+    let hasActivityNearNow = false;
+
+    if (history[todayISO] && history[todayISO] > 0) {
+      hasActivityNearNow = true;
+    } else {
+      checkDate.setDate(checkDate.getDate() - 1);
+      const yesterdayISO = checkDate.toISOString().split('T')[0];
+      if (history[yesterdayISO] && history[yesterdayISO] > 0) {
+        hasActivityNearNow = true;
+      }
+    }
+
+    if (hasActivityNearNow) {
+      checkDate = new Date(today);
+      if (!history[todayISO]) {
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+      while (true) {
+        const dStr = checkDate.toISOString().split('T')[0];
+        if (history[dStr] && history[dStr] > 0) {
+          current++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+    }
+
+    stats.streak.current = current;
+    stats.streak.longest = Math.max(stats.streak.longest || 0, current, datesWithActivity.length);
+  },
+
+  recordTopicPractice(topicId, score, total, topicTitle) {
+    const uid = this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+
+    const questionsTotal = (stats.questionsAttempted || 0) + total;
+    const questionsCorrect = (stats.questionsCorrect || 0) + score;
+    const questionsIncorrect = questionsTotal - questionsCorrect;
+    const accuracy = questionsTotal > 0 ? Math.round((questionsCorrect / questionsTotal) * 100) : 0;
+
+    stats.questionsAttempted = questionsTotal;
+    stats.questionsCorrect = questionsCorrect;
+    stats.questionsIncorrect = questionsIncorrect;
+    stats.practiceAccuracy = accuracy;
+
+    const title = topicTitle || (this.getTopic(topicId)?.title) || topicId;
+    if (!stats.topicsPracticed.includes(title)) {
+      stats.topicsPracticed.push(title);
+    }
+    if (accuracy >= 80 && !stats.topicsCompleted.includes(title)) {
+      stats.topicsCompleted.push(title);
+    }
+
+    this.addRecentActivity({
+      type: 'practice',
+      title: title,
+      detail: `${Math.round((score/total)*100)}% accuracy (${score}/${total})`,
+      timestamp: Date.now()
+    }, uid);
+
+    this.saveLearningStats(stats, uid);
+  },
+
+  recordFeatureUse(featureName, docTitle) {
+    const uid = this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+
+    if (featureName === 'readAloud') {
+      stats.readAloudUsageCount = (stats.readAloudUsageCount || 0) + 1;
+      this.addRecentActivity({
+        type: 'readAloud',
+        title: docTitle || 'Read Aloud',
+        detail: 'Text-to-speech audio active',
+        timestamp: Date.now()
+      }, uid);
+    } else if (featureName === 'readx') {
+      stats.readxSessionsCount = (stats.readxSessionsCount || 0) + 1;
+      this.addRecentActivity({
+        type: 'readx',
+        title: 'READX Mode',
+        detail: 'Toggled adaptive accessibility layout',
+        timestamp: Date.now()
+      }, uid);
+    } else if (featureName === 'lineFocus') {
+      stats.lineFocusUsageCount = (stats.lineFocusUsageCount || 0) + 1;
+    } else if (featureName === 'readingGuide') {
+      stats.readingGuideUsageCount = (stats.readingGuideUsageCount || 0) + 1;
+    }
+
+    this.saveLearningStats(stats, uid);
+  },
+
+  recordDocumentUpload(title, ext, words = 0) {
+    const uid = this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+
+    this.addRecentActivity({
+      type: 'uploaded',
+      title: title,
+      detail: `${(ext || 'DOCUMENT').toUpperCase()} file ${words > 0 ? '· ' + words + ' words' : ''}`,
+      timestamp: Date.now()
+    }, uid);
+
+    this.saveLearningStats(stats, uid);
+  },
+
+  addRecentActivity(activityObj, userId) {
+    const uid = userId || this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+
+    const newActivity = {
+      id: 'act_' + Date.now(),
+      type: activityObj.type || 'opened',
+      title: activityObj.title || 'Action',
+      detail: activityObj.detail || '',
+      timestamp: activityObj.timestamp || Date.now(),
       date: new Date().toISOString()
-    });
-    progress.lastActive = new Date().toISOString();
-    this.saveProgress(progress);
+    };
+
+    stats.recentActivity = stats.recentActivity || [];
+    stats.recentActivity.unshift(newActivity);
+    stats.recentActivity = stats.recentActivity.slice(0, 10);
+    this.saveLearningStats(stats, uid);
   },
 
   getAllLibraryItems() {
-    const uploads = this.getUploads().map(u => ({
+    const uid = this.getCurrentUserId();
+    const uploads = this.getUploads(uid).map(u => ({
       id: u.id,
       title: u.title,
       category: 'My Content',
       tag: 'Uploaded',
       readTime: u.readTime || '5 min',
       desc: u.desc || 'Your uploaded document.',
-      excerpt: u.excerpt || u.content.substring(0, 120) + '...',
+      excerpt: u.excerpt || (u.content ? u.content.substring(0, 120) + '...' : 'Original document preserved.'),
       isUpload: true
     }));
     return [...this.library, ...uploads];
@@ -438,16 +697,29 @@ const ReadXData = {
 
   getArticle(id) {
     if (this.articles[id]) return this.articles[id];
-    const upload = this.getUploads().find(u => u.id === id);
+    const uid = this.getCurrentUserId();
+    const upload = this.getUploads(uid).find(u => u.id === id);
     if (upload) {
+      if (upload.isReadable === false || !upload.content || !upload.content.trim()) {
+        return {
+          title: upload.title,
+          category: 'My Content',
+          desc: 'Unable to extract readable content from this file.',
+          sections: [{ id: 'content', title: 'Content' }],
+          content: '<div class="empty-state"><p>This file type can be uploaded, but READX cannot extract readable content from it yet.</p></div>'
+        };
+      }
+      const raw = upload.content.trim();
+      const formattedContent = raw.startsWith('<') ? raw : `<p>${raw.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
       return {
         title: upload.title,
         category: 'My Content',
         desc: upload.desc || 'Your uploaded document.',
         sections: [{ id: 'content', title: 'Content' }],
-        content: `<p>${upload.content.replace(/\n/g, '</p><p>')}</p>`
+        content: formattedContent
       };
     }
     return null;
   }
 };
+

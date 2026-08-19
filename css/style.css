@@ -7,22 +7,34 @@
 
 :root {
   /* ---- Surfaces (premium graphite, layered depth) ---- */
-  --bg-primary: #151713;            /* Primary Background: Deep Graphite */
-  --bg-secondary: #1E211B;          /* Secondary Background: Dark Olive-Graphite */
-  --bg-tertiary: #1A1C17;           /* Deeper Tonal Graphite */
-  --surface-primary: #1E211B;       /* Surface */
-  --surface-secondary: #272A22;     /* Elevated Surface */
-  --surface-hover: #2E3328;         /* Subtle Olive-Graphite Hover */
-  --surface-raised: #2C3027;        /* Elevated Surface / Modals */
+  --bg-primary: #151713;
+  /* Primary Background: Deep Graphite */
+  --bg-secondary: #1E211B;
+  /* Secondary Background: Dark Olive-Graphite */
+  --bg-tertiary: #1A1C17;
+  /* Deeper Tonal Graphite */
+  --surface-primary: #1E211B;
+  /* Surface */
+  --surface-secondary: #272A22;
+  /* Elevated Surface */
+  --surface-hover: #2E3328;
+  /* Subtle Olive-Graphite Hover */
+  --surface-raised: #2C3027;
+  /* Elevated Surface / Modals */
 
   /* ---- Text (warm cream scale) ---- */
-  --text-primary: #F1EFE7;          /* Primary Text: Warm Cream */
-  --text-secondary: #AAA99D;        /* Secondary Text */
-  --text-muted: #77796F;            /* Muted Text */
+  --text-primary: #F1EFE7;
+  /* Primary Text: Warm Cream */
+  --text-secondary: #AAA99D;
+  /* Secondary Text */
+  --text-muted: #77796F;
+  /* Muted Text */
 
   /* ---- Accent: Sophisticated Olive — primary brand accent ---- */
-  --accent: #8A9560;                /* Primary Accent: Sophisticated Olive */
-  --accent-hover: #9CA86E;          /* Hover Olive */
+  --accent: #8A9560;
+  /* Primary Accent: Sophisticated Olive */
+  --accent-hover: #9CA86E;
+  /* Hover Olive */
   --accent-strong: #8A9560;
   --accent-soft: rgba(138, 149, 96, 0.12);
   --accent-soft-strong: rgba(138, 149, 96, 0.22);
@@ -30,29 +42,34 @@
   --accent-glow: rgba(138, 149, 96, 0.15);
 
   /* ---- Secondary Highlight: Muted Sage ---- */
-  --sage: #B7B98A;                  /* Secondary Highlight: Muted Sage */
+  --sage: #B7B98A;
+  /* Secondary Highlight: Muted Sage */
   --sage-bright: #C5C799;
   --sage-soft: rgba(183, 185, 138, 0.14);
   --sage-border: rgba(183, 185, 138, 0.35);
 
   /* ---- Optional Warm Accent: Subtle Copper ---- */
-  --copper: #B08A5A;                /* Optional Warm Accent: Subtle Copper */
+  --copper: #B08A5A;
+  /* Optional Warm Accent: Subtle Copper */
   --copper-bright: #BF9969;
   --copper-soft: rgba(176, 138, 90, 0.12);
   --copper-border: rgba(176, 138, 90, 0.4);
 
   /* ---- Status (sober, warm; avoid bright neon) ---- */
-  --success: #8A9560;               /* Olive = success / completion */
+  --success: #8A9560;
+  /* Olive = success / completion */
   --success-soft: rgba(138, 149, 96, 0.14);
   --success-border: rgba(138, 149, 96, 0.35);
-  --danger: #C2654F;                /* Muted brick */
+  --danger: #C2654F;
+  /* Muted brick */
   --danger-soft: rgba(194, 101, 79, 0.12);
   --danger-border: rgba(194, 101, 79, 0.35);
   --warning: #B08A5A;
   --warning-soft: rgba(176, 138, 90, 0.12);
 
   /* ---- Borders (warm olive graphite) ---- */
-  --border-color: #34372D;          /* Borders */
+  --border-color: #34372D;
+  /* Borders */
   --border-subtle: #282B23;
   --border-strong: #424639;
 
@@ -67,9 +84,11 @@
   --dark-border-strong: rgba(241, 239, 231, 0.16);
 
   /* ---- Reading-preview surfaces — warm cream reading environment ---- */
-  --preview-bg: #F1EFE7;            /* Warm cream surface */
+  --preview-bg: #F1EFE7;
+  /* Warm cream surface */
   --preview-border: #D8D5C8;
-  --preview-text: #1D201A;          /* Dark ink on cream */
+  --preview-text: #1D201A;
+  /* Dark ink on cream */
   --preview-dim: #77796F;
 
   /* ---- Code lab ---- */
@@ -80,16 +99,23 @@
   --font-display: 'Fraunces', 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code',
-               'Consolas', 'Courier New', monospace;
+    'Consolas', 'Courier New', monospace;
 
   /* ---- Type scale ---- */
-  --fs-label: 0.6875rem;      /* 11px  eyebrows */
-  --fs-caption: 0.75rem;      /* 12px  metadata */
-  --fs-small: 0.8125rem;      /* 13px  compact body */
-  --fs-body: 0.9375rem;       /* 15px  base body */
-  --fs-lead: 1.0625rem;       /* 17px  lead / desc */
-  --fs-h4: 1.125rem;          /* 18px */
-  --fs-h3: 1.375rem;          /* 22px */
+  --fs-label: 0.6875rem;
+  /* 11px  eyebrows */
+  --fs-caption: 0.75rem;
+  /* 12px  metadata */
+  --fs-small: 0.8125rem;
+  /* 13px  compact body */
+  --fs-body: 0.9375rem;
+  /* 15px  base body */
+  --fs-lead: 1.0625rem;
+  /* 17px  lead / desc */
+  --fs-h4: 1.125rem;
+  /* 18px */
+  --fs-h3: 1.375rem;
+  /* 22px */
   --fs-h2: clamp(1.9rem, 3.6vw, 2.875rem);
   --fs-h1: clamp(2.6rem, 5.2vw, 4.1rem);
   --fs-display: clamp(3rem, 7vw, 5.5rem);
@@ -316,14 +342,17 @@ ol {
   width: 12px;
   height: 12px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 999px;
   border: 3px solid var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
@@ -337,7 +366,12 @@ ol {
 /* ============================================================
    TYPOGRAPHY
    ============================================================ */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 500;
   color: var(--text-primary);
@@ -346,10 +380,21 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-h1 { font-size: var(--fs-h1); }
-h2 { font-size: var(--fs-h2); }
-h3 { font-size: var(--fs-h3); }
-h4 { font-size: var(--fs-h4); }
+h1 {
+  font-size: var(--fs-h1);
+}
+
+h2 {
+  font-size: var(--fs-h2);
+}
+
+h3 {
+  font-size: var(--fs-h3);
+}
+
+h4 {
+  font-size: var(--fs-h4);
+}
 
 .display {
   font-size: var(--fs-display);
@@ -403,7 +448,11 @@ p {
 }
 
 /* Applied to reading-adjacent content so ReadX width/spacing applies */
-p, .mockup-text, .text-standard, .text-readx, .step-desc {
+p,
+.mockup-text,
+.text-standard,
+.text-readx,
+.step-desc {
   max-width: var(--readx-max-width, none);
   text-align: var(--readx-text-align, inherit);
   transition: max-width 380ms var(--ease), margin-bottom 380ms var(--ease);
@@ -453,10 +502,21 @@ p, .mockup-text, .text-standard, .text-readx, .step-desc {
   will-change: opacity, transform;
 }
 
-[data-reveal="left"]  { transform: translateX(-28px); }
-[data-reveal="right"] { transform: translateX(28px); }
-[data-reveal="zoom"]  { transform: scale(0.965) translateY(10px); }
-[data-reveal="fade"]  { transform: none; }
+[data-reveal="left"] {
+  transform: translateX(-28px);
+}
+
+[data-reveal="right"] {
+  transform: translateX(28px);
+}
+
+[data-reveal="zoom"] {
+  transform: scale(0.965) translateY(10px);
+}
+
+[data-reveal="fade"] {
+  transform: none;
+}
 
 [data-reveal].in-view {
   opacity: 1;
@@ -471,13 +531,25 @@ p, .mockup-text, .text-standard, .text-readx, .step-desc {
 }
 
 @keyframes riseIn {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ============================================================
@@ -514,15 +586,67 @@ body.dyslexia-mode .reading-content p {
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border-subtle);
 }
+
 body.dyslexia-mode .reading-content p:last-child {
   border-bottom: none;
 }
 
+/* ============================================================
+   ACTUAL READX TYPOGRAPHY ADAPTATION (Visible Accessibility)
+   ============================================================ */
+.text-readx,
+.reading-content.text-readx,
+.rx-pdf-text-layer,
+.rx-text-overlay-panel,
+body.dyslexia-mode .text-readx,
+body.dyslexia-mode .reading-content.text-readx {
+  font-family: var(--user-font-family, var(--readx-font, 'OpenDyslexic', 'Lexend', sans-serif)) !important;
+  font-size: var(--user-font-size, 18px) !important;
+  letter-spacing: var(--user-letter-spacing, 0.05em) !important;
+  word-spacing: var(--user-word-spacing, 0.12em) !important;
+  line-height: var(--user-line-height, 1.8) !important;
+  color: var(--text-primary) !important;
+}
+
+.text-readx p,
+.text-readx li,
+.text-readx td,
+.text-readx th,
+.text-readx span,
+.rx-pdf-text-layer p,
+.rx-pdf-text-layer span,
+.rx-text-overlay-panel p,
+.rx-text-overlay-panel span {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: inherit !important;
+  word-spacing: inherit !important;
+  line-height: inherit !important;
+}
+
+.text-readx h1,
+.text-readx h2,
+.text-readx h3,
+.text-readx h4,
+.rx-pdf-text-layer h1,
+.rx-pdf-text-layer h2,
+.rx-pdf-text-layer h3,
+.rx-pdf-text-layer h4 {
+  font-family: inherit !important;
+  letter-spacing: inherit !important;
+  margin-top: 1.4em;
+  margin-bottom: 0.6em;
+  font-weight: 700 !important;
+  color: var(--copper, #E05624) !important;
+}
+
 /* Sentence atoms */
-.reading-content .sentence {
+.reading-content .sentence,
+.rx-pdf-text-layer .sentence {
   display: inline;
-  border-radius: 2px;
+  border-radius: 3px;
   cursor: pointer;
+  padding: 0 2px;
   transition:
     background-color 220ms var(--ease),
     opacity 220ms var(--ease),
@@ -534,6 +658,7 @@ body.dyslexia-mode .reading-content p:last-child {
 body.dyslexia-mode[data-focus="on"].sentence-focus-active .reading-content .sentence {
   opacity: 0.32;
 }
+
 body.dyslexia-mode[data-focus="on"].sentence-focus-active .reading-content .sentence.focused {
   opacity: 1;
   color: var(--text-primary);
@@ -602,6 +727,7 @@ body.dyslexia-mode[data-focus="on"] .section-comparison {
    REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

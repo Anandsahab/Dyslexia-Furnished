@@ -22,18 +22,20 @@ const ReadingAssist = {
       if (area.dataset.chunked === 'true') return;
       area.dataset.chunked = 'true';
       
-      const paragraphs = area.querySelectorAll('p');
-      paragraphs.forEach(p => {
-        const text = p.innerHTML;
+      const elements = area.querySelectorAll('p, h1, h2, h3, h4, li, td, th, figcaption, blockquote');
+      elements.forEach(el => {
+        if (el.querySelector('.sentence')) return;
+        const text = el.innerHTML;
+        if (text.includes('<img') || text.includes('<table') || text.includes('<iframe')) return;
         const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         
         let newHTML = '';
         sentences.forEach(s => {
-          if(s.trim().length > 0) {
+          if (s.trim().length > 0) {
             newHTML += `<span class="sentence">${s}</span> `;
           }
         });
-        p.innerHTML = newHTML;
+        if (newHTML) el.innerHTML = newHTML;
       });
     });
 
@@ -564,40 +566,45 @@ const App = {
                 <p>Adjust the experience to what feels comfortable for you.</p>
               </div>
               
-              <div class="settings-section-label">TEXT</div>
+              <div class="settings-section-label">TYPOGRAPHY</div>
+              <div class="settings-group">
+                <div class="settings-label-row">
+                  <label>Font Size</label>
+                  <span id="valTextSize">18px</span>
+                </div>
+                <input type="range" id="setTextSize" min="14" max="28" step="1" value="18">
+              </div>
+
               <div class="settings-group">
                 <div class="settings-label-row">
                   <label>Letter Spacing</label>
-                  <span id="valLetterSpacing">0.04em</span>
+                  <span id="valLetterSpacing">0.05em</span>
                 </div>
-                <input type="range" id="setLetterSpacing" min="0" max="0.06" step="0.02" value="0.04">
-                <div class="settings-slider-ticks">
-                  <span>Normal</span>
-                  <span>Wide</span>
-                </div>
+                <input type="range" id="setLetterSpacing" min="0" max="0.20" step="0.01" value="0.05">
               </div>
 
               <div class="settings-group">
                 <div class="settings-label-row">
-                  <label>Text Size</label>
-                  <span id="valTextSize">18px</span>
+                  <label>Word Spacing</label>
+                  <span id="valWordSpacing">0.12em</span>
                 </div>
-                <input type="range" id="setTextSize" min="16" max="24" step="1" value="18">
-                <div class="settings-slider-ticks">
-                  <span>A-</span>
-                  <span>A+</span>
-                </div>
+                <input type="range" id="setWordSpacing" min="0" max="0.30" step="0.02" value="0.12">
               </div>
 
-              <div class="settings-divider"></div>
-              
-              <div class="settings-section-label">LAYOUT</div>
               <div class="settings-group">
-                <label>Reading Width</label>
-                <div class="segmented-control" id="setWidthControl">
-                  <button class="seg-btn" data-val="narrow">Narrow</button>
-                  <button class="seg-btn" data-val="comfortable">Comfortable</button>
-                  <button class="seg-btn" data-val="wide">Wide</button>
+                <div class="settings-label-row">
+                  <label>Line Height</label>
+                  <span id="valLineHeight">1.8</span>
+                </div>
+                <input type="range" id="setLineHeight" min="1.2" max="2.5" step="0.1" value="1.8">
+              </div>
+
+              <div class="settings-group">
+                <label>Font Family</label>
+                <div class="segmented-control" id="setFontControl">
+                  <button class="seg-btn" data-val="'OpenDyslexic', 'Lexend', sans-serif">OpenDyslexic</button>
+                  <button class="seg-btn" data-val="'Lexend', sans-serif">Lexend</button>
+                  <button class="seg-btn" data-val="'Inter', sans-serif">Inter</button>
                 </div>
               </div>
 
@@ -605,21 +612,29 @@ const App = {
 
               <div class="settings-section-label">APPEARANCE</div>
               <div class="settings-group">
-                <label>Theme</label>
+                <label>Theme / Contrast</label>
                 <div class="segmented-control" id="setThemeControl">
+                  <button class="seg-btn" data-val="warm">Warm</button>
                   <button class="seg-btn" data-val="light">Light</button>
                   <button class="seg-btn" data-val="dark">Dark</button>
-                  <button class="seg-btn" data-val="warm">Warm</button>
                 </div>
               </div>
 
               <div class="settings-divider"></div>
 
-              <div class="settings-section-label">FOCUS</div>
-              <div class="settings-group" style="flex-direction:row; justify-content:space-between; align-items:center;">
-                <label style="margin:0;">Reading Focus</label>
+              <div class="settings-section-label">FOCUS & GUIDES</div>
+              <div class="settings-group" style="flex-direction:row; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <label style="margin:0;">Line Focus Bar</label>
                 <label class="toggle-switch">
                   <input type="checkbox" id="setFocusMode">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-group" style="flex-direction:row; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">Reading Guide Ruler</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="setRulerMode">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -808,9 +823,21 @@ const App = {
     });
   },
 
+  defaultSettings: {
+    textSize: 18,
+    letterSpacing: 0.05,
+    wordSpacing: 0.12,
+    lineHeight: 1.8,
+    fontFamily: "'OpenDyslexic', 'Lexend', sans-serif",
+    theme: 'warm',
+    readingWidth: 'comfortable',
+    readingFocus: false,
+    rulerEnabled: false
+  },
+
   getSettings() {
     const saved = localStorage.getItem('readx-accessibility-settings');
-    if (saved) return JSON.parse(saved);
+    if (saved) return { ...this.defaultSettings, ...JSON.parse(saved) };
     return { ...this.defaultSettings };
   },
 
@@ -821,26 +848,46 @@ const App = {
 
   applySettingsToDOM(settings) {
     const root = document.documentElement;
+    const s = { ...this.defaultSettings, ...settings };
     
-    root.style.setProperty('--user-font-size', settings.textSize + 'px');
-    root.style.setProperty('--user-letter-spacing', settings.letterSpacing + 'em');
+    root.style.setProperty('--user-font-size', s.textSize + 'px');
+    root.style.setProperty('--user-letter-spacing', s.letterSpacing + 'em');
+    root.style.setProperty('--user-word-spacing', s.wordSpacing + 'em');
+    root.style.setProperty('--user-line-height', s.lineHeight);
+    root.style.setProperty('--user-font-family', s.fontFamily);
     
     let widthVal = '70ch';
-    if (settings.readingWidth === 'narrow') widthVal = '55ch';
-    if (settings.readingWidth === 'wide') widthVal = '100ch';
+    if (s.readingWidth === 'narrow') widthVal = '55ch';
+    if (s.readingWidth === 'wide') widthVal = '100ch';
     root.style.setProperty('--user-reading-width', widthVal);
 
-    document.body.setAttribute('data-theme', settings.theme);
-    document.body.setAttribute('data-focus', settings.readingFocus ? 'on' : 'off');
+    document.body.setAttribute('data-theme', s.theme || 'warm');
+    document.body.setAttribute('data-focus', s.readingFocus ? 'on' : 'off');
+    document.body.setAttribute('data-ruler', s.rulerEnabled ? 'on' : 'off');
 
-    // Keep the focus highlight in sync when focus mode is toggled
+    localStorage.setItem('readxRulerEnabled', s.rulerEnabled ? 'true' : 'false');
+    localStorage.setItem('readxFocusEnabled', s.readingFocus ? 'true' : 'false');
+
+    // Keep active text elements in sync immediately
+    document.querySelectorAll('.text-readx, .rx-text-overlay-panel').forEach(el => {
+      el.style.fontSize = s.textSize + 'px';
+      el.style.letterSpacing = s.letterSpacing + 'em';
+      el.style.wordSpacing = s.wordSpacing + 'em';
+      el.style.lineHeight = s.lineHeight;
+      el.style.fontFamily = s.fontFamily;
+    });
+
     if (typeof ReadingAssist.updateFocusBar === 'function') ReadingAssist.updateFocusBar();
     
-    // Update live labels if UI is open
     const valSpacing = document.getElementById('valLetterSpacing');
     const valSize = document.getElementById('valTextSize');
-    if (valSpacing) valSpacing.textContent = settings.letterSpacing + 'em';
-    if (valSize) valSize.textContent = settings.textSize + 'px';
+    const valWordSpacing = document.getElementById('valWordSpacing');
+    const valLineHeight = document.getElementById('valLineHeight');
+
+    if (valSpacing) valSpacing.textContent = s.letterSpacing + 'em';
+    if (valSize) valSize.textContent = s.textSize + 'px';
+    if (valWordSpacing) valWordSpacing.textContent = s.wordSpacing + 'em';
+    if (valLineHeight) valLineHeight.textContent = s.lineHeight;
   },
 
   initSettingsPanel() {
@@ -849,20 +896,22 @@ const App = {
     if (!settingsBtn || !panel) return;
 
     const populateUI = (settings) => {
-      document.getElementById('setLetterSpacing').value = settings.letterSpacing;
-      document.getElementById('setTextSize').value = settings.textSize;
+      const s = { ...this.defaultSettings, ...settings };
+      if (document.getElementById('setLetterSpacing')) document.getElementById('setLetterSpacing').value = s.letterSpacing;
+      if (document.getElementById('setTextSize')) document.getElementById('setTextSize').value = s.textSize;
+      if (document.getElementById('setWordSpacing')) document.getElementById('setWordSpacing').value = s.wordSpacing;
+      if (document.getElementById('setLineHeight')) document.getElementById('setLineHeight').value = s.lineHeight;
       
-      document.querySelectorAll('#setWidthControl .seg-btn').forEach(b => {
-        if (b.dataset.val === settings.readingWidth) b.classList.add('active');
-        else b.classList.remove('active');
+      document.querySelectorAll('#setFontControl .seg-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === s.fontFamily);
       });
-      
+
       document.querySelectorAll('#setThemeControl .seg-btn').forEach(b => {
-        if (b.dataset.val === settings.theme) b.classList.add('active');
-        else b.classList.remove('active');
+        b.classList.toggle('active', b.dataset.val === s.theme);
       });
       
-      document.getElementById('setFocusMode').checked = settings.readingFocus;
+      if (document.getElementById('setFocusMode')) document.getElementById('setFocusMode').checked = s.readingFocus;
+      if (document.getElementById('setRulerMode')) document.getElementById('setRulerMode').checked = s.rulerEnabled;
     };
 
     populateUI(this.getSettings());
@@ -874,7 +923,7 @@ const App = {
         panel.removeAttribute('hidden');
         settingsBtn.setAttribute('aria-expanded', 'true');
         settingsBtn.classList.add('active-gear');
-        populateUI(this.getSettings()); // ensure UI matches data
+        populateUI(this.getSettings());
       } else {
         panel.setAttribute('hidden', '');
         settingsBtn.setAttribute('aria-expanded', 'false');
@@ -905,21 +954,35 @@ const App = {
       this.saveSettings(s);
     };
 
-    document.getElementById('setLetterSpacing').addEventListener('input', (e) => updateSetting('letterSpacing', e.target.value));
-    document.getElementById('setTextSize').addEventListener('input', (e) => updateSetting('textSize', e.target.value));
-    
-    document.getElementById('setFocusMode').addEventListener('change', (e) => updateSetting('readingFocus', e.target.checked));
+    if (document.getElementById('setLetterSpacing')) {
+      document.getElementById('setLetterSpacing').addEventListener('input', (e) => updateSetting('letterSpacing', parseFloat(e.target.value)));
+    }
+    if (document.getElementById('setTextSize')) {
+      document.getElementById('setTextSize').addEventListener('input', (e) => updateSetting('textSize', parseInt(e.target.value, 10)));
+    }
+    if (document.getElementById('setWordSpacing')) {
+      document.getElementById('setWordSpacing').addEventListener('input', (e) => updateSetting('wordSpacing', parseFloat(e.target.value)));
+    }
+    if (document.getElementById('setLineHeight')) {
+      document.getElementById('setLineHeight').addEventListener('input', (e) => updateSetting('lineHeight', parseFloat(e.target.value)));
+    }
+    if (document.getElementById('setFocusMode')) {
+      document.getElementById('setFocusMode').addEventListener('change', (e) => updateSetting('readingFocus', e.target.checked));
+    }
+    if (document.getElementById('setRulerMode')) {
+      document.getElementById('setRulerMode').addEventListener('change', (e) => updateSetting('rulerEnabled', e.target.checked));
+    }
 
-    document.querySelectorAll('#setWidthControl .seg-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('#setWidthControl .seg-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#setFontControl .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#setFontControl .seg-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        updateSetting('readingWidth', btn.dataset.val);
+        updateSetting('fontFamily', btn.dataset.val);
       });
     });
 
     document.querySelectorAll('#setThemeControl .seg-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         document.querySelectorAll('#setThemeControl .seg-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         updateSetting('theme', btn.dataset.val);
@@ -927,10 +990,12 @@ const App = {
     });
     
     const resetBtn = document.getElementById('btnResetSettings');
-    resetBtn.addEventListener('click', () => {
-      this.saveSettings(this.defaultSettings);
-      populateUI(this.defaultSettings);
-    });
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        this.saveSettings(this.defaultSettings);
+        populateUI(this.defaultSettings);
+      });
+    }
   },
 
   initScrollToTop() {

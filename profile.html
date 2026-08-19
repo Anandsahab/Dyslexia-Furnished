@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadX - Profile</title>
+  <title>ReadX - Personal Reading Intelligence Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
@@ -16,108 +16,174 @@
       <div class="rx-glow-bar"></div>
     </div>
   </div>
-  <main class="page-main container">
-    <!-- Profile header -->
-    <header class="dash-header" data-reveal="fade">
-      <div class="dash-avatar" id="profileAvatar">C</div>
-      <div class="dash-identity">
-        <h1 class="dash-name" id="profileDisplayName">Chaitanya Anand</h1>
-        <p class="dash-bio" id="profileDisplayBio">Computer Science student · ReadX learner</p>
-        <p class="dash-email" id="profileDisplayEmail">chaitanya@readx.app</p>
-      </div>
-      <form id="profileForm" class="dash-edit-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="profileName">Display Name</label>
-            <input type="text" class="form-input" id="profileName">
-          </div>
-          <div class="form-group">
-            <label for="profileEmail">Email</label>
-            <input type="email" class="form-input" id="profileEmail">
+
+  <main class="page-main profile-page-main">
+    <div class="profile-container">
+      <!-- 1. PROFILE HERO -->
+      <header class="dash-hero" data-reveal="fade">
+        <div class="hero-left">
+          <div class="dash-avatar" id="profileAvatar">C</div>
+          <div class="dash-identity">
+            <h1 class="dash-name" id="profileDisplayName">ReadX Learner</h1>
+            <p class="dash-bio" id="profileDisplayBio">Computer Science Student · ReadX Learner</p>
+            <div class="dash-meta-line">
+              <span id="profileDisplayEmail">learner@readx.app</span>
+              <span class="meta-dot">•</span>
+              <span id="profileJoinedDate">Joined August 2026</span>
+            </div>
           </div>
         </div>
-        <div class="dash-form-actions" style="display:flex; gap:0.5rem; align-items:center; margin-top:0.75rem;">
-          <button type="submit" class="btn btn-outline btn-sm">Save profile</button>
+        <div class="hero-actions">
+          <button type="button" id="toggleEditProfileBtn" class="btn btn-outline btn-sm">Edit Profile</button>
           <button type="button" id="profileLogoutBtn" class="btn btn-outline btn-sm btn-logout">Log out</button>
         </div>
-      </form>
-    </header>
 
-    <!-- Learning overview stats -->
-    <section class="dash-section" data-reveal="fade" data-reveal-delay="80">
-      <span class="text-label">Learning Overview</span>
-      <div class="stat-grid dash-stat-grid">
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="120">
-          <div class="stat-card-label">Topics Completed</div>
-          <div class="stat-card-value" id="statTopics">6</div>
+        <!-- Collapsible edit profile form -->
+        <form id="profileForm" class="dash-edit-form" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="profileName">Display Name</label>
+              <input type="text" class="form-input" id="profileName">
+            </div>
+            <div class="form-group">
+              <label for="profileEmail">Email</label>
+              <input type="email" class="form-input" id="profileEmail">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="profileBio">Bio / Headline</label>
+            <input type="text" class="form-input" id="profileBio">
+          </div>
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+            <button type="button" id="cancelEditProfileBtn" class="btn btn-ghost btn-sm">Cancel</button>
+          </div>
+        </form>
+      </header>
+
+      <!-- 2. KEY PERFORMANCE METRICS (4 PRIMARY METRIC CARDS) -->
+      <section class="dash-section" data-reveal="fade" data-reveal-delay="60">
+        <div class="profile-metrics-grid">
+          <div class="metric-card" data-reveal="fade" data-reveal-delay="80">
+            <div class="metric-lbl">READING SESSIONS</div>
+            <div class="metric-val" id="statSessions">0</div>
+            <div class="metric-desc" id="statSessionsSub">Total completed sessions</div>
+          </div>
+
+          <div class="metric-card" data-reveal="fade" data-reveal-delay="120">
+            <div class="metric-lbl">WORDS READ</div>
+            <div class="metric-val" id="statWords">0</div>
+            <div class="metric-desc" id="statWordsSub">Total words processed</div>
+          </div>
+
+          <div class="metric-card" data-reveal="fade" data-reveal-delay="160">
+            <div class="metric-lbl">PRACTICE ACCURACY</div>
+            <div class="metric-val" id="statAccuracy">0%</div>
+            <div class="metric-desc" id="statAccuracySub">Overall quiz score</div>
+          </div>
+
+          <div class="metric-card" data-reveal="fade" data-reveal-delay="200">
+            <div class="metric-lbl">READING TIME</div>
+            <div class="metric-val" id="statReadTime">0m</div>
+            <div class="metric-desc" id="statReadTimeSub">Total time spent reading</div>
+          </div>
         </div>
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="160">
-          <div class="stat-card-label">Reading Sessions</div>
-          <div class="stat-card-value" id="statSessions">24</div>
-        </div>
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="200">
-          <div class="stat-card-label">Practice Accuracy</div>
-          <div class="stat-card-value" id="statAccuracy">82%</div>
-        </div>
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="240">
-          <div class="stat-card-label">Questions Attempted</div>
-          <div class="stat-card-value" id="statQuestions">45</div>
-        </div>
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="280">
-          <div class="stat-card-label">Words Read</div>
-          <div class="stat-card-value" id="statWords">12.4k</div>
-        </div>
-        <div class="stat-card" data-reveal="fade" data-reveal-delay="320">
-          <div class="stat-card-label">Reading Time</div>
-          <div class="stat-card-value" id="statReadTime">186m</div>
-        </div>
+      </section>
+
+      <!-- 3. TWO-COLUMN: READING ACTIVITY | READING STREAK -->
+      <div class="dash-two-col">
+        <!-- READING ACTIVITY -->
+        <section class="dash-panel" data-reveal="left">
+          <div class="dash-panel-header">
+            <h2 class="dash-panel-title">READING ACTIVITY</h2>
+            <div class="chart-toggle-group">
+              <button type="button" class="chart-toggle-btn active" id="chartToggle7">7 DAYS</button>
+              <button type="button" class="chart-toggle-btn" id="chartToggle30">30 DAYS</button>
+            </div>
+          </div>
+          <div id="readingChartContainer">
+            <div class="dash-reading-chart" id="readingChartBars"></div>
+            <div class="chart-x-labels" id="readingChartLabels"></div>
+          </div>
+          <div class="dash-empty-state" id="chartEmptyState" style="display:none;">
+            <div class="empty-title">No reading activity yet.</div>
+            <p class="empty-sub">Complete your first reading session to start building your reading history.</p>
+            <a href="library.html" class="btn btn-outline btn-sm">Start Reading →</a>
+          </div>
+        </section>
+
+        <!-- READING STREAK -->
+        <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
+          <h2 class="dash-panel-title">READING STREAK</h2>
+          <div class="streak-card-body">
+            <div class="streak-hero-wrap">
+              <span class="streak-fire-icon">🔥</span>
+              <div class="streak-hero-count" id="streakCount">0</div>
+              <div class="streak-hero-unit">DAY STREAK</div>
+            </div>
+
+            <div class="streak-week-wrap">
+              <div class="streak-week-label">THIS WEEK</div>
+              <div class="streak-days-row" id="streakWeekDots">
+                <!-- Mon..Sun dots -->
+              </div>
+            </div>
+
+            <div class="streak-footer-info">
+              <span class="longest-badge">Longest streak: <strong id="streakLongest">0 days</strong></span>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <div class="dash-two-col">
-      <!-- Recent activity -->
-      <section class="dash-panel" data-reveal="left">
-        <h2 class="dash-panel-title">Recent Activity</h2>
-        <div class="activity-list" id="recentActivity"></div>
-      </section>
+      <!-- 4. TWO-COLUMN: CONTINUE READING | LEARNING PROGRESS -->
+      <div class="dash-two-col">
+        <!-- CONTINUE READING -->
+        <section class="dash-panel" data-reveal="left">
+          <h2 class="dash-panel-title">CONTINUE READING</h2>
+          <div id="continueReadingContainer">
+            <!-- Populated dynamically or zero state -->
+          </div>
+        </section>
 
-      <!-- Learning progress by category -->
-      <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
-        <h2 class="dash-panel-title">Learning Progress</h2>
-        <div class="dash-progress-list" id="categoryProgress"></div>
-      </section>
-    </div>
+        <!-- LEARNING PROGRESS -->
+        <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
+          <h2 class="dash-panel-title">LEARNING PROGRESS</h2>
+          <div class="dash-progress-list" id="categoryProgressContainer">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+      </div>
 
-    <div class="dash-two-col">
-      <!-- Practice performance -->
-      <section class="dash-panel" data-reveal="left">
-        <h2 class="dash-panel-title">Practice Performance</h2>
-        <div class="dash-perf-grid">
-          <div class="dash-perf-item">
-            <span class="dash-perf-label">Overall accuracy</span>
-            <span class="dash-perf-value" id="perfAccuracy">82%</span>
-          </div>
-          <div class="dash-perf-item">
-            <span class="dash-perf-label">Questions attempted</span>
-            <span class="dash-perf-value" id="perfAttempted">45</span>
-          </div>
-          <div class="dash-perf-item">
-            <span class="dash-perf-label">Correct answers</span>
-            <span class="dash-perf-value" id="perfCorrect">37</span>
-          </div>
-        </div>
-        <div class="dash-revision" id="revisionList">
-          <span class="text-label">Topics needing revision</span>
-          <ul class="dash-revision-list" id="revisionTopics"></ul>
+      <!-- 5. FULL WIDTH: RECENT ACTIVITY TIMELINE -->
+      <section class="dash-panel dash-panel-full" data-reveal="fade">
+        <h2 class="dash-panel-title">RECENT ACTIVITY</h2>
+        <div class="activity-timeline-list" id="recentActivityTimeline">
+          <!-- Populated dynamically -->
         </div>
       </section>
 
-      <!-- Reading activity -->
-      <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
-        <h2 class="dash-panel-title">Reading Activity</h2>
-        <div class="dash-reading-chart" id="readingChart"></div>
-        <div class="activity-list" id="readingHistory"></div>
-      </section>
+      <!-- 6. TWO-COLUMN: READING PATTERN | READX PREFERENCES -->
+      <div class="dash-two-col">
+        <!-- READING PATTERN -->
+        <section class="dash-panel" data-reveal="left">
+          <h2 class="dash-panel-title">YOUR READING PATTERN</h2>
+          <div class="reading-pattern-grid" id="readingPatternContainer">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- READX PREFERENCES -->
+        <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
+          <div class="dash-panel-header">
+            <h2 class="dash-panel-title">READX PREFERENCES</h2>
+            <button type="button" class="btn btn-outline btn-xs" id="managePreferencesBtn">Manage Preferences →</button>
+          </div>
+          <div class="prefs-summary-grid" id="readxPreferencesContainer">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+      </div>
     </div>
   </main>
 

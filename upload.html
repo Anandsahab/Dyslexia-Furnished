@@ -39,9 +39,14 @@
     <div class="upload-zone" id="uploadZone" data-reveal="fade" data-reveal-delay="100">
       <div class="upload-zone-icon">↑</div>
       <h3>Upload a document</h3>
-      <p>Drag and drop a .txt file here, or click to browse. Content is stored locally in your browser.</p>
+      <p>Drag and drop a document here, or click to browse. Supports common document and text formats. ZIP/archive files are not supported.</p>
       <button class="btn btn-primary" id="uploadBrowseBtn">Choose File</button>
-      <input type="file" id="uploadInput" accept=".txt,.md" aria-label="Upload document">
+      <input type="file" id="uploadInput" aria-label="Upload document">
+    </div>
+
+    <div id="uploadErrorAlert" class="auth-alert auth-alert--error" style="display:none; margin-top:1.25rem;" role="alert">
+      <span class="auth-alert-icon">⚠</span>
+      <span id="uploadErrorMsg" class="auth-alert-msg"></span>
     </div>
 
     <section class="section-block" data-reveal="fade" data-reveal-delay="180">
@@ -49,14 +54,47 @@
       <div class="upload-list" id="uploadList"></div>
       <div class="empty-state" id="uploadEmpty">
         <span class="text-label">No uploads yet</span>
-        <p>Upload a text file to start reading with ReadX adaptations.</p>
+        <p>Upload a document to start reading with ReadX adaptations.</p>
       </div>
     </section>
   </main>
 
+  <!-- FULL-SCREEN DOCUMENT READER MODAL -->
+  <div id="rxReaderModal" class="rx-reader-modal" aria-hidden="true" style="display:none;">
+    <div class="rx-reader-modal-overlay"></div>
+    <div class="rx-reader-modal-container" role="dialog" aria-modal="true">
+      <header class="rx-modal-header">
+        <div class="rx-modal-doc-info">
+          <span class="rx-view-format-badge" id="modalFormatBadge">DOC</span>
+          <h2 class="rx-modal-title" id="modalDocTitle">Document Viewer</h2>
+        </div>
+        <div class="rx-modal-mode-toggle">
+          <button class="rx-mode-btn active" id="modalBtnStandard">STANDARD READING</button>
+          <button class="rx-mode-btn" id="modalBtnReadX">READX</button>
+        </div>
+        <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader">&times;</button>
+      </header>
+
+      <div class="rx-modal-body">
+        <div id="modalStandardContainer" class="rx-modal-view-container"></div>
+        <div id="modalReadXContainer" class="rx-modal-view-container reading-content text-readx" style="display:none;"></div>
+      </div>
+
+      <footer class="rx-modal-footer">
+        <div class="rx-footer-meta" id="modalFooterMeta">Standard Reading Mode · Original Document</div>
+        <div class="rx-footer-actions">
+          <button class="btn btn-outline btn-sm" id="modalTtsBtn">🔊 Read Aloud</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
   <script src="js/data.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/mammoth.browser.min.js"></script>
+  <script src="js/pdf.min.js"></script>
+  <script src="js/xlsx.mini.min.js"></script>
   <script src="js/upload.js"></script>
   <script src="js/animations.js"></script>
 </body>

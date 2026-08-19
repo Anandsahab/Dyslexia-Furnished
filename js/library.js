@@ -795,12 +795,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCards();
   });
 
+  let activeWorkspaceId = null;
+
   function openWorkspace(id) {
     const topic = ReadXData.getTopic(id);
     if (!topic || !topic.workspace) return;
 
+    activeWorkspaceId = id;
     ReadXData.markTopicVisited(id);
     ReadXData.setReadingProgress(id, 100);
+    ReadXData.startReadingSession(id, topic.title, 400);
 
     document.getElementById('wsCategory').textContent = topic.category;
     document.getElementById('wsSubcategory').textContent = topic.subcategory || topic.tag;
@@ -853,6 +857,10 @@ document.addEventListener('DOMContentLoaded', () => {
     browse.hidden = false;
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     ttsSpeaking = false;
+    if (activeWorkspaceId) {
+      ReadXData.endReadingSession(activeWorkspaceId, 400);
+      activeWorkspaceId = null;
+    }
     history.replaceState(null, '', 'library.html');
     renderCards();
   }
