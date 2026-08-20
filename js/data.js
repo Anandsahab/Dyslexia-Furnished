@@ -325,7 +325,7 @@ const ReadXData = {
     const uid = userId || this.getCurrentUserId();
     const key = this.getUserStorageKey('learning-stats', uid);
     const saved = localStorage.getItem(key);
-    
+
     const defaults = {
       readingSessions: 0,
       wordsRead: 0,
@@ -470,7 +470,7 @@ const ReadXData = {
   startReadingSession(docId, docTitle, wordCount = 0, type = 'read') {
     const uid = this.getCurrentUserId();
     const stats = this.getLearningStats(uid);
-    
+
     const now = Date.now();
     const sessionInfo = {
       sessionId: 'sess_' + now,
@@ -514,7 +514,7 @@ const ReadXData = {
       const now = Date.now();
       const elapsedMs = Math.max(0, now - session.startTime);
       const elapsedMinutes = elapsedMs >= 5000 ? Math.max(1, Math.round(elapsedMs / 60000)) : 0;
-      
+
       const stats = this.getLearningStats(uid);
       stats.readingSessions = (stats.readingSessions || 0) + 1;
       stats.readingTimeMinutes = (stats.readingTimeMinutes || 0) + elapsedMinutes;
@@ -552,7 +552,7 @@ const ReadXData = {
 
     let checkDate = new Date(today);
     let current = 0;
-    
+
     const todayISO = checkDate.toISOString().split('T')[0];
     let hasActivityNearNow = false;
 
@@ -611,7 +611,7 @@ const ReadXData = {
     this.addRecentActivity({
       type: 'practice',
       title: title,
-      detail: `${Math.round((score/total)*100)}% accuracy (${score}/${total})`,
+      detail: `${Math.round((score / total) * 100)}% accuracy (${score}/${total})`,
       timestamp: Date.now()
     }, uid);
 

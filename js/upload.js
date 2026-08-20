@@ -28,6 +28,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentModalItem = null;
   let activeModalMode = 'standard';
+  let isModalSpeaking = false;
+
+  // User-scoped persistent accessibility preferences
+  function getReadXUserSettings() {
+    const defaultSettings = {
+      textSize: 18,
+      fontFamily: "'OpenDyslexic', 'Lexend', sans-serif",
+      theme: 'dark',
+      lineHeight: 1.85,
+      letterSpacing: 0.04,
+      wordSpacing: 0.12,
+      rulerEnabled: false,
+      readingFocus: false
+    };
+    try {
+      const uid = (typeof ReadXData !== 'undefined' && ReadXData.getCurrentUserId) ? ReadXData.getCurrentUserId() : 'usr_guest';
+      const key = `readx_user_${uid}_settings`;
+      const saved = localStorage.getItem(key);
+      if (saved) return { ...defaultSettings, ...JSON.parse(saved) };
+      const legacy = localStorage.getItem('readx-accessibility-settings');
+      if (legacy) return { ...defaultSettings, ...JSON.parse(legacy) };
+    } catch (e) {
+      console.error('Error reading user settings:', e);
+    }
+    return defaultSettings;
+  }
+
+  function saveReadXUserSettings(settings) {
+    try {
+      const uid = (typeof ReadXData !== 'undefined' && ReadXData.getCurrentUserId) ? ReadXData.getCurrentUserId() : 'usr_guest';
+      const key = `readx_user_${uid}_settings`;
+      localStorage.setItem(key, JSON.stringify(settings));
+      localStorage.setItem('readx-accessibility-settings', JSON.stringify(settings));
+    } catch (e) {
+      console.error('Error saving user settings:', e);
+    }
+    applySettingsToReadXCanvas(settings);
+  }
+
+  function applySettingsToReadXCanvas(settings) {
+    const s = settings || getReadXUserSettings();
+    const container = document.getElementById('modalReadXContainer');
+    const canvas = document.getElementById('rxLayoutCCanvas');
+    if (!container || !canvas) return;
+
+    container.setAttribute('data-theme', s.theme || 'dark');
+    document.body.setAttribute('data-theme', s.theme || 'dark');
+
+    canvas.style.fontSize = (s.textSize || 18) + 'px';
+    canvas.style.fontFamily = s.fontFamily || 'inherit';
+    canvas.style.lineHeight = s.lineHeight || 1.85;
+    canvas.style.letterSpacing = (s.letterSpacing || 0.04) + 'em';
+    canvas.style.wordSpacing = (s.wordSpacing || 0.12) + 'em';
+
+    const valLine = document.getElementById('rxValLineHeight');
+    if (valLine) valLine.textContent = s.lineHeight || 1.85;
+    const valLetter = document.getElementById('rxValLetterSpacing');
+    if (valLetter) valLetter.textContent = (s.letterSpacing || 0.04) + 'em';
+
+    const dot = document.getElementById('rxThemeDot');
+    if (dot) {
+      if (s.theme === 'warm') dot.style.background = '#F5F1E6';
+      else if (s.theme === 'light') dot.style.background = '#FAFAF8';
+      else dot.style.background = '#E6C875';
+    }
+
+    if (typeof ReadingAssist !== 'undefined' && ReadingAssist.applySettingsToDOM) {
+      ReadingAssist.applySettingsToDOM(s);
+    }
+  }
 
   const ARCHIVE_EXTENSIONS = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'tgz', 'zipx'];
   const ARCHIVE_MIME_TYPES = [
@@ -171,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
 
-    // STEP 3: Deferred initialization of READX accessibility layer so it CANNOT block modal opening!
+    // STEP 3: Deferred initialization of READX accessibility layer
     setTimeout(() => {
       try {
         renderModalReadXView(item, hasText);
@@ -181,13 +251,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 50);
   }
 
-  let isModalSpeaking = false;
-
   function stopModalSpeech() {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
     isModalSpeaking = false;
+    const btnTts = document.getElementById('rxBtnTts');
+    if (btnTts) {
+      btnTts.classList.remove('active');
+      btnTts.innerHTML = '<span>🔊</span> Read Aloud';
+    }
     if (modalTtsBtn) modalTtsBtn.textContent = '🔊 Read Aloud';
     const activeSentences = document.querySelectorAll('#modalReadXContainer .sentence');
     activeSentences.forEach(s => s.classList.remove('tts-active'));
@@ -206,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const sentences = Array.from(document.querySelectorAll('#modalReadXContainer .sentence'));
+    const btnTts = document.getElementById('rxBtnTts');
 
     if (sentences.length === 0) {
       const text = (modalReadXContainer.textContent || '').trim();
@@ -215,6 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
       utterance.onend = () => stopModalSpeech();
       utterance.onerror = () => stopModalSpeech();
       isModalSpeaking = true;
+      if (btnTts) {
+        btnTts.classList.add('active');
+        btnTts.innerHTML = '<span>⏸️</span> Pause';
+      }
       if (modalTtsBtn) modalTtsBtn.textContent = '⏸️ Pause';
       window.speechSynthesis.speak(utterance);
       return;
@@ -222,6 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentIndex = 0;
     isModalSpeaking = true;
+    if (btnTts) {
+      btnTts.classList.add('active');
+      btnTts.innerHTML = '<span>⏸️</span> Pause';
+    }
     if (modalTtsBtn) modalTtsBtn.textContent = '⏸️ Pause';
 
     function playNextSentence() {
@@ -234,19 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const activeEl = sentences[currentIndex];
       activeEl.classList.add('tts-active');
 
-      const stage = document.getElementById('rxPdfViewStage');
+      const canvasContainer = document.getElementById('rxLayoutCCanvas');
       const focusLine = document.getElementById('rxModalFocusLine');
       const ruler = document.getElementById('rxModalReadingRuler');
 
-      if (stage && activeEl) {
-        const stageRect = stage.getBoundingClientRect();
+      if (canvasContainer && activeEl) {
+        const stageRect = canvasContainer.getBoundingClientRect();
         const elRect = activeEl.getBoundingClientRect();
         const relY = Math.max(0, elRect.top - stageRect.top);
         if (focusLine) focusLine.style.top = relY + 'px';
         if (ruler) ruler.style.top = Math.max(0, relY - 12) + 'px';
       }
 
-      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       const text = activeEl.innerText || activeEl.textContent;
       const utterance = new SpeechSynthesisUtterance(text);
@@ -272,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeModal() {
     if (!modal) return;
     stopModalSpeech();
-    
+
     if (currentModalItem && typeof ReadXData !== 'undefined') {
       ReadXData.endReadingSession(currentModalItem.id, currentModalItem.wordCount || 0);
     }
@@ -295,15 +377,15 @@ document.addEventListener('DOMContentLoaded', () => {
       modalStandardContainer.style.display = 'block';
       modalReadXContainer.style.display = 'none';
       modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
-      if (modalTtsBtn) modalTtsBtn.style.display = 'none';
     } else {
       modalBtnReadX.classList.add('active');
       modalBtnStandard.classList.remove('active');
       modalReadXContainer.style.display = 'block';
       modalStandardContainer.style.display = 'none';
-      modalFooterMeta.textContent = 'READX Accessible Mode · Dyslexia Adapted Text';
-      if (modalTtsBtn) modalTtsBtn.style.display = 'inline-flex';
-      
+      modalFooterMeta.textContent = 'READX Accessible Mode · Layout C Focus View';
+
+      applySettingsToReadXCanvas(getReadXUserSettings());
+
       if (currentModalItem && typeof ReadXData !== 'undefined') {
         ReadXData.recordFeatureUse('readx', currentModalItem.title);
       }
@@ -371,139 +453,354 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  function renderModalReadXView(item, hasText) {
-    const ext = (item.ext || 'file').toLowerCase();
-    const dataUrl = item.originalDataUrl || '';
-    const filename = item.filename || item.title;
+  // Converts extracted text into structured HTML preserving original PDF paragraph structure, line breaks, headings, lists, and layout
+  function formatExtractedContentToHTML(rawText, docTitle) {
+    if (!rawText || !rawText.trim()) {
+      return `<p class="empty-state">No readable text extracted.</p>`;
+    }
 
-    if (ext === 'pdf' && dataUrl) {
-      const rawText = item.content || '';
-      const sentenceRegex = /[^.!?]+[.!?]+/g;
-      const matchedSentences = rawText.match(sentenceRegex) || (rawText ? [rawText] : []);
-      
-      let overlayHtml = '';
-      if (matchedSentences.length > 0) {
-        matchedSentences.forEach(s => {
-          const trimmed = s.trim();
-          if (trimmed.length > 0) {
-            overlayHtml += `<span class="sentence">${trimmed}</span> `;
+    const trimmed = rawText.trim();
+    if (trimmed.startsWith('<div') || trimmed.startsWith('<table')) {
+      return trimmed;
+    }
+
+    const pages = trimmed.split(/-- Page Break --|<!-- Page \d+ -->/i);
+    let fullHtml = '';
+
+    pages.forEach((pageText, idx) => {
+      const pageNum = idx + 1;
+      let pageHtml = `<div class="rx-page-block" data-page="${pageNum}">`;
+      if (pages.length > 1) {
+        pageHtml += `<div class="rx-page-divider-label" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; opacity:0.5; margin:2rem 0 1rem 0; border-top:1px dashed rgba(255,255,255,0.15); padding-top:0.5rem;">Page ${pageNum}</div>`;
+      }
+
+      let contentStr = pageText.trim();
+      const blocks = contentStr.split(/\n\s*\n/);
+      blocks.forEach(block => {
+        const cleanBlock = block.trim();
+        if (!cleanBlock) return;
+
+        const lines = cleanBlock.split(/\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) return;
+
+        const firstLine = lines[0];
+
+        if (lines.length === 1 && (/^question\s*\d+/i.test(firstLine) || /^chapter\s*\d+/i.test(firstLine) || /^section\s*\d+/i.test(firstLine) || /^input format/i.test(firstLine) || /^output format/i.test(firstLine) || /^sample input/i.test(firstLine) || /^sample output/i.test(firstLine))) {
+          pageHtml += `<h3 class="rx-doc-subheading" style="margin-top:1.6rem; margin-bottom:0.6rem;">${firstLine}</h3>`;
+        } else if (/^[A-Z0-9\s:,.\-?]{4,60}$/.test(cleanBlock) && !cleanBlock.endsWith('.') && !cleanBlock.includes('http') && lines.length === 1) {
+          pageHtml += `<h2 class="rx-doc-heading" style="margin-top:1.8rem; margin-bottom:0.75rem;">${cleanBlock}</h2>`;
+        } else if (/^[\u2022\u25E6\u2023\-*]\s+/.test(cleanBlock)) {
+          const itemText = lines.map(l => l.replace(/^[\u2022\u25E6\u2023\-*]\s+/, '')).join('<br>');
+          pageHtml += `<ul><li>${itemText}</li></ul>`;
+        } else if (/^\d+[\.\)]\s+/.test(cleanBlock)) {
+          const itemText = lines.map(l => l.replace(/^\d+[\.\)]\s+/, '')).join('<br>');
+          pageHtml += `<ol><li>${itemText}</li></ol>`;
+        } else {
+          pageHtml += `<p style="margin-bottom:1.4rem;">${lines.join('<br>')}</p>`;
+        }
+      });
+
+      pageHtml += '</div>';
+      fullHtml += pageHtml;
+    });
+
+    return fullHtml;
+  }
+
+  function wrapSentencesInElement(containerEl) {
+    if (!containerEl) return;
+    const textNodes = [];
+
+    function walk(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.nodeValue && node.nodeValue.trim().length > 0 && (!node.parentNode || !node.parentNode.classList || !node.parentNode.classList.contains('sentence'))) {
+          textNodes.push(node);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE && !['SCRIPT', 'STYLE', 'BUTTON'].includes(node.tagName)) {
+        node.childNodes.forEach(walk);
+      }
+    }
+
+    walk(containerEl);
+
+    textNodes.forEach(tn => {
+      const text = tn.nodeValue;
+      const parts = text.split(/([^.!?]+[.!?]+(?:\s+|$))/g).filter(Boolean);
+      if (parts.length > 1) {
+        const frag = document.createDocumentFragment();
+        parts.forEach(part => {
+          if (part.trim().length > 0) {
+            const span = document.createElement('span');
+            span.className = 'sentence';
+            span.textContent = part;
+            frag.appendChild(span);
+          } else {
+            frag.appendChild(document.createTextNode(part));
           }
         });
+        if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
       } else {
-        overlayHtml = `<p class="sentence">${filename} — Accessibility Text Layer</p>`;
+        const span = document.createElement('span');
+        span.className = 'sentence';
+        span.textContent = text;
+        if (tn.parentNode) tn.parentNode.replaceChild(span, tn);
       }
+    });
+  }
 
-      const initialRuler = localStorage.getItem('readxRulerEnabled') === 'true';
-      const initialFocus = localStorage.getItem('readxFocusEnabled') === 'true';
-      const initialPanel = localStorage.getItem('readxPanelEnabled') !== 'false';
+  function renderModalReadXView(item, hasText) {
+    const canvasContent = document.getElementById('rxLayoutCContent');
+    const pageIndicator = document.getElementById('modalPageIndicator');
+    const prevBtn = document.getElementById('rxCanvasPrevPage');
+    const nextBtn = document.getElementById('rxCanvasNextPage');
 
-      modalReadXContainer.innerHTML = `
-        <div class="rx-pdf-readx-wrapper" id="rxPdfReadXWrapper">
-          <div class="rx-pdf-readx-bar">
-            <span class="rx-readx-badge">✨ READX Accessibility Layer Active</span>
-            <div class="rx-pdf-tools">
-              <button type="button" class="btn btn-xs btn-outline ${initialRuler ? 'active' : ''}" id="rxToggleRulerBtn">📏 Reading Guide Ruler</button>
-              <button type="button" class="btn btn-xs btn-outline ${initialFocus ? 'active' : ''}" id="rxToggleFocusBtn">🎯 Line Focus Bar</button>
-              <button type="button" class="btn btn-xs btn-outline ${initialPanel ? 'active' : ''}" id="rxToggleTextPanelBtn">📖 Accessible Text Layer</button>
-            </div>
-          </div>
-          <div class="rx-pdf-view-stage" id="rxPdfViewStage">
-            <div class="rx-reading-ruler-overlay" id="rxModalReadingRuler" style="display:${initialRuler ? 'block' : 'none'};"></div>
-            <div class="rx-focus-highlight-overlay" id="rxModalFocusLine" style="display:${initialFocus ? 'block' : 'none'};"></div>
-            <iframe src="${dataUrl}" class="rx-pdf-frame rx-pdf-readx-frame" title="${filename}"></iframe>
-            <div class="rx-text-overlay-panel text-readx" id="rxTextOverlayPanel" style="display:${initialPanel ? 'block' : 'none'};">
-              <h4 style="margin-bottom:1rem; font-size:1em; color:var(--copper); font-family:inherit;">📖 Accessible Dyslexia-Friendly Text</h4>
-              <div class="rx-text-content-box">${overlayHtml}</div>
-            </div>
-          </div>
+    if (!canvasContent) return;
+
+    if (!hasText || !item || !item.content) {
+      canvasContent.innerHTML = `
+        <div class="empty-state" style="margin-top:3rem;">
+          <span class="text-label">Original Document Preserved</span>
+          <p>READX text adaptation is unavailable for this binary format. Please view the document under Standard Reading mode.</p>
         </div>
       `;
-
-      const stage = document.getElementById('rxPdfViewStage');
-      const ruler = document.getElementById('rxModalReadingRuler');
-      const focusLine = document.getElementById('rxModalFocusLine');
-      const textPanel = document.getElementById('rxTextOverlayPanel');
-      
-      const btnRuler = document.getElementById('rxToggleRulerBtn');
-      const btnFocus = document.getElementById('rxToggleFocusBtn');
-      const btnPanel = document.getElementById('rxToggleTextPanelBtn');
-
-      let rulerActive = initialRuler;
-      let focusActive = initialFocus;
-      let panelActive = initialPanel;
-
-      if (btnRuler && ruler) {
-        btnRuler.addEventListener('click', () => {
-          rulerActive = !rulerActive;
-          btnRuler.classList.toggle('active', rulerActive);
-          ruler.style.display = rulerActive ? 'block' : 'none';
-          localStorage.setItem('readxRulerEnabled', rulerActive ? 'true' : 'false');
-        });
-      }
-
-      if (btnFocus && focusLine) {
-        btnFocus.addEventListener('click', () => {
-          focusActive = !focusActive;
-          btnFocus.classList.toggle('active', focusActive);
-          focusLine.style.display = focusActive ? 'block' : 'none';
-          localStorage.setItem('readxFocusEnabled', focusActive ? 'true' : 'false');
-        });
-      }
-
-      if (btnPanel && textPanel) {
-        btnPanel.addEventListener('click', () => {
-          panelActive = !panelActive;
-          btnPanel.classList.toggle('active', panelActive);
-          textPanel.style.display = panelActive ? 'block' : 'none';
-          localStorage.setItem('readxPanelEnabled', panelActive ? 'true' : 'false');
-        });
-      }
-
-      if (stage) {
-        stage.addEventListener('mousemove', (e) => {
-          const rect = stage.getBoundingClientRect();
-          const relY = e.clientY - rect.top;
-          if (ruler && rulerActive) ruler.style.top = Math.max(0, relY - 24) + 'px';
-          if (focusLine && focusActive) focusLine.style.top = Math.max(0, relY - 10) + 'px';
-        });
-      }
-
-      // Re-apply live settings to newly injected overlay panel
-      if (typeof ReadingAssist !== 'undefined') {
-        ReadingAssist.applySettingsToDOM(ReadingAssist.getSettings());
-      }
       return;
     }
 
-    if (hasText && item.content) {
-      const formatted = item.content.startsWith('<') ? item.content : `<p>${item.content.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
-      modalReadXContainer.innerHTML = `
-        <div class="reading-content text-readx dyslexia-mode-view">
-          ${formatted}
-        </div>
-      `;
-      if (typeof ReadingAssist !== 'undefined') {
-        ReadingAssist.chunkText();
-        ReadingAssist.sentences = Array.from(modalReadXContainer.querySelectorAll('.sentence'));
-      }
-    } else if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif'].includes(ext)) {
-      modalReadXContainer.innerHTML = `
-        <div class="rx-original-media" style="padding:2rem; text-align:center;">
-          <img src="${dataUrl || 'assets/placeholder.svg'}" alt="${filename}" style="max-height:65vh; margin:0 auto; filter: contrast(1.05);">
-          <p class="text-caption" style="margin-top:1rem; font-family:var(--readx-font); font-size:1.1rem;">✨ Image READX High-Contrast View — ${filename}</p>
-        </div>
-      `;
-    } else {
-      modalReadXContainer.innerHTML = `
-        <div class="empty-state">
-          <span class="text-label">READX Accessibility Layer Active</span>
-          <p>READX accessibility layer is active for your document. Original layout is preserved under Standard Reading.</p>
-        </div>
-      `;
+    const formattedHtml = formatExtractedContentToHTML(item.content, item.title || item.filename);
+    canvasContent.innerHTML = `
+      <h1 class="rx-doc-title-header">${item.title || item.filename || 'Document'}</h1>
+      ${formattedHtml}
+    `;
+
+    wrapSentencesInElement(canvasContent);
+
+    const userSettings = getReadXUserSettings();
+    applySettingsToReadXCanvas(userSettings);
+
+    const pageBlocks = canvasContent.querySelectorAll('.rx-page-block');
+    let totalPages = pageBlocks.length || 1;
+    let currentPage = 1;
+
+    function updatePageNav() {
+      if (pageIndicator) pageIndicator.textContent = `${currentPage} / ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+      if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
     }
+    updatePageNav();
+
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          updatePageNav();
+          const targetPage = pageBlocks[currentPage - 1];
+          if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+    }
+
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          updatePageNav();
+          const targetPage = pageBlocks[currentPage - 1];
+          if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+    }
+
+    bindBottomToolbarEvents(userSettings);
   }
 
+  function bindBottomToolbarEvents(settings) {
+    const btnFontDec = document.getElementById('rxBtnFontDec');
+    const btnFontInc = document.getElementById('rxBtnFontInc');
+    const btnTheme = document.getElementById('rxBtnTheme');
+    const themePopover = document.getElementById('rxThemePopover');
+    const btnFontFamily = document.getElementById('rxBtnFontFamily');
+    const fontPopover = document.getElementById('rxFontPopover');
+    const btnSpacing = document.getElementById('rxBtnSpacing');
+    const spacingPopover = document.getElementById('rxSpacingPopover');
+    const btnRuler = document.getElementById('rxBtnRuler');
+    const btnFocus = document.getElementById('rxBtnFocus');
+    const btnTts = document.getElementById('rxBtnTts');
 
+    const rulerOverlay = document.getElementById('rxModalReadingRuler');
+    const focusOverlay = document.getElementById('rxModalFocusLine');
+    const canvasContainer = document.getElementById('rxLayoutCCanvas');
+
+    let current = { ...settings };
+
+    function closeAllPopovers() {
+      if (themePopover) themePopover.hidden = true;
+      if (fontPopover) fontPopover.hidden = true;
+      if (spacingPopover) spacingPopover.hidden = true;
+    }
+
+    function togglePopover(popoverEl) {
+      if (!popoverEl) return;
+      const isHidden = popoverEl.hidden;
+      closeAllPopovers();
+      if (isHidden) {
+        popoverEl.hidden = false;
+        popoverEl.style.left = '50%';
+        popoverEl.style.transform = 'translateX(-50%)';
+
+        requestAnimationFrame(() => {
+          const modalContainer = document.getElementById('rxReaderModal') || document.body;
+          const modalRect = modalContainer.getBoundingClientRect();
+          const popoverRect = popoverEl.getBoundingClientRect();
+
+          if (popoverRect.left < modalRect.left + 12) {
+            const shiftRight = (modalRect.left + 12) - popoverRect.left;
+            popoverEl.style.transform = `translateX(calc(-50% + ${shiftRight}px))`;
+          } else if (popoverRect.right > modalRect.right - 12) {
+            const shiftLeft = popoverRect.right - (modalRect.right - 12);
+            popoverEl.style.transform = `translateX(calc(-50% - ${shiftLeft}px))`;
+          }
+        });
+      }
+    }
+
+    if (btnFontDec) {
+      btnFontDec.onclick = () => {
+        current.textSize = Math.max(14, (current.textSize || 18) - 1);
+        saveReadXUserSettings(current);
+      };
+    }
+
+    if (btnFontInc) {
+      btnFontInc.onclick = () => {
+        current.textSize = Math.min(32, (current.textSize || 18) + 1);
+        saveReadXUserSettings(current);
+      };
+    }
+
+    if (btnTheme && themePopover) {
+      themePopover.onclick = (e) => e.stopPropagation();
+      btnTheme.onclick = (e) => {
+        e.stopPropagation();
+        togglePopover(themePopover);
+      };
+      themePopover.querySelectorAll('.rx-popover-opt').forEach(opt => {
+        opt.onclick = (e) => {
+          e.stopPropagation();
+          current.theme = opt.dataset.theme || 'dark';
+          saveReadXUserSettings(current);
+          closeAllPopovers();
+        };
+      });
+    }
+
+    if (btnFontFamily && fontPopover) {
+      fontPopover.onclick = (e) => e.stopPropagation();
+      btnFontFamily.onclick = (e) => {
+        e.stopPropagation();
+        togglePopover(fontPopover);
+      };
+      fontPopover.querySelectorAll('.rx-popover-opt').forEach(opt => {
+        opt.onclick = (e) => {
+          e.stopPropagation();
+          current.fontFamily = opt.dataset.font || 'inherit';
+          saveReadXUserSettings(current);
+          closeAllPopovers();
+        };
+      });
+    }
+
+    if (btnSpacing && spacingPopover) {
+      spacingPopover.onclick = (e) => e.stopPropagation();
+      btnSpacing.onclick = (e) => {
+        e.stopPropagation();
+        togglePopover(spacingPopover);
+      };
+
+      const sliderLine = document.getElementById('rxSliderLineHeight');
+      const valLine = document.getElementById('rxValLineHeight');
+      if (sliderLine) {
+        sliderLine.value = current.lineHeight || 1.85;
+        if (valLine) valLine.textContent = Number(current.lineHeight || 1.85).toFixed(2);
+        sliderLine.oninput = (e) => {
+          current.lineHeight = parseFloat(e.target.value);
+          if (valLine) valLine.textContent = Number(current.lineHeight).toFixed(2);
+          saveReadXUserSettings(current);
+        };
+      }
+
+      const sliderLetter = document.getElementById('rxSliderLetterSpacing');
+      const valLetter = document.getElementById('rxValLetterSpacing');
+      if (sliderLetter) {
+        sliderLetter.value = current.letterSpacing !== undefined ? current.letterSpacing : 0.04;
+        if (valLetter) valLetter.textContent = (current.letterSpacing !== undefined ? current.letterSpacing : 0.04) + 'em';
+        sliderLetter.oninput = (e) => {
+          current.letterSpacing = parseFloat(e.target.value);
+          if (valLetter) valLetter.textContent = current.letterSpacing + 'em';
+          saveReadXUserSettings(current);
+        };
+      }
+    }
+
+    if (btnRuler && rulerOverlay) {
+      btnRuler.classList.toggle('active', Boolean(current.rulerEnabled));
+      rulerOverlay.style.display = current.rulerEnabled ? 'block' : 'none';
+
+      btnRuler.onclick = () => {
+        current.rulerEnabled = !current.rulerEnabled;
+        btnRuler.classList.toggle('active', current.rulerEnabled);
+        rulerOverlay.style.display = current.rulerEnabled ? 'block' : 'none';
+        saveReadXUserSettings(current);
+      };
+    }
+
+    if (btnFocus && focusOverlay) {
+      btnFocus.classList.toggle('active', Boolean(current.readingFocus));
+      focusOverlay.style.display = current.readingFocus ? 'block' : 'none';
+
+      btnFocus.onclick = () => {
+        current.readingFocus = !current.readingFocus;
+        btnFocus.classList.toggle('active', current.readingFocus);
+        focusOverlay.style.display = current.readingFocus ? 'block' : 'none';
+        saveReadXUserSettings(current);
+      };
+    }
+
+    if (canvasContainer) {
+      canvasContainer.onmousemove = (e) => {
+        const rect = canvasContainer.getBoundingClientRect();
+        const relY = e.clientY - rect.top;
+        if (rulerOverlay && current.rulerEnabled) {
+          rulerOverlay.style.top = Math.max(0, relY - 24) + 'px';
+        }
+        if (focusOverlay && current.readingFocus) {
+          focusOverlay.style.top = Math.max(0, relY - 12) + 'px';
+        }
+      };
+    }
+
+    if (btnTts) {
+      btnTts.classList.toggle('active', isModalSpeaking);
+      btnTts.onclick = () => {
+        if (isModalSpeaking) {
+          stopModalSpeech();
+        } else {
+          startModalSpeech();
+        }
+      };
+    }
+
+    document.onclick = (e) => {
+      if (!e.target.closest('.rx-bar-dropdown-wrapper')) {
+        closeAllPopovers();
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllPopovers();
+      }
+    });
+  }
 
   modalBtnStandard.addEventListener('click', () => switchModalMode('standard'));
   modalBtnReadX.addEventListener('click', () => {
@@ -622,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // DOCX PARSER — Uses mammoth.convertToHtml to preserve headings, lists, tables, images, paragraphs
+  // DOCX PARSER
   function parseDocxFile(file, ext, originalDataUrl) {
     if (typeof mammoth !== 'undefined' && mammoth.convertToHtml) {
       const reader = new FileReader();
@@ -643,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Multi-column PDF Text Extractor for TTS (Preserves Left Column -> Right Column Reading Order)
+  // Multi-column & Paragraph-Preserving PDF Text Extractor
   function extractMultiColumnPdfText(pageItems) {
     if (!pageItems || pageItems.length === 0) return '';
 
@@ -656,23 +953,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (items.length === 0) return '';
 
-    const xCoords = items.map(item => item.x).sort((a, b) => a - b);
-    const minX = xCoords[0];
-    const maxX = xCoords[xCoords.length - 1];
-    const pageWidth = maxX - minX;
+    // Sort items vertically top-to-bottom
+    items.sort((a, b) => {
+      if (Math.abs(b.y - a.y) > 4) {
+        return b.y - a.y;
+      }
+      return a.x - b.x;
+    });
 
-    const midX = minX + pageWidth / 2;
-    const leftCol = items.filter(item => (item.x + item.width) <= midX + 30);
-    const rightCol = items.filter(item => item.x > midX - 30);
+    const paragraphs = [];
+    let currentParagraphLines = [];
+    let currentLineItems = [];
+    let lastY = null;
 
-    if (leftCol.length > items.length * 0.2 && rightCol.length > items.length * 0.2 && Math.abs(leftCol.length - rightCol.length) < items.length * 0.6) {
-      leftCol.sort((a, b) => b.y - a.y || a.x - b.x);
-      rightCol.sort((a, b) => b.y - a.y || a.x - b.x);
-      return leftCol.map(i => i.str).join(' ') + '\n\n' + rightCol.map(i => i.str).join(' ');
-    } else {
-      items.sort((a, b) => (Math.abs(b.y - a.y) > 8 ? b.y - a.y : a.x - b.x));
-      return items.map(i => i.str).join(' ');
+    items.forEach(item => {
+      if (lastY === null) {
+        currentLineItems = [item];
+        lastY = item.y;
+      } else {
+        const yDiff = Math.abs(lastY - item.y);
+        if (yDiff <= 4) {
+          currentLineItems.push(item);
+        } else {
+          currentLineItems.sort((a, b) => a.x - b.x);
+          const lineStr = currentLineItems.map(i => i.str).join(' ').trim();
+          if (lineStr) {
+            currentParagraphLines.push(lineStr);
+          }
+          currentLineItems = [item];
+
+          if (yDiff > 14 && currentParagraphLines.length > 0) {
+            paragraphs.push(currentParagraphLines.join('\n'));
+            currentParagraphLines = [];
+          }
+          lastY = item.y;
+        }
+      }
+    });
+
+    if (currentLineItems.length > 0) {
+      currentLineItems.sort((a, b) => a.x - b.x);
+      const lineStr = currentLineItems.map(i => i.str).join(' ').trim();
+      if (lineStr) {
+        currentParagraphLines.push(lineStr);
+      }
     }
+
+    if (currentParagraphLines.length > 0) {
+      paragraphs.push(currentParagraphLines.join('\n'));
+    }
+
+    return paragraphs.filter(Boolean).join('\n\n');
   }
 
   // PDF PARSER
@@ -706,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // EXCEL / XLSX PARSER — Generates HTML tables
+  // EXCEL PARSER
   function parseXlsxFile(file, ext, originalDataUrl) {
     if (typeof XLSX !== 'undefined') {
       const reader = new FileReader();
@@ -733,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // PPTX PARSER — Generates slide cards
+  // PPTX PARSER
   function parsePptxFile(file, ext, originalDataUrl) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -771,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsArrayBuffer(file);
   }
 
-  // TEXT / MD / HTML PARSER — Preserves Markdown and HTML structure
+  // TEXT / MD PARSER
   function parseTextFile(file, ext, originalDataUrl) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -808,6 +1139,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = 'upload-' + Date.now();
     const title = file.name.replace(/\.[^/.]+$/, '');
 
+    // For non-images or large files, strip heavy Data URL (>200KB) to prevent QuotaExceededError in localStorage
+    let safeDataUrl = originalDataUrl || '';
+    if (safeDataUrl.length > 200000 && (!file.type || !file.type.startsWith('image/'))) {
+      safeDataUrl = '';
+    }
+
     const uploads = ReadXData.getUploads();
     const newItem = {
       id,
@@ -815,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       filename: file.name,
       ext: ext || getFileExtension(file) || 'file',
       mimeType: file.type || 'application/octet-stream',
-      originalDataUrl: originalDataUrl || '',
+      originalDataUrl: safeDataUrl,
       hasExtractableText: hasExtractableText !== false,
       isReadable: hasExtractableText !== false,
       content: content || '',
@@ -826,44 +1163,69 @@ document.addEventListener('DOMContentLoaded', () => {
       wordCount: words
     };
 
-    uploads.unshift(newItem);
-    ReadXData.saveUploads(uploads);
+    try {
+      uploads.unshift(newItem);
+      ReadXData.saveUploads(uploads);
+    } catch (err) {
+      console.error('Error saving uploaded document:', err);
+    }
+
     if (typeof ReadXData !== 'undefined' && ReadXData.recordDocumentUpload) {
-      ReadXData.recordDocumentUpload(newItem.title, newItem.ext, newItem.wordCount);
+      try {
+        ReadXData.recordDocumentUpload(newItem.title, newItem.ext, newItem.wordCount);
+      } catch (err) {
+        console.warn('Error recording upload stat:', err);
+      }
     }
     renderUploads();
     clearUploadError();
     openModal(newItem);
   }
 
-  browseBtn.addEventListener('click', () => input.click());
-  zone.addEventListener('click', (e) => {
-    if (e.target === browseBtn || e.target.closest('button')) return;
-    input.click();
-  });
+  if (browseBtn) {
+    browseBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (input) input.click();
+      }
+    });
+  }
 
-  input.addEventListener('change', () => {
-    if (input.files && input.files[0]) {
-      processUploadedFile(input.files[0]);
-    }
-    input.value = '';
-  });
+  if (zone) {
+    zone.addEventListener('click', (e) => {
+      if (e.target === browseBtn || (e.target && e.target.closest && (e.target.closest('#uploadBrowseBtn') || e.target.closest('label') || e.target.closest('button'))) || e.target === input) {
+        return;
+      }
+      if (input) input.click();
+    });
+  }
 
-  zone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    zone.classList.add('drag-over');
-  });
+  if (input) {
+    input.addEventListener('change', () => {
+      if (input.files && input.files[0]) {
+        processUploadedFile(input.files[0]);
+      }
+      input.value = '';
+    });
+  }
 
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  if (zone) {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
 
-  zone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      processUploadedFile(file);
-    }
-  });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) {
+        processUploadedFile(file);
+      }
+    });
+  }
 
   renderUploads();
 });

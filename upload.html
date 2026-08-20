@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
     }
   </script>
 </head>
+
 <body>
   <div class="rx-loader" id="rxLoader" aria-hidden="true">
     <div class="rx-loader-inner">
@@ -30,7 +32,8 @@
         <div>
           <span class="text-label">My Content</span>
           <h1 class="page-title">Your reading materials.</h1>
-          <p class="page-desc">Upload notes, lecture slides, or study documents. Read them with full ReadX accessibility features.</p>
+          <p class="page-desc">Upload notes, lecture slides, or study documents. Read them with full ReadX accessibility
+            features.</p>
         </div>
         <a href="reader.html" class="btn btn-outline">Start Reading →</a>
       </div>
@@ -39,12 +42,14 @@
     <div class="upload-zone" id="uploadZone" data-reveal="fade" data-reveal-delay="100">
       <div class="upload-zone-icon">↑</div>
       <h3>Upload a document</h3>
-      <p>Drag and drop a document here, or click to browse. Supports common document and text formats. ZIP/archive files are not supported.</p>
-      <button class="btn btn-primary" id="uploadBrowseBtn">Choose File</button>
+      <p>Drag and drop a document here, or click to browse. Supports common document and text formats. ZIP/archive files
+        are not supported.</p>
+      <label for="uploadInput" class="btn btn-primary" id="uploadBrowseBtn" role="button" tabindex="0">Choose File</label>
       <input type="file" id="uploadInput" aria-label="Upload document">
     </div>
 
-    <div id="uploadErrorAlert" class="auth-alert auth-alert--error" style="display:none; margin-top:1.25rem;" role="alert">
+    <div id="uploadErrorAlert" class="auth-alert auth-alert--error" style="display:none; margin-top:1.25rem;"
+      role="alert">
       <span class="auth-alert-icon">⚠</span>
       <span id="uploadErrorMsg" class="auth-alert-msg"></span>
     </div>
@@ -59,25 +64,110 @@
     </section>
   </main>
 
-  <!-- FULL-SCREEN DOCUMENT READER MODAL -->
+  <!-- FULL-SCREEN DOCUMENT READER MODAL (LAYOUT C) -->
   <div id="rxReaderModal" class="rx-reader-modal" aria-hidden="true" style="display:none;">
     <div class="rx-reader-modal-overlay"></div>
     <div class="rx-reader-modal-container" role="dialog" aria-modal="true">
       <header class="rx-modal-header">
-        <div class="rx-modal-doc-info">
-          <span class="rx-view-format-badge" id="modalFormatBadge">DOC</span>
+        <div class="rx-modal-header-left">
+          <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader" title="Close Reader">&times;</button>
+          <span class="rx-view-format-badge" id="modalFormatBadge">PDF</span>
           <h2 class="rx-modal-title" id="modalDocTitle">Document Viewer</h2>
         </div>
-        <div class="rx-modal-mode-toggle">
-          <button class="rx-mode-btn active" id="modalBtnStandard">STANDARD READING</button>
-          <button class="rx-mode-btn" id="modalBtnReadX">READX</button>
+
+        <div class="rx-modal-header-center" id="modalPageControls">
+          <div class="rx-page-nav-pill">
+            <button type="button" class="rx-page-btn" id="modalPrevPageBtn" title="Previous Page">&lsaquo;</button>
+            <span class="rx-page-indicator" id="modalPageIndicator">1 / 1</span>
+            <button type="button" class="rx-page-btn" id="modalNextPageBtn" title="Next Page">&rsaquo;</button>
+          </div>
+          <span class="rx-control-divider">|</span>
+          <div class="rx-zoom-pill">
+            <button type="button" class="rx-zoom-btn" id="modalZoomOutBtn" title="Zoom Out">−</button>
+            <span class="rx-zoom-indicator" id="modalZoomIndicator">100%</span>
+            <button type="button" class="rx-zoom-btn" id="modalZoomInBtn" title="Zoom In">+</button>
+          </div>
         </div>
-        <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader">&times;</button>
+
+        <div class="rx-modal-header-right">
+          <div class="rx-modal-mode-toggle">
+            <button type="button" class="rx-mode-btn active" id="modalBtnStandard">STANDARD</button>
+            <button type="button" class="rx-mode-btn" id="modalBtnReadX">READX</button>
+          </div>
+        </div>
       </header>
 
       <div class="rx-modal-body">
+        <!-- Standard Reading View -->
         <div id="modalStandardContainer" class="rx-modal-view-container"></div>
-        <div id="modalReadXContainer" class="rx-modal-view-container reading-content text-readx" style="display:none;"></div>
+
+        <!-- READX Layout C Focus View -->
+        <div id="modalReadXContainer" class="rx-modal-view-container reading-content text-readx" style="display:none;">
+          <button type="button" class="rx-canvas-nav-btn rx-canvas-prev" id="rxCanvasPrevPage" title="Previous Page" aria-label="Previous page">&lsaquo;</button>
+          <button type="button" class="rx-canvas-nav-btn rx-canvas-next" id="rxCanvasNextPage" title="Next Page" aria-label="Next page">&rsaquo;</button>
+
+          <div class="rx-layout-c-canvas" id="rxLayoutCCanvas">
+            <div id="rxModalReadingRuler" class="rx-reading-ruler-overlay" style="display:none;"></div>
+            <div id="rxModalFocusLine" class="rx-focus-highlight-overlay" style="display:none;"></div>
+            <div class="rx-layout-c-text-content" id="rxLayoutCContent"></div>
+          </div>
+
+          <!-- Bottom Floating ReadX Control Bar (Layout C) -->
+          <div class="rx-floating-control-bar" id="rxFloatingControlBar">
+            <button type="button" class="rx-bar-btn" id="rxBtnFontDec" title="Decrease font size">A−</button>
+            <button type="button" class="rx-bar-btn" id="rxBtnFontInc" title="Increase font size">A+</button>
+            <span class="rx-bar-divider"></span>
+            
+            <div class="rx-bar-dropdown-wrapper">
+              <button type="button" class="rx-bar-btn" id="rxBtnTheme" title="Change Theme">
+                <span class="rx-theme-dot" id="rxThemeDot"></span> Theme
+              </button>
+              <div class="rx-bar-popover" id="rxThemePopover" hidden>
+                <div class="rx-popover-title">Color Theme</div>
+                <button type="button" class="rx-popover-opt" data-theme="dark"><span class="swatch dark"></span> Dark Gold</button>
+                <button type="button" class="rx-popover-opt" data-theme="warm"><span class="swatch warm"></span> Warm Sepia</button>
+                <button type="button" class="rx-popover-opt" data-theme="light"><span class="swatch light"></span> Soft Light</button>
+              </div>
+            </div>
+
+            <div class="rx-bar-dropdown-wrapper">
+              <button type="button" class="rx-bar-btn" id="rxBtnFontFamily" title="Change Font">Font</button>
+              <div class="rx-bar-popover" id="rxFontPopover" hidden>
+                <div class="rx-popover-title">Typography</div>
+                <button type="button" class="rx-popover-opt" data-font="'OpenDyslexic', 'Lexend', sans-serif" style="font-family:'OpenDyslexic', 'Lexend', sans-serif;">OpenDyslexic</button>
+                <button type="button" class="rx-popover-opt" data-font="'Lexend', sans-serif" style="font-family:'Lexend', sans-serif;">Lexend</button>
+                <button type="button" class="rx-popover-opt" data-font="'Inter', sans-serif" style="font-family:'Inter', sans-serif;">Inter</button>
+                <button type="button" class="rx-popover-opt" data-font="Georgia, serif" style="font-family:Georgia, serif;">Georgia</button>
+              </div>
+            </div>
+
+            <div class="rx-bar-dropdown-wrapper">
+              <button type="button" class="rx-bar-btn" id="rxBtnSpacing" title="Line & Letter Spacing">Spacing</button>
+              <div class="rx-bar-popover" id="rxSpacingPopover" hidden>
+                <div class="rx-popover-title">Line & Letter Spacing</div>
+                <label class="rx-popover-label">Line Height: <span id="rxValLineHeight">1.85</span></label>
+                <input type="range" id="rxSliderLineHeight" min="1.3" max="2.4" step="0.05" value="1.85">
+                <label class="rx-popover-label" style="margin-top:0.5rem;">Letter Spacing: <span id="rxValLetterSpacing">0.04em</span></label>
+                <input type="range" id="rxSliderLetterSpacing" min="0" max="0.15" step="0.01" value="0.04">
+              </div>
+            </div>
+
+            <span class="rx-bar-divider"></span>
+
+            <button type="button" class="rx-bar-btn rx-toggle-btn" id="rxBtnRuler" title="Toggle Reading Guide Ruler">
+              <span>📏</span> Reading Guide
+            </button>
+            <button type="button" class="rx-bar-btn rx-toggle-btn" id="rxBtnFocus" title="Toggle Line Focus Bar">
+              <span>🎯</span> Line Focus
+            </button>
+
+            <span class="rx-bar-divider"></span>
+
+            <button type="button" class="rx-bar-btn rx-toggle-btn rx-tts-btn" id="rxBtnTts" title="Toggle Read Aloud">
+              <span>🔊</span> Read Aloud
+            </button>
+          </div>
+        </div>
       </div>
 
       <footer class="rx-modal-footer">
@@ -98,4 +188,5 @@
   <script src="js/upload.js"></script>
   <script src="js/animations.js"></script>
 </body>
+
 </html>
