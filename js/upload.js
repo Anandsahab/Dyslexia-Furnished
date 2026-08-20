@@ -249,12 +249,44 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error initializing READX view:', err);
       }
     }, 50);
-  }  let isModalSpeaking = false;
+  }
+
   let isModalPaused = false;
   let speechSentences = [];
   let speechCurrentIndex = 0;
   let selectedSpeechRate = 1.0;
   let selectedVoiceURI = '';
+
+  function updateAudioUiState() {
+    const btnTts = document.getElementById('rxBtnTts');
+    const modalTtsBtn = document.getElementById('modalTtsBtn');
+    const modalTtsStopBtn = document.getElementById('modalTtsStopBtn');
+
+    if (isModalSpeaking) {
+      if (isModalPaused) {
+        if (btnTts) {
+          btnTts.classList.add('active');
+          btnTts.innerHTML = '<span>▶️</span> Resume';
+        }
+        if (modalTtsBtn) modalTtsBtn.textContent = '▶️ Resume';
+        if (modalTtsStopBtn) modalTtsStopBtn.style.display = 'inline-flex';
+      } else {
+        if (btnTts) {
+          btnTts.classList.add('active');
+          btnTts.innerHTML = '<span>⏸️</span> Pause';
+        }
+        if (modalTtsBtn) modalTtsBtn.textContent = '⏸️ Pause';
+        if (modalTtsStopBtn) modalTtsStopBtn.style.display = 'inline-flex';
+      }
+    } else {
+      if (btnTts) {
+        btnTts.classList.remove('active');
+        btnTts.innerHTML = '<span>🔊</span> Read Aloud';
+      }
+      if (modalTtsBtn) modalTtsBtn.textContent = '🔊 Read Aloud';
+      if (modalTtsStopBtn) modalTtsStopBtn.style.display = 'none';
+    }
+  }
 
   function populateVoiceDropdowns() {
     if (!('speechSynthesis' in window)) return;
@@ -271,55 +303,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-<<<<<<< HEAD
-=======
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = populateVoiceDropdowns;
   }
 
-  function updateAudioUiState() {
-    const playBtnMain = document.getElementById('modalTtsBtn');
-    const stopBtnMain = document.getElementById('modalTtsStopBtn');
-    const playBtnPanel = document.getElementById('panelTtsPlayBtn');
-    const stopBtnPanel = document.getElementById('panelTtsStopBtn');
-
-    let playLabel = '▶️ Read Aloud';
-    if (isModalSpeaking && !isModalPaused) {
-      playLabel = '⏸️ Pause';
-    } else if (isModalSpeaking && isModalPaused) {
-      playLabel = '▶️ Resume';
-    }
-
-    if (playBtnMain) playBtnMain.textContent = playLabel;
-    if (playBtnPanel) playBtnPanel.textContent = playLabel;
-
-    const stopDisplay = isModalSpeaking ? 'inline-flex' : 'none';
-    if (stopBtnMain) stopBtnMain.style.display = stopDisplay;
-    if (stopBtnPanel) stopBtnPanel.style.display = stopDisplay;
-  }
-
->>>>>>> origin/main
   function stopModalSpeech() {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
     isModalSpeaking = false;
-<<<<<<< HEAD
-    const btnTts = document.getElementById('rxBtnTts');
-    if (btnTts) {
-      btnTts.classList.remove('active');
-      btnTts.innerHTML = '<span>🔊</span> Read Aloud';
-    }
-    if (modalTtsBtn) modalTtsBtn.textContent = '🔊 Read Aloud';
-    const activeSentences = document.querySelectorAll('#modalReadXContainer .sentence');
-=======
     isModalPaused = false;
     speechCurrentIndex = 0;
-    updateAudioUiState();
-
-    const activeSentences = document.querySelectorAll('.sentence.tts-active');
->>>>>>> origin/main
+    const activeSentences = document.querySelectorAll('#modalReadXContainer .sentence');
     activeSentences.forEach(s => s.classList.remove('tts-active'));
+    updateAudioUiState();
   }
 
   function playSentenceAtIndex(idx) {
@@ -345,11 +342,11 @@ document.addEventListener('DOMContentLoaded', () => {
       activeEl.classList.add('tts-active');
       activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-      const stage = document.getElementById('rxPdfViewStage');
+      const canvasContainer = document.getElementById('rxLayoutCCanvas');
       const focusLine = document.getElementById('rxModalFocusLine');
       const ruler = document.getElementById('rxModalReadingRuler');
-      if (stage && activeEl) {
-        const stageRect = stage.getBoundingClientRect();
+      if (canvasContainer && activeEl) {
+        const stageRect = canvasContainer.getBoundingClientRect();
         const elRect = activeEl.getBoundingClientRect();
         const relY = Math.max(0, elRect.top - stageRect.top);
         if (focusLine) focusLine.style.top = relY + 'px';
@@ -412,91 +409,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     stopModalSpeech();
 
-    if (currentModalItem && typeof ReadXData !== 'undefined') {
+    if (currentModalItem && typeof ReadXData !== 'undefined' && ReadXData.recordFeatureUse) {
       ReadXData.recordFeatureUse('readAloud', currentModalItem.title);
     }
 
-<<<<<<< HEAD
-    const sentences = Array.from(document.querySelectorAll('#modalReadXContainer .sentence'));
-    const btnTts = document.getElementById('rxBtnTts');
-=======
-    const container = document.getElementById('rxTextOverlayPanel') || modalReadXContainer;
-    speechSentences = Array.from(container.querySelectorAll('.sentence'));
->>>>>>> origin/main
+    const modalReadXContainer = document.getElementById('modalReadXContainer');
+    speechSentences = Array.from(document.querySelectorAll('#modalReadXContainer .sentence'));
 
     if (speechSentences.length === 0) {
-      const text = (container.textContent || '').trim();
+      const text = (modalReadXContainer ? modalReadXContainer.textContent : '').trim();
       if (!text) return;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = selectedSpeechRate;
       utterance.onend = () => stopModalSpeech();
       utterance.onerror = () => stopModalSpeech();
       isModalSpeaking = true;
-<<<<<<< HEAD
-      if (btnTts) {
-        btnTts.classList.add('active');
-        btnTts.innerHTML = '<span>⏸️</span> Pause';
-      }
-      if (modalTtsBtn) modalTtsBtn.textContent = '⏸️ Pause';
-=======
       isModalPaused = false;
       updateAudioUiState();
->>>>>>> origin/main
       window.speechSynthesis.speak(utterance);
       return;
     }
 
-    let currentIndex = 0;
-    isModalSpeaking = true;
-    if (btnTts) {
-      btnTts.classList.add('active');
-      btnTts.innerHTML = '<span>⏸️</span> Pause';
-    }
-    if (modalTtsBtn) modalTtsBtn.textContent = '⏸️ Pause';
-
-    function playNextSentence() {
-      if (!isModalSpeaking || currentIndex >= sentences.length) {
-        stopModalSpeech();
-        return;
-      }
-
-      sentences.forEach(s => s.classList.remove('tts-active'));
-      const activeEl = sentences[currentIndex];
-      activeEl.classList.add('tts-active');
-
-      const canvasContainer = document.getElementById('rxLayoutCCanvas');
-      const focusLine = document.getElementById('rxModalFocusLine');
-      const ruler = document.getElementById('rxModalReadingRuler');
-
-      if (canvasContainer && activeEl) {
-        const stageRect = canvasContainer.getBoundingClientRect();
-        const elRect = activeEl.getBoundingClientRect();
-        const relY = Math.max(0, elRect.top - stageRect.top);
-        if (focusLine) focusLine.style.top = relY + 'px';
-        if (ruler) ruler.style.top = Math.max(0, relY - 12) + 'px';
-      }
-
-      activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      const text = activeEl.innerText || activeEl.textContent;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-
-      utterance.onend = () => {
-        if (isModalSpeaking) {
-          currentIndex++;
-          playNextSentence();
-        }
-      };
-
-      utterance.onerror = () => {
-        stopModalSpeech();
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
-
-    playNextSentence();
+    playSentenceAtIndex(fromIndex);
   }
 
   function closeModal() {
@@ -528,25 +462,15 @@ document.addEventListener('DOMContentLoaded', () => {
       modalStandardContainer.style.display = 'block';
       modalReadXContainer.style.display = 'none';
       modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
-<<<<<<< HEAD
-=======
-      if (modalAudioBar) modalAudioBar.style.display = 'none';
->>>>>>> origin/main
     } else {
       modalBtnReadX.classList.add('active');
       modalBtnStandard.classList.remove('active');
       modalReadXContainer.style.display = 'block';
       modalStandardContainer.style.display = 'none';
-<<<<<<< HEAD
       modalFooterMeta.textContent = 'READX Accessible Mode · Layout C Focus View';
 
       applySettingsToReadXCanvas(getReadXUserSettings());
 
-=======
-      modalFooterMeta.textContent = 'READX Accessible Mode · Accessibility Layer Active';
-      if (modalAudioBar) modalAudioBar.style.display = 'inline-flex';
-      
->>>>>>> origin/main
       if (currentModalItem && typeof ReadXData !== 'undefined') {
         ReadXData.recordFeatureUse('readx', currentModalItem.title);
       }
@@ -620,7 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return `<p class="empty-state">No readable text extracted.</p>`;
     }
 
-<<<<<<< HEAD
     const trimmed = rawText.trim();
     if (trimmed.startsWith('<div') || trimmed.startsWith('<table')) {
       return trimmed;
@@ -698,36 +621,18 @@ document.addEventListener('DOMContentLoaded', () => {
             frag.appendChild(span);
           } else {
             frag.appendChild(document.createTextNode(part));
-=======
-    if (ext === 'pdf' && dataUrl) {
-      const rawText = item.content || '';
-      const sentenceRegex = /[^.!?]+[.!?]+/g;
-      const matchedSentences = rawText.match(sentenceRegex) || (rawText ? [rawText] : []);
-      
-      let overlayHtml = '';
-      if (matchedSentences.length > 0) {
-        matchedSentences.forEach((s, sIdx) => {
-          const trimmed = s.trim();
-          if (trimmed.length > 0) {
-            overlayHtml += `<span class="sentence" data-s-idx="${sIdx}">${trimmed}</span> `;
->>>>>>> origin/main
           }
         });
         if (tn.parentNode) tn.parentNode.replaceChild(frag, tn);
       } else {
-<<<<<<< HEAD
         const span = document.createElement('span');
         span.className = 'sentence';
         span.textContent = text;
         if (tn.parentNode) tn.parentNode.replaceChild(span, tn);
-=======
-        overlayHtml = `<p class="sentence" data-s-idx="0">${filename} — Accessibility Text Layer</p>`;
->>>>>>> origin/main
       }
     });
   }
 
-<<<<<<< HEAD
   function renderModalReadXView(item, hasText) {
     const canvasContent = document.getElementById('rxLayoutCContent');
     const pageIndicator = document.getElementById('modalPageIndicator');
@@ -743,515 +648,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>READX text adaptation is unavailable for this binary format. Please view the document under Standard Reading mode.</p>
         </div>
       `;
-=======
-      let rulerActive = localStorage.getItem('readxRulerEnabled') === 'true';
-      let focusActive = localStorage.getItem('readxFocusEnabled') === 'true';
-      let windowActive = localStorage.getItem('readxWindowEnabled') === 'true';
-      let panelActive = localStorage.getItem('readxPanelEnabled') !== 'false';
-      let textOverlayActive = localStorage.getItem('readxTextOverlayEnabled') === 'true';
-      let focusHeight = 36;
-      let windowHeight = 140;
-      let zoomLevel = 100;
-
-      modalReadXContainer.innerHTML = `
-        <div class="rx-pdf-readx-wrapper" id="rxPdfReadXWrapper">
-          <div class="rx-pdf-readx-bar" id="rxPdfReadXBar">
-            <span class="rx-readx-badge">✨ READX Accessibility Layer Active</span>
-            <div class="rx-pdf-tools">
-              <button type="button" class="btn btn-xs btn-outline ${rulerActive ? 'active' : ''}" id="rxQuickRulerBtn">📏 Reading Guide</button>
-              <button type="button" class="btn btn-xs btn-outline ${focusActive ? 'active' : ''}" id="rxQuickFocusBtn">🎯 Line Focus</button>
-              <button type="button" class="btn btn-xs btn-outline ${windowActive ? 'active' : ''}" id="rxQuickWindowBtn">🔍 Focus Window</button>
-              <button type="button" class="btn btn-xs btn-outline ${textOverlayActive ? 'active' : ''}" id="rxQuickTextPanelBtn">📖 Accessible Text</button>
-            </div>
-            <div class="rx-pdf-tools" style="margin-left:auto;">
-              <button type="button" class="btn btn-xs btn-ghost" id="rxZoomOutBtn" title="Zoom Out">–</button>
-              <span class="rx-ctrl-value" id="rxZoomValueDisplay" style="min-width:3.2rem; text-align:center;">100%</span>
-              <button type="button" class="btn btn-xs btn-ghost" id="rxZoomInBtn" title="Zoom In">+</button>
-              <button type="button" class="btn btn-xs btn-ghost" id="rxZoomResetBtn" title="Reset Zoom">Reset</button>
-              <button type="button" class="btn btn-xs btn-outline ${panelActive ? 'active' : ''}" id="rxTogglePanelBtn" title="Toggle Preferences Panel">⚡ Preferences</button>
-            </div>
-          </div>
-
-          <div class="rx-pdf-readx-layout">
-            <div class="rx-pdf-view-stage" id="rxPdfViewStage">
-              <div class="rx-reading-ruler-overlay" id="rxModalReadingRuler" style="display:${rulerActive ? 'block' : 'none'};"></div>
-              <div class="rx-focus-highlight-overlay" id="rxModalFocusLine" style="display:${focusActive ? 'block' : 'none'};"></div>
-              <div class="rx-focus-dim-mask" id="rxModalFocusDimTop" style="display:${focusActive ? 'block' : 'none'};"></div>
-              <div class="rx-focus-dim-mask" id="rxModalFocusDimBottom" style="display:${focusActive ? 'block' : 'none'};"></div>
-              <div class="rx-focus-window-overlay" id="rxModalFocusWindow" style="display:${windowActive ? 'block' : 'none'};"></div>
-              
-              <iframe src="${dataUrl}" class="rx-pdf-frame rx-pdf-readx-frame" id="rxPdfFrame" title="${filename}"></iframe>
-
-              <div class="rx-text-overlay-panel text-readx" id="rxTextOverlayPanel" style="display:${textOverlayActive ? 'block' : 'none'};">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                  <h4 style="margin:0; font-size:0.95rem; color:var(--copper); font-family:inherit;">📖 Accessible Dyslexia-Friendly Text</h4>
-                  <button type="button" class="btn btn-xs btn-ghost" id="rxCloseTextPanelBtn">✕</button>
-                </div>
-                <div class="rx-text-content-box">${overlayHtml}</div>
-              </div>
-            </div>
-
-            <!-- ACCESSIBILITY & READING PREFERENCES SIDE PANEL -->
-            <aside class="rx-accessibility-panel ${panelActive ? '' : 'collapsed'}" id="rxAccessibilityPanel">
-              <div class="rx-panel-header">
-                <h3>⚡ Reading Preferences</h3>
-                <button type="button" class="rx-modal-close" id="rxClosePanelBtn" style="font-size:1.25rem;" title="Close Panel">&times;</button>
-              </div>
-
-              <div class="rx-panel-content">
-                <!-- GROUP 1: READING TYPOGRAPHY -->
-                <div class="rx-panel-group">
-                  <div class="rx-group-header" data-toggle-group="grpTypography">
-                    <span>🔤 Typography & Spacing</span>
-                    <span class="grp-arrow">▼</span>
-                  </div>
-                  <div class="rx-group-content" id="grpTypography">
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Font Size</label>
-                        <span class="rx-ctrl-value" id="valPanelTextSize">18px</span>
-                      </div>
-                      <input type="range" id="setPanelTextSize" min="14" max="32" step="1" value="18">
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Line Spacing</label>
-                        <span class="rx-ctrl-value" id="valPanelLineHeight">1.8</span>
-                      </div>
-                      <input type="range" id="setPanelLineHeight" min="1.2" max="2.6" step="0.1" value="1.8">
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Letter Spacing</label>
-                        <span class="rx-ctrl-value" id="valPanelLetterSpacing">0.05em</span>
-                      </div>
-                      <input type="range" id="setPanelLetterSpacing" min="0" max="0.20" step="0.01" value="0.05">
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Word Spacing</label>
-                        <span class="rx-ctrl-value" id="valPanelWordSpacing">0.12em</span>
-                      </div>
-                      <input type="range" id="setPanelWordSpacing" min="0" max="0.35" step="0.02" value="0.12">
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Font Family</label>
-                      </div>
-                      <div class="rx-seg-control" id="panelFontControl">
-                        <button class="rx-seg-btn active" data-font="'OpenDyslexic', 'Lexend', sans-serif" type="button">Dyslexic</button>
-                        <button class="rx-seg-btn" data-font="'Lexend', sans-serif" type="button">Lexend</button>
-                        <button class="rx-seg-btn" data-font="'Inter', sans-serif" type="button">Inter</button>
-                        <button class="rx-seg-btn" data-font="'Lora', serif" type="button">Lora</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- GROUP 2: FOCUS & TRACKING -->
-                <div class="rx-panel-group">
-                  <div class="rx-group-header" data-toggle-group="grpFocus">
-                    <span>🎯 Focus & Tracking Tools</span>
-                    <span class="grp-arrow">▼</span>
-                  </div>
-                  <div class="rx-group-content" id="grpFocus">
-                    <div class="rx-switch-row">
-                      <label for="chkPanelRuler">Reading Guide Ruler</label>
-                      <input type="checkbox" id="chkPanelRuler" ${rulerActive ? 'checked' : ''}>
-                    </div>
-
-                    <div class="rx-switch-row">
-                      <label for="chkPanelLineFocus">Line Focus Bar</label>
-                      <input type="checkbox" id="chkPanelLineFocus" ${focusActive ? 'checked' : ''}>
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label style="font-size:0.75rem;">Line Focus Height</label>
-                        <span class="rx-ctrl-value" id="valPanelFocusHeight">36px</span>
-                      </div>
-                      <input type="range" id="setPanelFocusHeight" min="20" max="70" step="2" value="36">
-                    </div>
-
-                    <div class="rx-switch-row">
-                      <label for="chkPanelFocusWindow">Focus Window Spotlight</label>
-                      <input type="checkbox" id="chkPanelFocusWindow" ${windowActive ? 'checked' : ''}>
-                    </div>
-
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label style="font-size:0.75rem;">Window Height</label>
-                        <span class="rx-ctrl-value" id="valPanelWindowHeight">140px</span>
-                      </div>
-                      <input type="range" id="setPanelWindowHeight" min="80" max="260" step="10" value="140">
-                    </div>
-                  </div>
-                </div>
-
-                <!-- GROUP 3: VISUAL COMFORT & THEME -->
-                <div class="rx-panel-group">
-                  <div class="rx-group-header" data-toggle-group="grpVisual">
-                    <span>🎨 Visual Comfort & Themes</span>
-                    <span class="grp-arrow">▼</span>
-                  </div>
-                  <div class="rx-group-content" id="grpVisual">
-                    <div class="rx-ctrl-row">
-                      <div class="rx-ctrl-label-flex">
-                        <label>Reading Theme</label>
-                      </div>
-                      <div class="rx-seg-control" id="panelThemeControl">
-                        <button class="rx-seg-btn" data-theme-val="warm" type="button">📜 Warm</button>
-                        <button class="rx-seg-btn" data-theme-val="light" type="button">☀️ Light</button>
-                        <button class="rx-seg-btn" data-theme-val="dark" type="button">🌙 Dark</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- GROUP 4: AUDIO READ ALOUD -->
-                <div class="rx-panel-group">
-                  <div class="rx-group-header" data-toggle-group="grpAudio">
-                    <span>🔊 Read Aloud (Audio)</span>
-                    <span class="grp-arrow">▼</span>
-                  </div>
-                  <div class="rx-group-content" id="grpAudio">
-                    <div class="rx-audio-panel-box">
-                      <div class="rx-audio-btns-row">
-                        <button type="button" class="btn btn-primary btn-sm" id="panelTtsPlayBtn" style="flex:1;">▶️ Read Aloud</button>
-                        <button type="button" class="btn btn-outline btn-sm" id="panelTtsStopBtn" style="display:none;">⏹️ Stop</button>
-                      </div>
-                      <div class="rx-ctrl-row">
-                        <div class="rx-ctrl-label-flex">
-                          <label>Reading Speed</label>
-                          <span class="rx-ctrl-value" id="valPanelSpeed">1.0x</span>
-                        </div>
-                        <input type="range" id="setPanelSpeed" min="0.75" max="2.0" step="0.25" value="1.0">
-                      </div>
-                      <div class="rx-ctrl-row">
-                        <label style="font-size:0.75rem;">Voice Selection</label>
-                        <select class="rx-audio-speed-select" id="panelTtsVoiceSelect" style="width:100%; border-radius:var(--radius-sm); padding:0.4rem;">
-                          <option value="">Default System Voice</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </aside>
-          </div>
-        </div>
-      `;
-
-      // Helper function to handle mouse/touch positioning on stage
-      const stage = document.getElementById('rxPdfViewStage');
-      const ruler = document.getElementById('rxModalReadingRuler');
-      const focusLine = document.getElementById('rxModalFocusLine');
-      const dimTop = document.getElementById('rxModalFocusDimTop');
-      const dimBottom = document.getElementById('rxModalFocusDimBottom');
-      const focusWindow = document.getElementById('rxModalFocusWindow');
-      const accessibilityPanel = document.getElementById('rxAccessibilityPanel');
-      const textOverlayPanel = document.getElementById('rxTextOverlayPanel');
-
-      const updateOverlaysPos = (clientY) => {
-        if (!stage) return;
-        const rect = stage.getBoundingClientRect();
-        const relY = Math.max(0, Math.min(rect.height, clientY - rect.top));
-
-        if (ruler && rulerActive) {
-          ruler.style.top = Math.max(0, relY - 18) + 'px';
-        }
-
-        if (focusLine && focusActive) {
-          const halfH = focusHeight / 2;
-          const topPos = Math.max(0, relY - halfH);
-          focusLine.style.top = topPos + 'px';
-          focusLine.style.height = focusHeight + 'px';
-
-          if (dimTop) {
-            dimTop.style.top = '0px';
-            dimTop.style.height = topPos + 'px';
-          }
-          if (dimBottom) {
-            const bTop = topPos + focusHeight;
-            dimBottom.style.top = bTop + 'px';
-            dimBottom.style.height = Math.max(0, rect.height - bTop) + 'px';
-          }
-        }
-
-        if (focusWindow && windowActive) {
-          const halfW = windowHeight / 2;
-          focusWindow.style.top = Math.max(0, relY - halfW) + 'px';
-          focusWindow.style.height = windowHeight + 'px';
-        }
-      };
-
-      if (stage) {
-        stage.addEventListener('mousemove', (e) => updateOverlaysPos(e.clientY));
-        stage.addEventListener('touchmove', (e) => {
-          if (e.touches && e.touches[0]) updateOverlaysPos(e.touches[0].clientY);
-        });
-      }
-
-      // Quick Bar Buttons
-      const btnQuickRuler = document.getElementById('rxQuickRulerBtn');
-      const btnQuickFocus = document.getElementById('rxQuickFocusBtn');
-      const btnQuickWindow = document.getElementById('rxQuickWindowBtn');
-      const btnQuickTextPanel = document.getElementById('rxQuickTextPanelBtn');
-      const btnTogglePanel = document.getElementById('rxTogglePanelBtn');
-      const btnClosePanel = document.getElementById('rxClosePanelBtn');
-      const btnCloseTextPanel = document.getElementById('rxCloseTextPanelBtn');
-
-      const chkPanelRuler = document.getElementById('chkPanelRuler');
-      const chkPanelLineFocus = document.getElementById('chkPanelLineFocus');
-      const chkPanelFocusWindow = document.getElementById('chkPanelFocusWindow');
-
-      const toggleRuler = (val) => {
-        rulerActive = typeof val === 'boolean' ? val : !rulerActive;
-        if (ruler) ruler.style.display = rulerActive ? 'block' : 'none';
-        if (btnQuickRuler) btnQuickRuler.classList.toggle('active', rulerActive);
-        if (chkPanelRuler) chkPanelRuler.checked = rulerActive;
-        localStorage.setItem('readxRulerEnabled', rulerActive ? 'true' : 'false');
-      };
-
-      const toggleFocus = (val) => {
-        focusActive = typeof val === 'boolean' ? val : !focusActive;
-        if (focusLine) focusLine.style.display = focusActive ? 'block' : 'none';
-        if (dimTop) dimTop.style.display = focusActive ? 'block' : 'none';
-        if (dimBottom) dimBottom.style.display = focusActive ? 'block' : 'none';
-        if (btnQuickFocus) btnQuickFocus.classList.toggle('active', focusActive);
-        if (chkPanelLineFocus) chkPanelLineFocus.checked = focusActive;
-        localStorage.setItem('readxFocusEnabled', focusActive ? 'true' : 'false');
-      };
-
-      const toggleWindow = (val) => {
-        windowActive = typeof val === 'boolean' ? val : !windowActive;
-        if (focusWindow) focusWindow.style.display = windowActive ? 'block' : 'none';
-        if (btnQuickWindow) btnQuickWindow.classList.toggle('active', windowActive);
-        if (chkPanelFocusWindow) chkPanelFocusWindow.checked = windowActive;
-        localStorage.setItem('readxWindowEnabled', windowActive ? 'true' : 'false');
-      };
-
-      const toggleTextOverlay = (val) => {
-        textOverlayActive = typeof val === 'boolean' ? val : !textOverlayActive;
-        if (textOverlayPanel) textOverlayPanel.style.display = textOverlayActive ? 'block' : 'none';
-        if (btnQuickTextPanel) btnQuickTextPanel.classList.toggle('active', textOverlayActive);
-        localStorage.setItem('readxTextOverlayEnabled', textOverlayActive ? 'true' : 'false');
-      };
-
-      const togglePanel = (val) => {
-        panelActive = typeof val === 'boolean' ? val : !panelActive;
-        if (accessibilityPanel) accessibilityPanel.classList.toggle('collapsed', !panelActive);
-        if (btnTogglePanel) btnTogglePanel.classList.toggle('active', panelActive);
-        localStorage.setItem('readxPanelEnabled', panelActive ? 'true' : 'false');
-      };
-
-      if (btnQuickRuler) btnQuickRuler.addEventListener('click', () => toggleRuler());
-      if (btnQuickFocus) btnQuickFocus.addEventListener('click', () => toggleFocus());
-      if (btnQuickWindow) btnQuickWindow.addEventListener('click', () => toggleWindow());
-      if (btnQuickTextPanel) btnQuickTextPanel.addEventListener('click', () => toggleTextOverlay());
-      if (btnTogglePanel) btnTogglePanel.addEventListener('click', () => togglePanel());
-      if (btnClosePanel) btnClosePanel.addEventListener('click', () => togglePanel(false));
-      if (btnCloseTextPanel) btnCloseTextPanel.addEventListener('click', () => toggleTextOverlay(false));
-
-      if (chkPanelRuler) chkPanelRuler.addEventListener('change', (e) => toggleRuler(e.target.checked));
-      if (chkPanelLineFocus) chkPanelLineFocus.addEventListener('change', (e) => toggleFocus(e.target.checked));
-      if (chkPanelFocusWindow) chkPanelFocusWindow.addEventListener('change', (e) => toggleWindow(e.target.checked));
-
-      // Zoom Controls
-      const pdfFrame = document.getElementById('rxPdfFrame');
-      const valZoom = document.getElementById('rxZoomValueDisplay');
-      const updateZoom = (val) => {
-        zoomLevel = val;
-        if (pdfFrame) pdfFrame.style.transform = `scale(${zoomLevel / 100})`;
-        if (valZoom) valZoom.textContent = zoomLevel + '%';
-      };
-
-      if (document.getElementById('rxZoomInBtn')) {
-        document.getElementById('rxZoomInBtn').addEventListener('click', () => updateZoom(Math.min(200, zoomLevel + 15)));
-      }
-      if (document.getElementById('rxZoomOutBtn')) {
-        document.getElementById('rxZoomOutBtn').addEventListener('click', () => updateZoom(Math.max(60, zoomLevel - 15)));
-      }
-      if (document.getElementById('rxZoomResetBtn')) {
-        document.getElementById('rxZoomResetBtn').addEventListener('click', () => updateZoom(100));
-      }
-
-      // Accordion Group Header Toggles
-      document.querySelectorAll('#rxAccessibilityPanel .rx-group-header').forEach(hdr => {
-        hdr.addEventListener('click', () => {
-          const targetId = hdr.dataset.toggleGroup;
-          const targetGrp = document.getElementById(targetId);
-          if (targetGrp) {
-            const isHidden = targetGrp.hasAttribute('hidden');
-            if (isHidden) {
-              targetGrp.removeAttribute('hidden');
-              hdr.querySelector('.grp-arrow').textContent = '▼';
-            } else {
-              targetGrp.setAttribute('hidden', '');
-              hdr.querySelector('.grp-arrow').textContent = '▶';
-            }
-          }
-        });
-      });
-
-      // Spacing & Typography inputs
-      const rangeTextSize = document.getElementById('setPanelTextSize');
-      const rangeLineHeight = document.getElementById('setPanelLineHeight');
-      const rangeLetterSpacing = document.getElementById('setPanelLetterSpacing');
-      const rangeWordSpacing = document.getElementById('setPanelWordSpacing');
-      const rangeFocusHeight = document.getElementById('setPanelFocusHeight');
-      const rangeWindowHeight = document.getElementById('setPanelWindowHeight');
-      const rangeSpeed = document.getElementById('setPanelSpeed');
-      const selectSpeedFooter = document.getElementById('modalTtsSpeedSelect');
-
-      if (rangeTextSize) {
-        rangeTextSize.addEventListener('input', (e) => {
-          const val = e.target.value;
-          document.getElementById('valPanelTextSize').textContent = val + 'px';
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.textSize = parseInt(val, 10);
-            App.saveSettings(s);
-          }
-        });
-      }
-
-      if (rangeLineHeight) {
-        rangeLineHeight.addEventListener('input', (e) => {
-          const val = e.target.value;
-          document.getElementById('valPanelLineHeight').textContent = val;
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.lineHeight = parseFloat(val);
-            App.saveSettings(s);
-          }
-        });
-      }
-
-      if (rangeLetterSpacing) {
-        rangeLetterSpacing.addEventListener('input', (e) => {
-          const val = e.target.value;
-          document.getElementById('valPanelLetterSpacing').textContent = val + 'em';
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.letterSpacing = parseFloat(val);
-            App.saveSettings(s);
-          }
-        });
-      }
-
-      if (rangeWordSpacing) {
-        rangeWordSpacing.addEventListener('input', (e) => {
-          const val = e.target.value;
-          document.getElementById('valPanelWordSpacing').textContent = val + 'em';
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.wordSpacing = parseFloat(val);
-            App.saveSettings(s);
-          }
-        });
-      }
-
-      if (rangeFocusHeight) {
-        rangeFocusHeight.addEventListener('input', (e) => {
-          focusHeight = parseInt(e.target.value, 10);
-          document.getElementById('valPanelFocusHeight').textContent = focusHeight + 'px';
-        });
-      }
-
-      if (rangeWindowHeight) {
-        rangeWindowHeight.addEventListener('input', (e) => {
-          windowHeight = parseInt(e.target.value, 10);
-          document.getElementById('valPanelWindowHeight').textContent = windowHeight + 'px';
-        });
-      }
-
-      if (rangeSpeed) {
-        rangeSpeed.addEventListener('input', (e) => {
-          selectedSpeechRate = parseFloat(e.target.value);
-          document.getElementById('valPanelSpeed').textContent = selectedSpeechRate + 'x';
-          if (selectSpeedFooter) selectSpeedFooter.value = selectedSpeechRate;
-        });
-      }
-
-      if (selectSpeedFooter) {
-        selectSpeedFooter.addEventListener('change', (e) => {
-          selectedSpeechRate = parseFloat(e.target.value);
-          if (rangeSpeed) rangeSpeed.value = selectedSpeechRate;
-          if (document.getElementById('valPanelSpeed')) document.getElementById('valPanelSpeed').textContent = selectedSpeechRate + 'x';
-        });
-      }
-
-      // Font Family segmented control
-      document.querySelectorAll('#panelFontControl .rx-seg-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('#panelFontControl .rx-seg-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          const font = btn.dataset.font;
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.fontFamily = font;
-            App.saveSettings(s);
-          }
-        });
-      });
-
-      // Theme segmented control
-      document.querySelectorAll('#panelThemeControl .rx-seg-btn').forEach(btn => {
-        const currentTheme = document.body.getAttribute('data-theme') || 'warm';
-        btn.classList.toggle('active', btn.dataset.themeVal === currentTheme);
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('#panelThemeControl .rx-seg-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          const themeVal = btn.dataset.themeVal;
-          document.body.setAttribute('data-theme', themeVal);
-          if (typeof App !== 'undefined' && App.getSettings) {
-            const s = App.getSettings();
-            s.theme = themeVal;
-            App.saveSettings(s);
-          }
-        });
-      });
-
-      // TTS Play / Stop buttons inside Panel
-      const panelPlayBtn = document.getElementById('panelTtsPlayBtn');
-      const panelStopBtn = document.getElementById('panelTtsStopBtn');
-      const panelVoiceSelect = document.getElementById('panelTtsVoiceSelect');
-
-      populateVoiceDropdowns();
-
-      if (panelVoiceSelect) {
-        panelVoiceSelect.addEventListener('change', (e) => {
-          selectedVoiceURI = e.target.value;
-        });
-      }
-
-      if (panelPlayBtn) {
-        panelPlayBtn.addEventListener('click', () => startModalSpeech());
-      }
-      if (panelStopBtn) {
-        panelStopBtn.addEventListener('click', () => stopModalSpeech());
-      }
-
-      // Accessible text sentence click handlers
-      document.querySelectorAll('#rxTextOverlayPanel .sentence').forEach(sent => {
-        sent.addEventListener('click', () => {
-          const sIdx = parseInt(sent.dataset.sIdx || '0', 10);
-          toggleTextOverlay(true);
-          startModalSpeech(sIdx);
-        });
-      });
-
-      // Re-apply live settings to newly injected overlay panel
-      if (typeof ReadingAssist !== 'undefined') {
-        ReadingAssist.applySettingsToDOM(ReadingAssist.getSettings());
-      }
->>>>>>> origin/main
       return;
     }
 
@@ -1270,39 +666,44 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalPages = pageBlocks.length || 1;
     let currentPage = 1;
 
+    const modalPrevPageBtn = document.getElementById('modalPrevPageBtn');
+    const modalNextPageBtn = document.getElementById('modalNextPageBtn');
+
     function updatePageNav() {
       if (pageIndicator) pageIndicator.textContent = `${currentPage} / ${totalPages}`;
       if (prevBtn) prevBtn.disabled = (currentPage <= 1);
       if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+      if (modalPrevPageBtn) modalPrevPageBtn.disabled = (currentPage <= 1);
+      if (modalNextPageBtn) modalNextPageBtn.disabled = (currentPage >= totalPages);
     }
     updatePageNav();
 
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        if (currentPage > 1) {
-          currentPage--;
-          updatePageNav();
-          const targetPage = pageBlocks[currentPage - 1];
-          if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      };
-    }
+    const goToPrevPage = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        updatePageNav();
+        const targetPage = pageBlocks[currentPage - 1];
+        if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
 
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        if (currentPage < totalPages) {
-          currentPage++;
-          updatePageNav();
-          const targetPage = pageBlocks[currentPage - 1];
-          if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      };
-    }
+    const goToNextPage = () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        updatePageNav();
+        const targetPage = pageBlocks[currentPage - 1];
+        if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    if (prevBtn) prevBtn.onclick = goToPrevPage;
+    if (nextBtn) nextBtn.onclick = goToNextPage;
+    if (modalPrevPageBtn) modalPrevPageBtn.onclick = goToPrevPage;
+    if (modalNextPageBtn) modalNextPageBtn.onclick = goToNextPage;
 
     bindBottomToolbarEvents(userSettings);
   }
 
-<<<<<<< HEAD
   function bindBottomToolbarEvents(settings) {
     const btnFontDec = document.getElementById('rxBtnFontDec');
     const btnFontInc = document.getElementById('rxBtnFontInc');
@@ -1492,8 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-=======
->>>>>>> origin/main
   modalBtnStandard.addEventListener('click', () => switchModalMode('standard'));
   modalBtnReadX.addEventListener('click', () => {
     const hasText = currentModalItem && currentModalItem.hasExtractableText !== false && currentModalItem.isReadable !== false && Boolean(currentModalItem.content && currentModalItem.content.trim());
@@ -1518,6 +917,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalTtsStopBtn = document.getElementById('modalTtsStopBtn');
   if (modalTtsStopBtn) {
     modalTtsStopBtn.addEventListener('click', () => stopModalSpeech());
+  }
+
+  // Modal Zoom Controls
+  let currentZoom = 100;
+  const modalZoomOutBtn = document.getElementById('modalZoomOutBtn');
+  const modalZoomInBtn = document.getElementById('modalZoomInBtn');
+  const modalZoomIndicator = document.getElementById('modalZoomIndicator');
+
+  function updateZoom(newZoom) {
+    currentZoom = Math.min(200, Math.max(50, newZoom));
+    if (modalZoomIndicator) modalZoomIndicator.textContent = currentZoom + '%';
+    const canvas = document.getElementById('rxLayoutCCanvas');
+    const std = document.getElementById('modalStandardContainer');
+    if (canvas) canvas.style.fontSize = `${(getReadXUserSettings().textSize || 18) * (currentZoom / 100)}px`;
+    if (std) std.style.zoom = (currentZoom / 100);
+  }
+
+  if (modalZoomOutBtn) {
+    modalZoomOutBtn.addEventListener('click', () => updateZoom(currentZoom - 10));
+  }
+  if (modalZoomInBtn) {
+    modalZoomInBtn.addEventListener('click', () => updateZoom(currentZoom + 10));
+  }
+
+  // TTS Speed Select
+  const modalTtsSpeedSelect = document.getElementById('modalTtsSpeedSelect');
+  if (modalTtsSpeedSelect) {
+    modalTtsSpeedSelect.addEventListener('change', (e) => {
+      selectedSpeechRate = parseFloat(e.target.value) || 1.0;
+    });
   }
 
   document.addEventListener('click', (e) => {
