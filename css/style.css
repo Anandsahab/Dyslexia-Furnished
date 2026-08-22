@@ -658,7 +658,7 @@ body.dyslexia-mode .reading-content.text-readx {
   margin-top: 1.4em;
   margin-bottom: 0.6em;
   font-weight: 700 !important;
-  color: var(--copper, #E05624) !important;
+  color: inherit !important;
 }
 
 /* Sentence atoms */

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/auth.css">
   <script src="js/auth.js"></script>
   <script>
     if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.isLoggedIn()) {
@@ -42,10 +43,9 @@
     <div class="upload-zone" id="uploadZone" data-reveal="fade" data-reveal-delay="100">
       <div class="upload-zone-icon">↑</div>
       <h3>Upload a document</h3>
-      <p>Drag and drop a document here, or click to browse. Supports common document and text formats. ZIP/archive files
-        are not supported.</p>
+      <p>Drag and drop a document here, or click to browse. Supports PDF, Word (.doc, .docx), PowerPoint (.ppt, .pptx), Excel (.xls, .xlsx), CSV, Text, RTF, and Images. ZIP files are not supported.</p>
       <label for="uploadInput" class="btn btn-primary" id="uploadBrowseBtn" role="button" tabindex="0">Choose File</label>
-      <input type="file" id="uploadInput" aria-label="Upload document">
+      <input type="file" id="uploadInput" aria-label="Upload document" accept=".pdf,.doc,.docx,.txt,.rtf,.ppt,.pptx,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/rtf,text/rtf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,image/jpeg,image/png,image/webp">
     </div>
 
     <div id="uploadErrorAlert" class="auth-alert auth-alert--error" style="display:none; margin-top:1.25rem;"
@@ -70,22 +70,25 @@
     <div class="rx-reader-modal-container" role="dialog" aria-modal="true">
       <header class="rx-modal-header">
         <div class="rx-modal-header-left">
-          <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader" title="Close Reader">&times;</button>
+          <button class="rx-modal-close" id="modalCloseBtn" aria-label="Close reader" title="Close reader">
+            <span class="rx-close-arrow">←</span>
+            <span class="rx-close-text">Back</span>
+          </button>
+          <span class="rx-header-divider" aria-hidden="true"></span>
           <span class="rx-view-format-badge" id="modalFormatBadge">PDF</span>
           <h2 class="rx-modal-title" id="modalDocTitle">Document Viewer</h2>
         </div>
 
         <div class="rx-modal-header-center" id="modalPageControls">
-          <div class="rx-page-nav-pill">
-            <button type="button" class="rx-page-btn" id="modalPrevPageBtn" title="Previous Page">&lsaquo;</button>
+          <div class="rx-page-nav-pill" id="modalPageNavPill">
+            <button type="button" class="rx-page-btn" id="modalPrevPageBtn" title="Previous Page" aria-label="Previous Page">&lsaquo;</button>
             <span class="rx-page-indicator" id="modalPageIndicator">1 / 1</span>
-            <button type="button" class="rx-page-btn" id="modalNextPageBtn" title="Next Page">&rsaquo;</button>
+            <button type="button" class="rx-page-btn" id="modalNextPageBtn" title="Next Page" aria-label="Next Page">&rsaquo;</button>
           </div>
-          <span class="rx-control-divider">|</span>
-          <div class="rx-zoom-pill">
-            <button type="button" class="rx-zoom-btn" id="modalZoomOutBtn" title="Zoom Out">−</button>
+          <div class="rx-zoom-pill" id="modalZoomPill">
+            <button type="button" class="rx-zoom-btn" id="modalZoomOutBtn" title="Zoom Out" aria-label="Zoom Out">−</button>
             <span class="rx-zoom-indicator" id="modalZoomIndicator">100%</span>
-            <button type="button" class="rx-zoom-btn" id="modalZoomInBtn" title="Zoom In">+</button>
+            <button type="button" class="rx-zoom-btn" id="modalZoomInBtn" title="Zoom In" aria-label="Zoom In">+</button>
           </div>
         </div>
 

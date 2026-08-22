@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!container || !canvas) return;
 
     container.setAttribute('data-theme', s.theme || 'dark');
-    document.body.setAttribute('data-theme', s.theme || 'dark');
 
     canvas.style.fontSize = (s.textSize || 18) + 'px';
     canvas.style.fontFamily = s.fontFamily || 'inherit';
@@ -99,14 +98,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const ARCHIVE_EXTENSIONS = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'tgz', 'zipx'];
-  const ARCHIVE_MIME_TYPES = [
+  // Active session Blob URLs for high-fidelity instant preview
+  const activeBlobUrls = new Map();
+
+  // Strict blocklist for ZIP archives and unsafe/executable formats
+  const BLOCKED_EXTENSIONS = [
+    'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'tgz', 'zipx', 'z', 'cab', 'arj',
+    'exe', 'msi', 'bat', 'cmd', 'sh', 'bin', 'apk', 'jar', 'dmg', 'app', 'com', 'scr', 'vbs', 'ps1', 'dll', 'sys'
+  ];
+  const BLOCKED_MIME_TYPES = [
     'application/zip',
     'application/x-zip-compressed',
+    'application/x-zip',
+    'multipart/x-zip',
     'application/x-rar-compressed',
+    'application/x-rar',
     'application/x-7z-compressed',
     'application/gzip',
-    'application/x-tar'
+    'application/x-tar',
+    'application/x-msdownload',
+    'application/x-msdos-program',
+    'application/x-executable'
+  ];
+
+  // Allowed study material and media formats
+  const ALLOWED_EXTENSIONS = [
+    // Documents
+    'pdf', 'doc', 'docx', 'txt', 'rtf', 'md', 'html', 'htm', 'json', 'xml', 'log',
+    // Presentations
+    'ppt', 'pptx',
+    // Spreadsheets
+    'xls', 'xlsx', 'csv',
+    // Images
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp',
+    // Audio / Video
+    'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac',
+    'mp4', 'webm', 'mov', 'ogv', 'avi', 'mkv'
   ];
 
   function showUploadError(msg) {
@@ -462,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modalStandardContainer.style.display = 'block';
       modalReadXContainer.style.display = 'none';
       modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
+      updateDocumentPagination();
     } else {
       modalBtnReadX.classList.add('active');
       modalBtnStandard.classList.remove('active');
@@ -470,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modalFooterMeta.textContent = 'READX Accessible Mode · Layout C Focus View';
 
       applySettingsToReadXCanvas(getReadXUserSettings());
+      updateDocumentPagination();
 
       if (currentModalItem && typeof ReadXData !== 'undefined') {
         ReadXData.recordFeatureUse('readx', currentModalItem.title);
@@ -477,38 +506,121 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  let currentDocPage = 1;
+  let totalDocPages = 1;
+
+  function updateDocumentPagination() {
+    const isReadX = activeModalMode === 'readx';
+    const activeContainer = isReadX ? document.getElementById('rxLayoutCContent') : document.getElementById('modalStandardContainer');
+    const pageIndicator = document.getElementById('modalPageIndicator');
+    const prevBtn = document.getElementById('modalPrevPageBtn');
+    const nextBtn = document.getElementById('modalNextPageBtn');
+    const rxCanvasPrev = document.getElementById('rxCanvasPrevPage');
+    const rxCanvasNext = document.getElementById('rxCanvasNextPage');
+
+    if (!activeContainer) {
+      totalDocPages = 1;
+      currentDocPage = 1;
+      if (pageIndicator) pageIndicator.textContent = '1 / 1';
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
+      return;
+    }
+
+    const pageBlocks = activeContainer.querySelectorAll('.rx-page-block');
+    totalDocPages = Math.max(1, pageBlocks.length);
+    if (currentDocPage > totalDocPages) currentDocPage = totalDocPages;
+    if (currentDocPage < 1) currentDocPage = 1;
+
+    if (pageIndicator) pageIndicator.textContent = `${currentDocPage} / ${totalDocPages}`;
+    const canPrev = (currentDocPage > 1);
+    const canNext = (currentDocPage < totalDocPages);
+
+    if (prevBtn) prevBtn.disabled = !canPrev;
+    if (nextBtn) nextBtn.disabled = !canNext;
+    if (rxCanvasPrev) rxCanvasPrev.disabled = !canPrev;
+    if (rxCanvasNext) rxCanvasNext.disabled = !canNext;
+  }
+
+  function goToPage(pageNum) {
+    if (pageNum < 1 || pageNum > totalDocPages) return;
+    currentDocPage = pageNum;
+    updateDocumentPagination();
+
+    const isReadX = activeModalMode === 'readx';
+    const activeContainer = isReadX ? document.getElementById('rxLayoutCContent') : document.getElementById('modalStandardContainer');
+    if (!activeContainer) return;
+
+    const pageBlocks = activeContainer.querySelectorAll('.rx-page-block');
+    const targetPage = pageBlocks[currentDocPage - 1];
+    if (targetPage) {
+      targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function initPaginationEvents() {
+    const prevBtn = document.getElementById('modalPrevPageBtn');
+    const nextBtn = document.getElementById('modalNextPageBtn');
+    const rxCanvasPrev = document.getElementById('rxCanvasPrevPage');
+    const rxCanvasNext = document.getElementById('rxCanvasNextPage');
+
+    const onPrev = (e) => {
+      e.preventDefault();
+      goToPage(currentDocPage - 1);
+    };
+    const onNext = (e) => {
+      e.preventDefault();
+      goToPage(currentDocPage + 1);
+    };
+
+    if (prevBtn) prevBtn.onclick = onPrev;
+    if (nextBtn) nextBtn.onclick = onNext;
+    if (rxCanvasPrev) rxCanvasPrev.onclick = onPrev;
+    if (rxCanvasNext) rxCanvasNext.onclick = onNext;
+  }
+
   function renderModalStandardView(item) {
     modalStandardContainer.innerHTML = '';
     const ext = (item.ext || 'file').toLowerCase();
-    const dataUrl = item.originalDataUrl || '';
+    const activeUrl = (typeof activeBlobUrls !== 'undefined' && activeBlobUrls.get(item.id)) || item.originalDataUrl || '';
     const filename = item.filename || item.title;
 
     if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'].includes(ext)) {
       modalStandardContainer.innerHTML = `
         <div class="rx-original-media">
-          <img src="${dataUrl || 'assets/placeholder.svg'}" alt="${filename}">
-          <p class="text-caption">${filename}</p>
+          <img src="${activeUrl || 'assets/placeholder.svg'}" alt="${filename}">
+          <p class="text-caption" style="margin-top:0.75rem; color:var(--text-secondary); font-size:0.875rem;">${filename}</p>
         </div>
       `;
     } else if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) {
       modalStandardContainer.innerHTML = `
         <div class="rx-original-media">
           <h3>🎵 ${filename}</h3>
-          <audio controls src="${dataUrl}"></audio>
+          <audio controls src="${activeUrl}"></audio>
         </div>
       `;
-    } else if (['mp4', 'webm', 'mov', 'ogv', 'avi'].includes(ext)) {
+    } else if (['mp4', 'webm', 'mov', 'ogv', 'avi', 'mkv'].includes(ext)) {
       modalStandardContainer.innerHTML = `
         <div class="rx-original-media">
           <h3>🎬 ${filename}</h3>
-          <video controls src="${dataUrl}" style="max-width:100%; max-height:60vh;"></video>
+          <video controls src="${activeUrl}" style="max-width:100%; max-height:60vh;"></video>
         </div>
       `;
     } else if (ext === 'pdf') {
-      if (dataUrl) {
-        modalStandardContainer.innerHTML = `<iframe src="${dataUrl}" class="rx-pdf-frame" title="${filename}"></iframe>`;
+      if (activeUrl) {
+        modalStandardContainer.innerHTML = `<iframe src="${activeUrl}" class="rx-pdf-frame" title="${filename}"></iframe>`;
+      } else if (item.content && item.content.trim()) {
+        const formatted = formatExtractedContentToHTML(item.content, filename);
+        modalStandardContainer.innerHTML = `
+          <div class="standard-doc-view">
+            <div class="rx-pdf-banner">
+              📄 <strong>PDF Extracted Content:</strong> Showing text extracted from original PDF. Click <strong>READX</strong> above for full dyslexia adaptations.
+            </div>
+            ${formatted}
+          </div>
+        `;
       } else {
-        renderModalFallback(filename, ext);
+        renderModalFallback(filename, ext, activeUrl);
       }
     } else if (['json', 'xml', 'css', 'js'].includes(ext)) {
       const safeContent = (item.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -518,22 +630,27 @@ document.addEventListener('DOMContentLoaded', () => {
           <pre class="rx-code-block"><code>${safeContent || 'Empty content'}</code></pre>
         </div>
       `;
-    } else {
+    } else if (item.content && item.content.trim()) {
       const formatted = (item.content || '').startsWith('<') ? item.content : `<p>${(item.content || '').replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
       modalStandardContainer.innerHTML = `
-        <div class="reading-content standard-doc-view">
-          ${formatted || '<p class="text-muted">Original document content displayed.</p>'}
+        <div class="standard-doc-view">
+          ${formatted}
         </div>
       `;
+    } else {
+      renderModalFallback(filename, ext, activeUrl);
     }
   }
 
   function renderModalFallback(filename, ext, dataUrl) {
     modalStandardContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="text-label">Preview Unavailable</span>
-        <p>Preview is not natively available for .${ext} files, but your original file is preserved.</p>
-        ${dataUrl ? `<a href="${dataUrl}" download="${filename}.${ext}" class="btn btn-outline btn-sm" style="margin-top:1rem;">Download Original File</a>` : ''}
+      <div class="empty-state" style="padding:2.5rem 1.5rem; text-align:center;">
+        <span class="text-label" style="display:inline-block; margin-bottom:0.5rem;">Preview Unavailable</span>
+        <h4 style="margin-bottom:0.5rem; color:var(--text-primary);">${filename}</h4>
+        <p style="max-width:480px; margin:0 auto; color:var(--text-secondary); font-size:0.9375rem;">
+          Preview is not natively available for .${ext} files in this browser view, but your original file is preserved.
+        </p>
+        ${dataUrl ? `<a href="${dataUrl}" download="${filename}.${ext}" class="btn btn-outline btn-sm" style="margin-top:1.25rem;">Download Original File</a>` : ''}
       </div>
     `;
   }
@@ -661,46 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userSettings = getReadXUserSettings();
     applySettingsToReadXCanvas(userSettings);
-
-    const pageBlocks = canvasContent.querySelectorAll('.rx-page-block');
-    let totalPages = pageBlocks.length || 1;
-    let currentPage = 1;
-
-    const modalPrevPageBtn = document.getElementById('modalPrevPageBtn');
-    const modalNextPageBtn = document.getElementById('modalNextPageBtn');
-
-    function updatePageNav() {
-      if (pageIndicator) pageIndicator.textContent = `${currentPage} / ${totalPages}`;
-      if (prevBtn) prevBtn.disabled = (currentPage <= 1);
-      if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
-      if (modalPrevPageBtn) modalPrevPageBtn.disabled = (currentPage <= 1);
-      if (modalNextPageBtn) modalNextPageBtn.disabled = (currentPage >= totalPages);
-    }
-    updatePageNav();
-
-    const goToPrevPage = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updatePageNav();
-        const targetPage = pageBlocks[currentPage - 1];
-        if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    };
-
-    const goToNextPage = () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updatePageNav();
-        const targetPage = pageBlocks[currentPage - 1];
-        if (targetPage) targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    };
-
-    if (prevBtn) prevBtn.onclick = goToPrevPage;
-    if (nextBtn) nextBtn.onclick = goToNextPage;
-    if (modalPrevPageBtn) modalPrevPageBtn.onclick = goToPrevPage;
-    if (modalNextPageBtn) modalNextPageBtn.onclick = goToNextPage;
-
+    updateDocumentPagination();
     bindBottomToolbarEvents(userSettings);
   }
 
@@ -941,6 +1019,8 @@ document.addEventListener('DOMContentLoaded', () => {
     modalZoomInBtn.addEventListener('click', () => updateZoom(currentZoom + 10));
   }
 
+  initPaginationEvents();
+
   // TTS Speed Select
   const modalTtsSpeedSelect = document.getElementById('modalTtsSpeedSelect');
   if (modalTtsSpeedSelect) {
@@ -983,9 +1063,124 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isArchiveFile(file, ext) {
-    if (ARCHIVE_EXTENSIONS.includes(ext)) return true;
-    if (file.type && ARCHIVE_MIME_TYPES.includes(file.type.toLowerCase())) return true;
+    if (BLOCKED_EXTENSIONS.includes(ext)) return true;
+    if (file.type && BLOCKED_MIME_TYPES.includes(file.type.toLowerCase())) return true;
     return false;
+  }
+
+  // Strip RTF control codes to clean readable text
+  function extractTextFromRtf(rtfStr) {
+    if (!rtfStr) return '';
+    let text = rtfStr
+      .replace(/\{\\fonttbl[\s\S]*?\}/gi, '')
+      .replace(/\{\\colortbl[\s\S]*?\}/gi, '')
+      .replace(/\{\\stylesheet[\s\S]*?\}/gi, '')
+      .replace(/\{\\info[\s\S]*?\}/gi, '')
+      .replace(/\{\\\*[\s\S]*?\}/gi, '');
+    text = text.replace(/\\par\b/gi, '\n')
+      .replace(/\\line\b/gi, '\n')
+      .replace(/\\tab\b/gi, '\t');
+    text = text.replace(/\\'([0-9a-fA-F]{2})/g, (match, hex) => {
+      try {
+        return String.fromCharCode(parseInt(hex, 16));
+      } catch (e) {
+        return match;
+      }
+    });
+    text = text.replace(/\\u([0-9]{2,5})\??/g, (match, code) => {
+      try {
+        return String.fromCharCode(parseInt(code, 10));
+      } catch (e) {
+        return match;
+      }
+    });
+    text = text.replace(/\\[a-zA-Z0-9-]+\b ?/g, '');
+    text = text.replace(/[{}]/g, '');
+    return text.trim();
+  }
+
+  // Parse CSV content into structured HTML table
+  function parseCsvToHtml(csvText) {
+    if (!csvText || !csvText.trim()) return '';
+    const lines = csvText.trim().split(/\r?\n/);
+    if (lines.length === 0) return '';
+    let html = '<div class="rx-excel-sheet" style="overflow-x:auto; margin-bottom:1.5rem;"><table class="rx-excel-table" style="width:100%; border-collapse:collapse;">';
+    lines.forEach((line, idx) => {
+      const regex = /(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g;
+      const cols = [];
+      let match;
+      while ((match = regex.exec(line)) !== null) {
+        let val = match[1] || '';
+        if (val.startsWith('"') && val.endsWith('"')) {
+          val = val.slice(1, -1).replace(/""/g, '"');
+        }
+        cols.push(val.trim());
+        if (match.index + match[0].length >= line.length) break;
+      }
+      const cleanCols = cols.length > 0 ? cols : line.split(',');
+      const tag = idx === 0 ? 'th' : 'td';
+      html += '<tr>' + cleanCols.map(c => `<${tag} style="padding:8px 12px; border:1px solid var(--border-subtle, rgba(255,255,255,0.1)); text-align:left;">${c.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</${tag}>`).join('') + '</tr>';
+    });
+    html += '</table></div>';
+    return html;
+  }
+
+  // Extract readable text from binary Word (.doc) and PowerPoint (.ppt) streams
+  function extractBinaryOfficeText(arrayBuffer, minLength = 4) {
+    try {
+      const uint8 = new Uint8Array(arrayBuffer);
+      const strings = [];
+
+      // Scan UTF-16LE text runs
+      let currentUtf16 = '';
+      for (let i = 0; i < uint8.length - 1; i += 2) {
+        const code = uint8[i] | (uint8[i + 1] << 8);
+        if (code >= 32 && code <= 126) {
+          currentUtf16 += String.fromCharCode(code);
+        } else if (code === 10 || code === 13) {
+          if (currentUtf16.trim().length >= minLength) strings.push(currentUtf16.trim());
+          currentUtf16 = '';
+        } else {
+          if (currentUtf16.trim().length >= minLength) strings.push(currentUtf16.trim());
+          currentUtf16 = '';
+        }
+      }
+      if (currentUtf16.trim().length >= minLength) strings.push(currentUtf16.trim());
+
+      // Scan ASCII text runs
+      let currentAscii = '';
+      for (let i = 0; i < uint8.length; i++) {
+        const b = uint8[i];
+        if (b >= 32 && b <= 126) {
+          currentAscii += String.fromCharCode(b);
+        } else if (b === 10 || b === 13) {
+          if (currentAscii.trim().length >= minLength) strings.push(currentAscii.trim());
+          currentAscii = '';
+        } else {
+          if (currentAscii.trim().length >= minLength) strings.push(currentAscii.trim());
+          currentAscii = '';
+        }
+      }
+      if (currentAscii.trim().length >= minLength) strings.push(currentAscii.trim());
+
+      const filtered = strings.filter(s => {
+        if (s.length < minLength) return false;
+        if (/^(Root Entry|WordDocument|SummaryInformation|DocumentSummaryInformation|Table|CompObj|Current User|PowerPoint Document)/i.test(s)) return false;
+        if (/^[^\w\s]+$/.test(s)) return false;
+        return true;
+      });
+
+      const dedupeed = [];
+      filtered.forEach(s => {
+        if (dedupeed.length === 0 || dedupeed[dedupeed.length - 1] !== s) {
+          dedupeed.push(s);
+        }
+      });
+
+      return dedupeed.join('\n\n');
+    } catch (err) {
+      return '';
+    }
   }
 
   function processUploadedFile(file) {
@@ -993,14 +1188,34 @@ document.addEventListener('DOMContentLoaded', () => {
     clearUploadError();
 
     const ext = getFileExtension(file);
+    const mime = (file.type || '').toLowerCase();
 
-    // 1. REJECT ZIP AND ARCHIVE FILES IMMEDIATELY
-    if (isArchiveFile(file, ext)) {
-      showUploadError('ZIP files are not supported. Please select a document file.');
+    // 1. STRICTLY REJECT ZIP FILES
+    if (ext === 'zip' || ((mime === 'application/zip' || mime === 'application/x-zip-compressed' || mime === 'application/x-zip' || mime === 'multipart/x-zip') && !['docx', 'pptx', 'xlsx'].includes(ext))) {
+      showUploadError('ZIP files (.zip) are strictly not supported. Please upload a supported study material format (PDF, Word, PPT, Excel, CSV, Text, RTF, or Image).');
       return;
     }
 
-    // 2. READ ORIGINAL FILE AS DATA URL TO PRESERVE ORIGINAL REPRESENTATION
+    // 2. REJECT OTHER ARCHIVE AND EXECUTABLE FILES
+    if (BLOCKED_EXTENSIONS.includes(ext) || BLOCKED_MIME_TYPES.includes(mime)) {
+      showUploadError(`Files with format .${ext || 'archive/executable'} are not supported. Archive and executable formats cannot be uploaded.`);
+      return;
+    }
+
+    // 3. VALIDATE AGAINST ALLOWLIST
+    const isMimeAllowed = mime.startsWith('image/') || mime.startsWith('audio/') || mime.startsWith('video/') || mime.startsWith('text/') || mime.includes('pdf') || mime.includes('word') || mime.includes('officedocument') || mime.includes('excel') || mime.includes('powerpoint') || mime.includes('spreadsheet');
+    if (!ALLOWED_EXTENSIONS.includes(ext) && !isMimeAllowed) {
+      showUploadError(`Unsupported file format (.${ext || 'unknown'}). Please upload supported study materials (PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, CSV, TXT, RTF, or Images).`);
+      return;
+    }
+
+    // 4. FILE SIZE VALIDATION (50MB maximum)
+    if (file.size > 50 * 1024 * 1024) {
+      showUploadError(`File is too large (${Math.round(file.size / (1024 * 1024))}MB). Maximum allowed upload size is 50MB.`);
+      return;
+    }
+
+    // 5. READ ORIGINAL FILE AS DATA URL TO PRESERVE ORIGINAL REPRESENTATION
     const dataUrlReader = new FileReader();
     dataUrlReader.onload = (eData) => {
       const originalDataUrl = eData.target.result;
@@ -1025,13 +1240,21 @@ document.addEventListener('DOMContentLoaded', () => {
       saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Uploaded video — original format preserved.');
     } else if (ext === 'docx' || (file.type && file.type.includes('wordprocessingml'))) {
       parseDocxFile(file, ext, originalDataUrl);
+    } else if (ext === 'doc' || (file.type && file.type === 'application/msword')) {
+      parseDocFile(file, ext, originalDataUrl);
     } else if (ext === 'pdf' || (file.type && file.type.includes('pdf'))) {
       parsePdfFile(file, ext, originalDataUrl);
     } else if (ext === 'xlsx' || ext === 'xls' || (file.type && (file.type.includes('spreadsheet') || file.type.includes('excel')))) {
       parseXlsxFile(file, ext, originalDataUrl);
-    } else if (ext === 'pptx') {
+    } else if (ext === 'csv' || (file.type && file.type === 'text/csv')) {
+      parseCsvFile(file, ext, originalDataUrl);
+    } else if (ext === 'pptx' || (file.type && file.type.includes('presentationml'))) {
       parsePptxFile(file, ext, originalDataUrl);
-    } else if (['txt', 'md', 'csv', 'json', 'xml', 'html', 'htm', 'rtf', 'log'].includes(ext) || (file.type && file.type.startsWith('text/'))) {
+    } else if (ext === 'ppt' || (file.type && file.type === 'application/vnd.ms-powerpoint')) {
+      parsePptFile(file, ext, originalDataUrl);
+    } else if (ext === 'rtf' || (file.type && (file.type === 'application/rtf' || file.type === 'text/rtf'))) {
+      parseRtfFile(file, ext, originalDataUrl);
+    } else if (['txt', 'md', 'json', 'xml', 'html', 'htm', 'log'].includes(ext) || (file.type && file.type.startsWith('text/'))) {
       parseTextFile(file, ext, originalDataUrl);
     } else {
       saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Uploaded file — original format preserved.');
@@ -1047,7 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
           .then((result) => {
             const html = (result.value || '').trim();
-            saveDocumentToUploads(file, originalDataUrl, html, ext, true);
+            saveDocumentToUploads(file, originalDataUrl, html, ext, Boolean(html));
           })
           .catch(() => {
             saveDocumentToUploads(file, originalDataUrl, '', ext, false);
@@ -1057,6 +1280,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       saveDocumentToUploads(file, originalDataUrl, '', ext, false);
     }
+  }
+
+  // DOC PARSER (Word 97-2003 Binary)
+  function parseDocFile(file, ext, originalDataUrl) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = extractBinaryOfficeText(e.target.result);
+        if (text && text.length > 20) {
+          const formatted = `<p>${text.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+          saveDocumentToUploads(file, originalDataUrl, formatted, ext, true, 'Word document text extracted.');
+        } else {
+          saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Word document — original format preserved.');
+        }
+      } catch (err) {
+        saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Word document — original format preserved.');
+      }
+    };
+    reader.onerror = () => saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+    reader.readAsArrayBuffer(file);
   }
 
   // Multi-column & Paragraph-Preserving PDF Text Extractor
@@ -1142,21 +1385,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           Promise.all(promises).then(pageTexts => {
             const fullText = pageTexts.filter(Boolean).join('\n\n-- Page Break --\n\n').trim();
-            saveDocumentToUploads(file, originalDataUrl, fullText, ext, true);
-          }).catch(() => {
-            saveDocumentToUploads(file, originalDataUrl, '', ext, true);
+            saveDocumentToUploads(file, originalDataUrl, fullText, ext, Boolean(fullText), fullText ? 'PDF text extracted for ReadX & Standard mode.' : 'PDF original file preserved.');
+          }).catch((err) => {
+            console.warn('PDF text extraction error:', err);
+            saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'PDF original file preserved.');
           });
-        }).catch(() => {
-          saveDocumentToUploads(file, originalDataUrl, '', ext, true);
+        }).catch((err) => {
+          console.warn('PDF load error:', err);
+          saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'PDF original file preserved.');
         });
       };
       reader.readAsArrayBuffer(file);
     } else {
-      saveDocumentToUploads(file, originalDataUrl, '', ext, true);
+      saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'PDF original file preserved.');
     }
   }
 
-  // EXCEL PARSER
+  // EXCEL PARSER (.xlsx, .xls)
   function parseXlsxFile(file, ext, originalDataUrl) {
     if (typeof XLSX !== 'undefined') {
       const reader = new FileReader();
@@ -1172,56 +1417,168 @@ document.addEventListener('DOMContentLoaded', () => {
               htmlTables += `<div class="rx-excel-sheet" style="margin-bottom:1.5rem;"><h4 style="margin-bottom:0.5rem;">📊 Sheet: ${name}</h4>${tableHtml}</div>`;
             }
           });
-          saveDocumentToUploads(file, originalDataUrl, htmlTables.trim(), ext, Boolean(htmlTables.trim()));
+          saveDocumentToUploads(file, originalDataUrl, htmlTables.trim(), ext, Boolean(htmlTables.trim()), 'Spreadsheet table converted.');
         } catch (err) {
-          saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+          saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Spreadsheet — original format preserved.');
         }
       };
       reader.readAsArrayBuffer(file);
     } else {
-      saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+      saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'Spreadsheet — original format preserved.');
     }
+  }
+
+  // CSV PARSER
+  function parseCsvFile(file, ext, originalDataUrl) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const raw = (e.target.result || '').trim();
+        let tableHtml = '';
+        if (typeof XLSX !== 'undefined') {
+          try {
+            const wb = XLSX.read(raw, { type: 'string' });
+            const sheetName = wb.SheetNames[0];
+            if (sheetName) {
+              const sheet = wb.Sheets[sheetName];
+              tableHtml = XLSX.utils.sheet_to_html(sheet, { header: '', footer: '' });
+              if (tableHtml) {
+                tableHtml = `<div class="rx-excel-sheet" style="margin-bottom:1.5rem;"><h4 style="margin-bottom:0.5rem;">📊 Data: ${file.name}</h4>${tableHtml}</div>`;
+              }
+            }
+          } catch (xErr) { }
+        }
+        if (!tableHtml && raw) {
+          tableHtml = parseCsvToHtml(raw);
+        }
+        saveDocumentToUploads(file, originalDataUrl, tableHtml || raw, ext, Boolean(tableHtml || raw), 'Spreadsheet CSV imported.');
+      } catch (err) {
+        saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+      }
+    };
+    reader.onerror = () => saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+    reader.readAsText(file);
   }
 
   // PPTX PARSER
   function parsePptxFile(file, ext, originalDataUrl) {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const buffer = e.target.result;
-        const decoder = new TextDecoder('utf-8', { fatal: false });
-        const rawString = decoder.decode(buffer);
-        const slideMatches = rawString.split(/<p:sld\b/gi);
-        let slideCardsHtml = '';
-        if (slideMatches.length > 1) {
-          slideMatches.slice(1).forEach((slideXml, idx) => {
-            const matches = slideXml.match(/<a:t>([^<]+)<\/a:t>/gi);
+    reader.onload = async (e) => {
+      const arrayBuffer = e.target.result;
+      let slideCardsHtml = '';
+
+      // Try reading PPTX slide XMLs via JSZip (bundled in mammoth)
+      const jszip = typeof JSZip !== 'undefined' ? JSZip : (typeof window !== 'undefined' ? window.JSZip : null);
+      if (jszip && jszip.loadAsync) {
+        try {
+          const zip = await jszip.loadAsync(arrayBuffer);
+          const slideFiles = [];
+          zip.forEach((relativePath, zipEntry) => {
+            if (/^ppt\/slides\/slide\d+\.xml$/i.test(relativePath)) {
+              slideFiles.push(zipEntry);
+            }
+          });
+
+          slideFiles.sort((a, b) => {
+            const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
+            const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
+            return numA - numB;
+          });
+
+          for (let i = 0; i < slideFiles.length; i++) {
+            const slideXml = await slideFiles[i].async('text');
+            const matches = slideXml.match(/<a:t>([^<]+)<\/a:t>/gi) || [];
+            const textArr = matches.map(m => m.replace(/<\/?a:t>/gi, '').trim()).filter(Boolean);
+            const cleanText = textArr.join(' ');
+            if (cleanText) {
+              slideCardsHtml += `<div class="rx-slide-card" style="margin-bottom:1.5rem;"><h4>📊 Slide ${i + 1}</h4><p style="margin-top:0.75rem;">${cleanText}</p></div>`;
+            }
+          }
+        } catch (zipErr) {
+          console.warn('JSZip PPTX parsing fallback:', zipErr);
+        }
+      }
+
+      // Fallback regex extraction if needed
+      if (!slideCardsHtml) {
+        try {
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          const rawString = decoder.decode(arrayBuffer);
+          const slideMatches = rawString.split(/<p:sld\b/gi);
+          if (slideMatches.length > 1) {
+            slideMatches.slice(1).forEach((slideXml, idx) => {
+              const matches = slideXml.match(/<a:t>([^<]+)<\/a:t>/gi);
+              if (matches && matches.length > 0) {
+                const textArr = matches.map(m => m.replace(/<\/?a:t>/gi, '').trim()).filter(Boolean);
+                const cleanText = Array.from(new Set(textArr)).join(' ');
+                if (cleanText) {
+                  slideCardsHtml += `<div class="rx-slide-card" style="margin-bottom:1.5rem;"><h4>📊 Slide ${idx + 1}</h4><p style="margin-top:0.75rem;">${cleanText}</p></div>`;
+                }
+              }
+            });
+          }
+          if (!slideCardsHtml) {
+            const matches = rawString.match(/<a:t>([^<]+)<\/a:t>/gi);
             if (matches && matches.length > 0) {
               const textArr = matches.map(m => m.replace(/<\/?a:t>/gi, '').trim()).filter(Boolean);
               const cleanText = Array.from(new Set(textArr)).join(' ');
-              if (cleanText) {
-                slideCardsHtml += `<div class="rx-slide-card" style="margin-bottom:1.5rem;"><h4>📊 Slide ${idx + 1}</h4><p style="margin-top:0.75rem;">${cleanText}</p></div>`;
-              }
+              slideCardsHtml = `<div class="rx-slide-card"><h4>📊 Presentation Content</h4><p style="margin-top:0.75rem;">${cleanText}</p></div>`;
             }
-          });
-        }
-        if (!slideCardsHtml) {
-          const matches = rawString.match(/<a:t>([^<]+)<\/a:t>/gi);
-          if (matches && matches.length > 0) {
-            const textArr = matches.map(m => m.replace(/<\/?a:t>/gi, '').trim()).filter(Boolean);
-            const cleanText = Array.from(new Set(textArr)).join(' ');
-            slideCardsHtml = `<div class="rx-slide-card"><h4>📊 Presentation Content</h4><p style="margin-top:0.75rem;">${cleanText}</p></div>`;
           }
-        }
-        saveDocumentToUploads(file, originalDataUrl, slideCardsHtml, ext, Boolean(slideCardsHtml));
-      } catch (err) {
-        saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+        } catch (err) { }
       }
+
+      saveDocumentToUploads(file, originalDataUrl, slideCardsHtml, ext, Boolean(slideCardsHtml));
     };
     reader.readAsArrayBuffer(file);
   }
 
-  // TEXT / MD PARSER
+  // PPT PARSER (PowerPoint 97-2003 Binary)
+  function parsePptFile(file, ext, originalDataUrl) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = extractBinaryOfficeText(e.target.result);
+        if (text && text.length > 20) {
+          const chunks = text.split(/\n\n+/).filter(Boolean);
+          let html = '';
+          chunks.forEach((chunk, i) => {
+            html += `<div class="rx-slide-card" style="margin-bottom:1.5rem;"><h4>📊 Slide / Section ${i + 1}</h4><p style="margin-top:0.75rem;">${chunk}</p></div>`;
+          });
+          saveDocumentToUploads(file, originalDataUrl, html, ext, true, 'PowerPoint presentation content extracted.');
+        } else {
+          saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'PowerPoint presentation — original format preserved.');
+        }
+      } catch (err) {
+        saveDocumentToUploads(file, originalDataUrl, '', ext, false, 'PowerPoint presentation — original format preserved.');
+      }
+    };
+    reader.onerror = () => saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+    reader.readAsArrayBuffer(file);
+  }
+
+  // RTF PARSER
+  function parseRtfFile(file, ext, originalDataUrl) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const raw = e.target.result || '';
+        const cleanText = extractTextFromRtf(raw);
+        if (cleanText) {
+          const formatted = `<p>${cleanText.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+          saveDocumentToUploads(file, originalDataUrl, formatted, ext, true, 'Rich Text document parsed.');
+        } else {
+          saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+        }
+      } catch (err) {
+        saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+      }
+    };
+    reader.onerror = () => saveDocumentToUploads(file, originalDataUrl, '', ext, false);
+    reader.readAsText(file);
+  }
+
+  // TEXT / MD / HTML / JSON / XML PARSER
   function parseTextFile(file, ext, originalDataUrl) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -1241,8 +1598,6 @@ document.addEventListener('DOMContentLoaded', () => {
           .replace(/<\/ul>\s*<ul>/g, '');
         saveDocumentToUploads(file, originalDataUrl, html, ext, true);
         return;
-      } else if (ext === 'rtf') {
-        content = content.replace(/\\rtf1[\s\S]*?\\deflang\d*/g, '').replace(/\\[a-z0-9]+\b/gi, '').replace(/[{}]/g, '').trim();
       }
 
       const formatted = `<p>${content.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
@@ -1257,6 +1612,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const words = hasExtractableText ? plainText.split(/\s+/).filter(Boolean).length : 0;
     const id = 'upload-' + Date.now();
     const title = file.name.replace(/\.[^/.]+$/, '');
+
+    // Track active Blob URL in memory for high-fidelity instant preview
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        activeBlobUrls.set(id, URL.createObjectURL(file));
+      }
+    } catch (e) { }
 
     // For non-images or large files, strip heavy Data URL (>200KB) to prevent QuotaExceededError in localStorage
     let safeDataUrl = originalDataUrl || '';
