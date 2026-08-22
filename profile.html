@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,18 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/auth.css">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('readx-dyslexia-mode') === 'true') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-site-theme', 'dark');
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
+
 <body>
   <div class="rx-loader" id="rxLoader" aria-hidden="true">
     <div class="rx-loader-inner">
@@ -194,4 +206,5 @@
   <script src="js/profile.js"></script>
   <script src="js/animations.js"></script>
 </body>
+
 </html>

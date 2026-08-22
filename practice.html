@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,18 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/home.css">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('readx-dyslexia-mode') === 'true') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-site-theme', 'dark');
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
+
 <body>
   <div class="rx-loader" id="rxLoader" aria-hidden="true">
     <div class="rx-loader-inner">
@@ -36,7 +48,8 @@
             <span class="eyebrow">Verify Knowledge</span>
             <h2>Understand it.<br>Then prove it.</h2>
             <p class="section-subtitle">
-              Reinforce what you learn with targeted exercises. Instant feedback ensures you master coding concepts before moving forward.
+              Reinforce what you learn with targeted exercises. Instant feedback ensures you master coding concepts
+              before moving forward.
             </p>
             <div class="practice-cta-wrap">
               <a href="practice.html" class="btn btn-primary btn-lg">Go to Practice Page</a>
@@ -89,12 +102,259 @@
       </div>
     </section>
 
+    <!-- SECTION: WEEKLY PRACTICE TEST (DIRECTLY BELOW PRACTICE TEST) -->
+    <section class="section-weekly-practice" id="weeklyPracticeSection" style="margin-top: 3.5rem;">
+      <div class="weekly-section-header" data-reveal="fade">
+        <span class="text-label" style="color:var(--accent, #0e9f8a); letter-spacing:0.1em;">WEEKLY EVALUATION</span>
+        <h2 class="weekly-section-title" style="margin: 0.35rem 0 0.5rem; font-family: var(--font-display, serif); font-size: clamp(1.75rem, 3vw, 2.25rem);">WEEKLY PRACTICE TEST</h2>
+        <p class="weekly-section-subtitle" style="color: var(--text-secondary); max-width: 600px; line-height: 1.6; margin-bottom: 2rem;">
+          Test your understanding of what you've learned this week.
+        </p>
+      </div>
+
+      <!-- Current Weekly Test Card -->
+      <div class="weekly-featured-card" id="weeklyFeaturedCard" data-reveal="fade" data-reveal-delay="60">
+        <div class="weekly-card-content">
+          <div class="weekly-card-kicker">
+            <span class="weekly-pulse-dot" id="weeklyPulseDot"></span>
+            <span class="text-label weekly-label" id="weeklyKickerText">CURRENT TEST</span>
+            <span class="weekly-lock-status-badge status-unlocked" id="weeklyLockStatusBadge">AVAILABLE</span>
+          </div>
+
+          <div class="weekly-identity">
+            <span class="weekly-badge" id="weeklyWeekBadge">WEEK 01 · DSA</span>
+            <h3 class="weekly-title" id="weeklyTitle">DSA FUNDAMENTALS</h3>
+          </div>
+
+          <p class="weekly-desc" id="weeklyDesc">
+            Test your understanding of this week's concepts.
+          </p>
+
+          <!-- Locked 7-Day Cooldown Banner -->
+          <div class="weekly-cooldown-box" id="weeklyCooldownBox" style="display:none;">
+            <div class="cooldown-header-line">
+              <span class="cooldown-lock-icon">🔒</span>
+              <span class="cooldown-title">LOCKED · AVAILABLE IN</span>
+            </div>
+            <div class="cooldown-timer-hero" id="cooldownTimerDisplay">6d 14h 32m 00s</div>
+            <p class="cooldown-subtext">Complete your current weekly test. Your next test unlocks after 7 days.</p>
+          </div>
+
+          <!-- Completed Score Notice -->
+          <div class="weekly-completed-notice" id="weeklyCompletedNotice" style="display:none;">
+            <div class="comp-notice-left">
+              <span class="comp-check-icon">✓</span>
+              <div>
+                <div class="comp-notice-title" id="weeklyCompNoticeTitle">Week 01 Completed</div>
+                <div class="comp-notice-score" id="weeklyCompNoticeScore">Score: 85%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weekly-meta-row">
+            <div class="weekly-meta-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span id="weeklyMetaQuestions"><strong>15</strong> Questions</span>
+            </div>
+            <div class="weekly-meta-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="weeklyMetaDuration"><strong>20</strong> Minutes</span>
+            </div>
+            <div class="weekly-meta-item weekly-best-badge" id="weeklyBestScoreBadge" style="display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Best: <strong id="weeklyBestScoreVal">0%</strong></span>
+            </div>
+          </div>
+
+          <!-- Action button -->
+          <div class="weekly-action-wrap">
+            <button type="button" class="btn btn-primary btn-lg weekly-start-btn" id="startWeeklyTestBtn">
+              START TEST →
+            </button>
+          </div>
+
+          <!-- Sequential Progression Timeline (Weeks 01-08) -->
+          <div class="weekly-roadmap-container" id="weeklyRoadmapContainer">
+            <div class="roadmap-label">Weekly Curriculum Progression (Weeks 01–08):</div>
+            <div class="roadmap-track" id="weeklyRoadmapTrack"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVE WEEKLY TEST VIEW -->
+    <div id="weeklyTestActive" hidden>
+      <div class="weekly-quiz-container">
+        <!-- Header Bar -->
+        <div class="weekly-quiz-header-bar">
+          <div>
+            <span class="text-label" id="wtCategoryLabel">WEEK 01 · DSA</span>
+            <h2 class="wt-header-title" id="wtHeaderTitle">DSA Fundamentals</h2>
+          </div>
+          <div class="wt-timer-badge" id="wtTimerBadge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="wt-timer-text" id="wtTimerDisplay">20:00</span>
+          </div>
+        </div>
+
+        <!-- Question Navigator Pill Strip -->
+        <div class="wt-nav-strip">
+          <div class="wt-nav-meta">
+            <span class="text-label">QUESTIONS</span>
+            <span class="wt-progress-count" id="wtProgressCount">1 of 15</span>
+          </div>
+          <div class="wt-nav-pills" id="wtNavPills"></div>
+          <div class="quiz-progress-bar" style="margin-top: 0.75rem;">
+            <div class="quiz-progress-fill" id="wtProgressFill" style="width: 6.66%;"></div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="weekly-question-card">
+          <div class="wt-question-meta">
+            <span class="wt-q-number" id="wtQuestionNum">Question 01</span>
+            <span class="wt-answered-status" id="wtAnsweredStatus">Not Answered</span>
+          </div>
+          
+          <h3 class="wt-question-text" id="wtQuestionText">Question text here...</h3>
+
+          <div class="weekly-options-grid" id="wtOptionsContainer"></div>
+
+          <!-- Bottom controls -->
+          <div class="wt-controls-row">
+            <button type="button" class="btn btn-outline" id="wtPrevBtn" disabled>
+              ← Previous
+            </button>
+            <div class="wt-controls-right">
+              <button type="button" class="btn btn-primary" id="wtNextBtn">
+                Next Question →
+              </button>
+              <button type="button" class="btn btn-accent" id="wtSubmitBtn">
+                Submit Test ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY TEST RESULT VIEW -->
+    <div id="weeklyTestResult" hidden>
+      <div class="weekly-result-card">
+        <div class="result-kicker">
+          <span class="weekly-badge">WEEKLY TEST RESULT</span>
+        </div>
+        
+        <h2 class="result-test-title" id="wtResultTitle">Week 01 · DSA Fundamentals</h2>
+        
+        <div class="result-score-hero">
+          <div class="score-number-main" id="wtResultScoreMain">14 / 15</div>
+          <div class="score-pct-badge" id="wtResultPctMain">93%</div>
+        </div>
+
+        <p class="result-summary-msg" id="wtResultSummaryMsg">
+          Mastery level achieved! Outstanding understanding of DSA concepts.
+        </p>
+
+        <!-- 5-Metric Breakdown Grid -->
+        <div class="result-metrics-grid">
+          <div class="res-metric-box">
+            <span class="res-metric-lbl">Score</span>
+            <span class="res-metric-val" id="wtMetricScore">14 / 15</span>
+          </div>
+          <div class="res-metric-box">
+            <span class="res-metric-lbl">Percentage</span>
+            <span class="res-metric-val" id="wtMetricPct">93%</span>
+          </div>
+          <div class="res-metric-box">
+            <span class="res-metric-lbl">Correct</span>
+            <span class="res-metric-val val-green" id="wtMetricCorrect">14</span>
+          </div>
+          <div class="res-metric-box">
+            <span class="res-metric-lbl">Incorrect</span>
+            <span class="res-metric-val val-red" id="wtMetricIncorrect">1</span>
+          </div>
+          <div class="res-metric-box">
+            <span class="res-metric-lbl">Time</span>
+            <span class="res-metric-val" id="wtMetricTime">14:32</span>
+          </div>
+        </div>
+
+        <!-- Cooldown Status Alert in Result View -->
+        <div class="result-cooldown-notice" id="wtResultCooldownNotice">
+          <span class="cooldown-lock-icon">🔒</span>
+          <span>Next weekly test unlocks in <strong>7 days</strong>. You can review your answers below.</span>
+        </div>
+
+        <!-- Result Actions -->
+        <div class="result-actions-row">
+          <button type="button" class="btn btn-primary" id="wtReviewAnswersBtn">
+            REVIEW ANSWERS
+          </button>
+          <button type="button" class="btn btn-outline" id="wtTryAgainBtn">
+            TRY AGAIN
+          </button>
+          <button type="button" class="btn btn-ghost" id="wtBackToPracticeBtn">
+            ← Back to Practice
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY TEST REVIEW ANSWERS VIEW -->
+    <div id="weeklyTestReview" hidden>
+      <div class="weekly-review-container">
+        <div class="review-header-bar">
+          <div>
+            <span class="text-label">TEST BREAKDOWN & EXPLANATIONS</span>
+            <h2 class="review-heading" id="wtReviewHeading">Review Answers · Week 01 DSA</h2>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="wtReviewBackToResultBtn">
+            ← Back to Results
+          </button>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="review-filter-tabs">
+          <button type="button" class="filter-tab active" id="filterAllBtn">All (<span id="countAll">15</span>)</button>
+          <button type="button" class="filter-tab" id="filterCorrectBtn">Correct (<span id="countCorrect">14</span>)</button>
+          <button type="button" class="filter-tab" id="filterIncorrectBtn">Incorrect (<span id="countIncorrect">1</span>)</button>
+        </div>
+
+        <!-- Questions Review List -->
+        <div class="review-questions-list" id="wtReviewList"></div>
+
+        <!-- Bottom return button -->
+        <div class="review-bottom-actions">
+          <button type="button" class="btn btn-primary" id="wtReviewBackToPracticeBtn">
+            ← Back to Practice
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Active quiz -->
     <div id="quizActive" hidden>
       <div class="quiz-layout">
         <div class="quiz-progress-header">
           <span id="quizCategoryLabel">DSA</span>
-          <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+          <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" id="quizProgressFill"></div>
+          </div>
           <span id="quizProgressText">1 / 5</span>
         </div>
         <div class="quiz-card">
@@ -114,7 +374,8 @@
       <div class="quiz-result">
         <span class="text-label">Quiz Complete</span>
         <div class="quiz-result-score" id="resultScore">4/5</div>
-        <p style="color:var(--text-secondary); margin-bottom:2rem;" id="resultMessage">Great work on DSA Fundamentals.</p>
+        <p style="color:var(--text-secondary); margin-bottom:2rem;" id="resultMessage">Great work on DSA Fundamentals.
+        </p>
         <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
           <button class="btn btn-primary" id="quizRetryBtn">Try Again</button>
           <button class="btn btn-outline" id="quizBackBtn">All Quizzes</button>
@@ -131,4 +392,5 @@
   <script src="js/practice.js"></script>
   <script src="js/animations.js"></script>
 </body>
+
 </html>
