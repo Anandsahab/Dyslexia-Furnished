@@ -189,12 +189,45 @@
           </div>
         </div>
       </footer>
+      <!-- Floating Contextual Selection AI Toolbar (Works in BOTH Standard & ReadX) -->
+      <div class="rx-selection-ai-toolbar" id="rxSelectionAiToolbar" style="display:none;" aria-hidden="true">
+        <button type="button" class="rx-ai-btn" id="rxAiBtnAnalyze" title="Analyze selected text with Gemini AI">
+          <span class="rx-ai-icon">✨</span> Analyze
+        </button>
+        <span class="rx-ai-divider"></span>
+        <button type="button" class="rx-ai-btn" id="rxAiBtnSummarizeDoc" title="Summarize the entire document with Gemini AI">
+          <span class="rx-ai-icon">📄</span> Summarize PDF
+        </button>
+      </div>
+
+      <!-- AI Result Drawer / Modal Panel -->
+      <div class="rx-ai-result-drawer" id="rxAiResultDrawer" style="display:none;" aria-hidden="true">
+        <div class="rx-ai-drawer-header">
+          <div class="rx-ai-drawer-title-group">
+            <span class="rx-ai-pill">✨ Gemini AI</span>
+            <h4 class="rx-ai-drawer-title" id="rxAiDrawerTitle">Analysis</h4>
+          </div>
+          <div class="rx-ai-drawer-actions">
+            <button type="button" class="rx-ai-copy-btn" id="rxAiCopyBtn" title="Copy output">📋 Copy</button>
+            <button type="button" class="rx-ai-drawer-close" id="rxAiDrawerClose" aria-label="Close AI panel">✕</button>
+          </div>
+        </div>
+        <div class="rx-ai-drawer-quote" id="rxAiDrawerQuote" style="display:none;"></div>
+        <div class="rx-ai-drawer-body" id="rxAiDrawerBody">
+          <div class="rx-ai-loading" id="rxAiLoading" style="display:none;">
+            <div class="rx-ai-spinner"></div>
+            <span>Consulting Gemini AI...</span>
+          </div>
+          <div class="rx-ai-content" id="rxAiContent"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="js/data.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/gemini.js"></script>
   <script src="js/mammoth.browser.min.js"></script>
   <script src="js/pdf.min.js"></script>
   <script src="js/xlsx.mini.min.js"></script>

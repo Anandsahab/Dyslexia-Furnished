@@ -3268,3 +3268,265 @@ text-align: left;
 .quiz-progress-fill {
   transition: none;
 }
+
+/* ============================================================
+   CONTEXTUAL TEXT SELECTION AI TOOLBAR & RESULT DRAWER
+   Works in BOTH Standard and ReadX Modes
+   ============================================================ */
+.rx-selection-ai-toolbar {
+  position: fixed;
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  background: rgba(22, 24, 20, 0.94);
+  border: 1px solid rgba(138, 149, 96, 0.35);
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(138, 149, 96, 0.18);
+  pointer-events: auto;
+  user-select: none;
+  animation: rxAiPop 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rxAiPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rx-ai-btn {
+  background: transparent;
+  border: none;
+  color: #F1EFE7;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.35rem 0.7rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+.rx-ai-btn:hover {
+  background: rgba(138, 149, 96, 0.28);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.rx-ai-btn:active {
+  transform: translateY(0);
+}
+
+.rx-ai-icon {
+  font-size: 0.875rem;
+}
+
+.rx-ai-divider {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  margin: 0 0.15rem;
+}
+
+/* AI Result Drawer / Modal Panel */
+.rx-ai-result-drawer {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  width: 460px;
+  max-width: calc(100vw - 3rem);
+  max-height: 80vh;
+  z-index: 1210;
+  background: rgba(24, 26, 22, 0.98);
+  border: 1px solid var(--border-color, #34372D);
+  border-radius: 16px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rxDrawerSlideUp 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rxDrawerSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rx-ai-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 20, 16, 0.6);
+}
+
+.rx-ai-drawer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rx-ai-pill {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(138, 149, 96, 0.25);
+  color: #D8E0B0;
+  border: 1px solid rgba(138, 149, 96, 0.4);
+}
+
+.rx-ai-drawer-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #F1EFE7;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.rx-ai-drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rx-ai-copy-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #C5C2B8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.rx-ai-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.rx-ai-drawer-close {
+  background: transparent;
+  border: none;
+  color: #8E9185;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 150ms ease;
+}
+
+.rx-ai-drawer-close:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.rx-ai-drawer-quote {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: #9C9E94;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rx-ai-drawer-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #E2DFD2;
+}
+
+.rx-ai-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 2.5rem 1rem;
+  color: #A8ABA0;
+  font-size: 0.875rem;
+}
+
+.rx-ai-spinner {
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid rgba(138, 149, 96, 0.2);
+  border-top-color: #8A9560;
+  border-radius: 50%;
+  animation: rxSpin 700ms linear infinite;
+}
+
+@keyframes rxSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rx-ai-content {
+  color: #E2DFD2;
+}
+
+.rx-ai-content h2,
+.rx-ai-content h3,
+.rx-ai-content h4 {
+  color: #F1EFE7 !important;
+}
+
+.rx-ai-content strong {
+  color: #FFFFFF !important;
+}
+
+.rx-ai-content ul,
+.rx-ai-content ol {
+  padding-left: 1.4rem;
+}
+
+.rx-ai-content li {
+  margin-bottom: 0.4rem;
+  color: #E2DFD2;
+}
+
+@media (max-width: 600px) {
+  .rx-ai-result-drawer {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    width: auto;
+    max-width: 100%;
+    max-height: 70vh;
+  }
+}

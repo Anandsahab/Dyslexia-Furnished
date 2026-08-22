@@ -464,6 +464,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modal) return;
     stopModalSpeech();
 
+    const selToolbar = document.getElementById('rxSelectionAiToolbar');
+    if (selToolbar) selToolbar.style.display = 'none';
+    const aiDrawer = document.getElementById('rxAiResultDrawer');
+    if (aiDrawer) aiDrawer.style.display = 'none';
+
     if (currentModalItem && typeof ReadXData !== 'undefined') {
       ReadXData.endReadingSession(currentModalItem.id, currentModalItem.wordCount || 0);
     }
@@ -479,6 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function switchModalMode(mode) {
     activeModalMode = mode;
+    const selToolbar = document.getElementById('rxSelectionAiToolbar');
+    if (selToolbar) selToolbar.style.display = 'none';
     const modalFooterActions = document.getElementById('modalFooterActions');
     const modalAudioBar = document.getElementById('modalAudioBar');
 
@@ -1020,6 +1027,287 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initPaginationEvents();
+  initSelectionAiToolbar();
+
+  // Contextual Selection AI Toolbar (Works identically in Standard and ReadX modes)
+  function initSelectionAiToolbar() {
+    const toolbar = document.getElementById('rxSelectionAiToolbar');
+    const btnAnalyze = document.getElementById('rxAiBtnAnalyze');
+    const btnSummarize = document.getElementById('rxAiBtnSummarizeDoc');
+    const drawer = document.getElementById('rxAiResultDrawer');
+    const drawerTitle = document.getElementById('rxAiDrawerTitle');
+    const drawerQuote = document.getElementById('rxAiDrawerQuote');
+    const drawerContent = document.getElementById('rxAiContent');
+    const drawerLoading = document.getElementById('rxAiLoading');
+    const drawerClose = document.getElementById('rxAiDrawerClose');
+    const copyBtn = document.getElementById('rxAiCopyBtn');
+
+    if (!toolbar) return;
+
+    let selectedText = '';
+
+    function hideToolbar() {
+      if (toolbar) {
+        toolbar.style.display = 'none';
+        toolbar.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function updateToolbarPosition() {
+      // Only active when the reader modal is visible
+      const modalEl = document.getElementById('rxReaderModal');
+      if (!modalEl || !modalEl.classList.contains('active')) {
+        hideToolbar();
+        return;
+      }
+
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+        hideToolbar();
+        return;
+      }
+
+      const text = selection.toString().trim();
+      if (text.length < 2) {
+        hideToolbar();
+        return;
+      }
+
+      // Avoid triggering when selection happens inside AI drawer or toolbar itself
+      const anchorNode = selection.anchorNode;
+      const anchorEl = anchorNode?.nodeType === Node.ELEMENT_NODE ? anchorNode : anchorNode?.parentElement;
+      if (!anchorEl || anchorEl.closest('#rxSelectionAiToolbar') || anchorEl.closest('#rxAiResultDrawer')) {
+        return;
+      }
+
+      const isInsideDoc = anchorEl.closest('#modalStandardContainer') || anchorEl.closest('#modalReadXContainer') || anchorEl.closest('.rx-modal-body') || anchorEl.closest('.standard-doc-view');
+      if (!isInsideDoc) {
+        hideToolbar();
+        return;
+      }
+
+      selectedText = text;
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+
+      // If selection is zero-size or completely off-screen
+      if ((rect.width === 0 && rect.height === 0) || rect.bottom < 50 || rect.top > window.innerHeight - 20) {
+        hideToolbar();
+        return;
+      }
+
+      // Make toolbar visible and measure rendered dimensions
+      toolbar.style.display = 'inline-flex';
+      toolbar.removeAttribute('aria-hidden');
+
+      const tbWidth = toolbar.offsetWidth || 230;
+      const tbHeight = toolbar.offsetHeight || 38;
+      const gap = 10;
+
+      // 1. Calculate Horizontal Center directly relative to the selected text's bounding box
+      const selCenter = rect.left + (rect.width / 2);
+      let left = selCenter - (tbWidth / 2);
+
+      // Clamp horizontal boundaries to prevent going off-screen
+      const minLeft = 16;
+      const maxLeft = window.innerWidth - tbWidth - 16;
+      left = Math.max(minLeft, Math.min(left, maxLeft));
+
+      // 2. Calculate Vertical Position (Default: directly ABOVE selected text)
+      const modalHeader = document.querySelector('.rx-modal-header');
+      const topBoundary = modalHeader ? (modalHeader.getBoundingClientRect().bottom + 8) : 58;
+      
+      let top = rect.top - tbHeight - gap;
+      
+      // If there is not enough room above the selection (too close to top of viewport or header)
+      if (top < topBoundary) {
+        // Automatically place directly BELOW the selection
+        top = rect.bottom + gap;
+      }
+
+      // Clamp vertical to prevent toolbar from extending past bottom of viewport
+      const maxTop = window.innerHeight - tbHeight - 16;
+      top = Math.max(topBoundary, Math.min(top, maxTop));
+
+      toolbar.style.top = `${Math.round(top)}px`;
+      toolbar.style.left = `${Math.round(left)}px`;
+    }
+
+    // Capture text selection in BOTH Standard and ReadX modes
+    document.addEventListener('mouseup', (e) => {
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      setTimeout(updateToolbarPosition, 30);
+    });
+
+    document.addEventListener('touchend', (e) => {
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      setTimeout(updateToolbarPosition, 80);
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      setTimeout(updateToolbarPosition, 30);
+    });
+
+    document.addEventListener('selectionchange', () => {
+      const modalEl = document.getElementById('rxReaderModal');
+      if (modalEl && modalEl.classList.contains('active')) {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed) {
+          hideToolbar();
+        }
+      }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!e.target.closest('#rxSelectionAiToolbar') && !e.target.closest('#rxAiResultDrawer')) {
+        hideToolbar();
+      }
+    });
+
+    // Real-time recalculation on scroll and resize so toolbar remains attached to selection
+    const onScrollOrResize = () => {
+      if (toolbar && toolbar.style.display !== 'none') {
+        requestAnimationFrame(updateToolbarPosition);
+      }
+    };
+
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+
+    const stdContainer = document.getElementById('modalStandardContainer');
+    if (stdContainer) stdContainer.addEventListener('scroll', onScrollOrResize, { passive: true });
+
+    const rxContainer = document.getElementById('modalReadXContainer');
+    if (rxContainer) rxContainer.addEventListener('scroll', onScrollOrResize, { passive: true });
+
+    const modalBody = document.querySelector('.rx-modal-body');
+    if (modalBody) modalBody.addEventListener('scroll', onScrollOrResize, { passive: true });
+
+    // Action 1: Analyze Selected Text
+    if (btnAnalyze) {
+      btnAnalyze.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!selectedText) return;
+        hideToolbar();
+        openAiDrawer('Text Analysis', selectedText);
+
+        try {
+          if (drawerLoading) drawerLoading.style.display = 'flex';
+          if (drawerContent) drawerContent.innerHTML = '';
+
+          const result = await ReadXGemini.explainConcept(selectedText);
+          renderFormattedAiResult(result);
+        } catch (err) {
+          renderAiError(err.message);
+        } finally {
+          if (drawerLoading) drawerLoading.style.display = 'none';
+        }
+      });
+    }
+
+    // Action 2: Summarize Entire Document / PDF
+    if (btnSummarize) {
+      btnSummarize.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        hideToolbar();
+
+        let docText = '';
+        if (currentModalItem && currentModalItem.content && currentModalItem.content.trim()) {
+          docText = currentModalItem.content;
+        } else {
+          const stdDoc = document.getElementById('modalStandardContainer');
+          const rxDoc = document.getElementById('rxLayoutCContent');
+          docText = (stdDoc?.textContent || rxDoc?.textContent || '').trim();
+        }
+
+        if (!docText || docText.length < 10) {
+          openAiDrawer('Document Summary', '');
+          renderAiError('No readable document content found to summarize.');
+          return;
+        }
+
+        const docName = (currentModalItem && (currentModalItem.filename || currentModalItem.title)) || 'Document';
+        openAiDrawer(`Summary · ${docName}`, docText.slice(0, 160) + '...');
+
+        try {
+          if (drawerLoading) drawerLoading.style.display = 'flex';
+          if (drawerContent) drawerContent.innerHTML = '';
+
+          const result = await ReadXGemini.summarizeText(docText);
+          renderFormattedAiResult(result);
+        } catch (err) {
+          renderAiError(err.message);
+        } finally {
+          if (drawerLoading) drawerLoading.style.display = 'none';
+        }
+      });
+    }
+
+    function openAiDrawer(title, quote) {
+      if (!drawer) return;
+      drawer.style.display = 'flex';
+      drawer.removeAttribute('aria-hidden');
+      if (drawerTitle) drawerTitle.textContent = title;
+      if (drawerQuote) {
+        if (quote) {
+          drawerQuote.style.display = 'block';
+          drawerQuote.textContent = `"${quote.length > 180 ? quote.slice(0, 180) + '...' : quote}"`;
+        } else {
+          drawerQuote.style.display = 'none';
+        }
+      }
+    }
+
+    function closeAiDrawer() {
+      if (drawer) {
+        drawer.style.display = 'none';
+        drawer.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    if (drawerClose) {
+      drawerClose.addEventListener('click', closeAiDrawer);
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const text = drawerContent ? drawerContent.textContent : '';
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+          }).catch(() => {});
+        }
+      });
+    }
+
+    function renderFormattedAiResult(rawText) {
+      if (!drawerContent || !rawText) return;
+      const formatted = rawText
+        .replace(/^### (.*$)/gim, '<h4 style="margin:1rem 0 0.4rem; color:var(--text-primary); font-size:1rem; font-weight:700;">$1</h4>')
+        .replace(/^## (.*$)/gim, '<h3 style="margin:1.2rem 0 0.5rem; color:var(--text-primary); font-size:1.1rem; font-weight:700;">$1</h3>')
+        .replace(/^# (.*$)/gim, '<h2 style="margin:1.4rem 0 0.6rem; color:var(--text-primary); font-size:1.2rem; font-weight:700;">$1</h2>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-primary); font-weight:700;">$1</strong>')
+        .replace(/^\* (.*$)/gim, '<li style="margin-bottom:0.4rem; line-height:1.6;">$1</li>')
+        .replace(/^- (.*$)/gim, '<li style="margin-bottom:0.4rem; line-height:1.6;">$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>)/gi, '<ul style="margin:0.6rem 0 1rem; padding-left:1.5rem;">$1</ul>')
+        .replace(/\n\n+/g, '</p><p style="margin-bottom:0.9rem; line-height:1.7;">')
+        .replace(/\n/g, '<br>');
+
+      drawerContent.innerHTML = `<p style="margin-bottom:0.9rem; line-height:1.7;">${formatted}</p>`;
+    }
+
+    function renderAiError(msg) {
+      if (!drawerContent) return;
+      drawerContent.innerHTML = `
+        <div style="padding:1rem; background:rgba(217, 83, 79, 0.1); border:1px solid rgba(217, 83, 79, 0.3); border-radius:8px; color:var(--text-primary); font-size:0.875rem;">
+          <strong style="display:block; margin-bottom:0.25rem;">⚠️ AI Request Issue</strong>
+          ${msg || 'Unable to process AI request at this time.'}
+        </div>
+      `;
+    }
+  }
 
   // TTS Speed Select
   const modalTtsSpeedSelect = document.getElementById('modalTtsSpeedSelect');
