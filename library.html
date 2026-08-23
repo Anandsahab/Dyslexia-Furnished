@@ -153,6 +153,10 @@
             <span class="ws-breadcrumb-sep">/</span>
             <span class="ws-breadcrumb-sub" id="wsSubcategory">Searching</span>
           </div>
+          <div class="ws-topic-nav" id="wsTopicNav">
+            <button class="btn btn-ghost btn-sm" id="wsPrevTopic" type="button" title="Previous Topic">‹ Prev</button>
+            <button class="btn btn-ghost btn-sm" id="wsNextTopic" type="button" title="Next Topic">Next ›</button>
+          </div>
         </div>
         <h1 class="ws-title" id="wsTitle">Binary Search</h1>
         <p class="ws-summary" id="wsSummary"></p>
@@ -187,22 +191,22 @@
           </div>
         </div>
 
-        <!-- VISUAL LESSON -->
+        <!-- VISUAL LESSON (RIGHT PANEL) -->
         <div class="ws-visual">
           <div class="ws-visual-tabs">
-            <button class="ws-visual-tab active" data-tab="video">Video</button>
-            <button class="ws-visual-tab" data-tab="visualize">Visualize</button>
+            <button class="ws-visual-tab active" data-tab="visualize">Visualize</button>
+            <button class="ws-visual-tab" data-tab="video">Video</button>
           </div>
-          <div class="ws-visual-panel ws-visual-panel--active" id="visualVideo">
+          <div class="ws-visual-panel ws-visual-panel--active" id="visualVisualize">
+            <div class="viz-container" id="vizContainer"></div>
+          </div>
+          <div class="ws-visual-panel" id="visualVideo" hidden>
             <div class="video-placeholder">
               <div class="video-placeholder-thumb">
                 <div class="video-placeholder-play" role="button" aria-label="Play video">▶</div>
               </div>
               <p class="video-placeholder-text">Educational video for this topic</p>
             </div>
-          </div>
-          <div class="ws-visual-panel" id="visualVisualize" hidden>
-            <div class="viz-container" id="vizContainer"></div>
           </div>
         </div>
       </div>
@@ -235,6 +239,7 @@
   <script src="js/gemini.js"></script>
   <script src="js/home.js"></script>
   <script src="js/library.js"></script>
+  <script src="js/notes.js"></script>
   <script src="js/animations.js"></script>
 </body>
 </html>

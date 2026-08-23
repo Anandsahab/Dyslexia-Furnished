@@ -16,8 +16,8 @@
    TOPIC HEADER
    ============================================================ */
 .ws-header {
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -27,7 +27,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
 }
 
 .ws-back {
@@ -59,6 +59,13 @@
   color: var(--text-secondary);
 }
 
+.ws-topic-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
 .ws-title {
   font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 600;
@@ -83,7 +90,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 48px);
   align-items: start;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 /* ============================================================
@@ -590,38 +597,41 @@
    EXPLANATION
    ============================================================ */
 .ws-explanation {
-  padding-top: var(--space-6);
+  padding-top: var(--space-5);
   border-top: 1px solid var(--border-color);
 }
 
 .ws-section {
-  margin-bottom: var(--space-6);
+  margin-bottom: 1.125rem;
 }
 
 .ws-section:last-child {
   margin-bottom: 0;
 }
 
+.ws-explanation.reading-content .ws-section h3,
 .ws-section h3 {
   font-family: var(--font-sans);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--copper);
-  margin-bottom: 0.625rem;
+  margin: 0 0 0.375rem 0;
 }
 
+.ws-explanation.reading-content .ws-section p,
 .ws-section p {
   color: var(--text-secondary);
-  line-height: 1.75;
+  line-height: 1.7;
   max-width: 70ch;
+  margin: 0;
 }
 
 /* Complexity strip */
 .ws-complexity {
-  margin-top: var(--space-6);
-  padding: 1rem 1.25rem;
+  margin-top: var(--space-5);
+  padding: 0.875rem 1.25rem;
   border: 1px solid var(--border-color);
   border-left: 2px solid var(--accent);
   border-radius: var(--radius-sm);
@@ -640,12 +650,12 @@
    READX TOOLS
    ============================================================ */
 .ws-tools {
-  margin-top: var(--space-8);
+  margin-top: var(--space-6);
 }
 
 .ws-tools > .text-label {
   display: block;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .ws-tools-row {
@@ -679,7 +689,7 @@
 }
 
 .ws-practice-cta {
-  margin-top: var(--space-8);
+  margin-top: var(--space-6);
   display: inline-flex;
 }
 
