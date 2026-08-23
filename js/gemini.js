@@ -12,7 +12,7 @@ const ReadXGemini = (function () {
     const debugInfo = {
       endpoint: ENDPOINT,
       action: payload.action || 'generate',
-      model: payload.model || 'gemini-2.5-flash',
+      model: payload.model || 'gemini-3.6-flash',
       promptPreview: payload.prompt ? (payload.prompt.length > 80 ? payload.prompt.slice(0, 80) + '...' : payload.prompt) : ''
     };
 
@@ -121,7 +121,7 @@ const ReadXGemini = (function () {
     const payload = {
       prompt: opts.prompt || opts.text || '',
       action: opts.action || 'generate',
-      model: opts.model || 'gemini-2.5-flash',
+      model: opts.model || 'gemini-3.6-flash',
       temperature: opts.temperature ?? 0.7,
       systemInstruction: opts.systemInstruction
     };
