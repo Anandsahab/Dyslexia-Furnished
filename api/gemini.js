@@ -107,6 +107,15 @@ async function handler(req, res) {
           params = {};
         }
       }
+
+      // Safe health check response when GET is requested without prompt
+      if (!params.prompt && !params.text) {
+        return res.status(200).json({
+          ok: true,
+          service: 'gemini',
+          status: 'ready'
+        });
+      }
     } else {
       // POST method: parse body
       let body = req.body;
@@ -189,29 +198,62 @@ async function handler(req, res) {
       };
     }
 
-    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    // Build model try list starting with requested model
+    const candidateModels = Array.from(new Set([
+      targetModel,
+      'gemini-2.5-flash',
+      'gemini-1.5-flash',
+      'gemini-2.0-flash',
+      'gemini-3.6-flash',
+      'gemini-1.5-pro'
+    ]));
 
-    const geminiResponse = await fetch(geminiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(geminiPayload)
-    });
+    let lastErrorMsg = 'Upstream Gemini API error';
+    let lastStatus = 502;
+    let successfulData = null;
+    let successfulModel = targetModel;
 
-    const data = await geminiResponse.json();
+    for (const modelToTry of candidateModels) {
+      try {
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const geminiResponse = await fetch(geminiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(geminiPayload)
+        });
 
-    if (!geminiResponse.ok) {
-      const errorMsg = data?.error?.message || 'Upstream Gemini API error';
-      const safeMsg = sanitizeOutput(errorMsg, apiKey);
-      return res.status(geminiResponse.status >= 400 && geminiResponse.status < 600 ? geminiResponse.status : 502).json({
+        const data = await geminiResponse.json();
+
+        if (geminiResponse.ok && data?.candidates?.[0]?.content?.parts) {
+          successfulData = data;
+          successfulModel = modelToTry;
+          break;
+        }
+
+        lastStatus = geminiResponse.status >= 400 && geminiResponse.status < 600 ? geminiResponse.status : 502;
+        lastErrorMsg = data?.error?.message || lastErrorMsg;
+
+        // If the error was NOT a model not found / deprecated error (e.g. invalid key or prompt too long), break early
+        if (geminiResponse.status === 400 && !lastErrorMsg.toLowerCase().includes('model')) {
+          break;
+        }
+      } catch (callErr) {
+        lastErrorMsg = callErr.message || lastErrorMsg;
+      }
+    }
+
+    if (!successfulData) {
+      const safeMsg = sanitizeOutput(lastErrorMsg, apiKey);
+      return res.status(lastStatus).json({
         success: false,
         error: safeMsg
       });
     }
 
     // Extract text from Gemini response
-    const candidate = data.candidates?.[0];
+    const candidate = successfulData.candidates?.[0];
     const generatedText = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
 
     if (!generatedText.trim()) {
@@ -225,7 +267,7 @@ async function handler(req, res) {
       success: true,
       text: sanitizeOutput(generatedText, apiKey),
       action: action,
-      model: targetModel,
+      model: successfulModel,
       finishReason: candidate?.finishReason || 'STOP'
     });
 
