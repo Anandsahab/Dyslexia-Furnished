@@ -2,13 +2,12 @@
 // Vercel Serverless Function for Google Gemini API Integration
 
 const ALLOWED_MODELS = [
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite-preview-02-05'
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-pro'
 ];
 
-const DEFAULT_MODEL = 'gemini-1.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 // System prompts tailored for assistive dyslexia reading and comprehension
 const DYSLEXIA_SYSTEM_PROMPTS = {
