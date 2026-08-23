@@ -198,77 +198,49 @@ async function handler(req, res) {
     }
 
     // Build model try list starting with requested model
-    const candidateModels = Array.from(new Set([
-      targetModel,
-      'gemini-2.5-flash',
-      'gemini-1.5-flash',
-      'gemini-2.0-flash',
-      'gemini-3.6-flash',
-      'gemini-1.5-pro'
-    ]));
+    const geminiEndpoint =
+  `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
-    let lastErrorMsg = 'Upstream Gemini API error';
-    let lastStatus = 502;
-    let successfulData = null;
-    let successfulModel = targetModel;
+const geminiResponse = await fetch(geminiEndpoint, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(geminiPayload)
+});
 
-    for (const modelToTry of candidateModels) {
-      try {
-        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const geminiResponse = await fetch(geminiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(geminiPayload)
-        });
+const data = await geminiResponse.json();
 
-        const data = await geminiResponse.json();
+if (!geminiResponse.ok) {
+  const errorMsg = data?.error?.message || 'Upstream Gemini API error';
+  const safeMsg = sanitizeOutput(errorMsg, apiKey);
 
-        if (geminiResponse.ok && data?.candidates?.[0]?.content?.parts) {
-          successfulData = data;
-          successfulModel = modelToTry;
-          break;
-        }
+  return res.status(geminiResponse.status).json({
+    success: false,
+    error: safeMsg
+  });
+}
 
-        lastStatus = geminiResponse.status >= 400 && geminiResponse.status < 600 ? geminiResponse.status : 502;
-        lastErrorMsg = data?.error?.message || lastErrorMsg;
+const candidate = data.candidates?.[0];
+const generatedText =
+  candidate?.content?.parts?.map(p => p.text || '').join('') || '';
 
-        // If the error was NOT a model not found / deprecated error (e.g. invalid key or prompt too long), break early
-        if (geminiResponse.status === 400 && !lastErrorMsg.toLowerCase().includes('model')) {
-          break;
-        }
-      } catch (callErr) {
-        lastErrorMsg = callErr.message || lastErrorMsg;
-      }
-    }
+if (!generatedText.trim()) {
+  return res.status(502).json({
+    success: false,
+    error: 'Gemini returned an empty response. Content may have triggered safety filters.'
+  });
+}
 
-    if (!successfulData) {
-      const safeMsg = sanitizeOutput(lastErrorMsg, apiKey);
-      return res.status(lastStatus).json({
-        success: false,
-        error: safeMsg
-      });
-    }
+return res.status(200).json({
+  success: true,
+  text: sanitizeOutput(generatedText, apiKey),
+  action,
+  model: targetModel,
+  finishReason: candidate?.finishReason || 'STOP'
+});
 
     // Extract text from Gemini response
-    const candidate = successfulData.candidates?.[0];
-    const generatedText = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
-
-    if (!generatedText.trim()) {
-      return res.status(502).json({
-        success: false,
-        error: 'Gemini returned an empty response. Content may have triggered safety filters.'
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      text: sanitizeOutput(generatedText, apiKey),
-      action: action,
-      model: successfulModel,
-      finishReason: candidate?.finishReason || 'STOP'
-    });
 
   } catch (err) {
     const safeError = sanitizeOutput(err?.message || 'Internal server error while processing request.', apiKey);
