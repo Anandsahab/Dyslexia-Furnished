@@ -874,6 +874,12 @@ const App = {
     root.style.setProperty('--user-line-height', lineHeightVal);
     root.style.setProperty('--user-font-family', fontFamilyVal);
 
+    root.style.setProperty('--reader-font-size', textSizeVal);
+    root.style.setProperty('--reader-letter-spacing', letterSpacingVal);
+    root.style.setProperty('--reader-word-spacing', wordSpacingVal);
+    root.style.setProperty('--reader-line-height', lineHeightVal);
+    root.style.setProperty('--reader-font-family', fontFamilyVal);
+
     let widthVal = '70ch';
     if (s.readingWidth === 'narrow') widthVal = '55ch';
     if (s.readingWidth === 'wide') widthVal = '100ch';
@@ -886,8 +892,37 @@ const App = {
     localStorage.setItem('readxRulerEnabled', s.rulerEnabled ? 'true' : 'false');
     localStorage.setItem('readxFocusEnabled', s.readingFocus ? 'true' : 'false');
 
-    // Keep active text elements in sync immediately
-    const readingSelectors = '.text-readx, .reading-content, .rx-text-overlay-panel, .ws-explanation, .live-sentence, #articleContent, #modalReadXContainer';
+    // Keep all active reading content and document text elements in sync immediately
+    const readingSelectors = `
+      .text-readx,
+      .reading-content,
+      .rx-text-overlay-panel,
+      .ws-explanation,
+      .live-sentence,
+      #articleContent,
+      #modalReadXContainer,
+      #rxLayoutCCanvas,
+      #rxLayoutCContent,
+      #rxLayoutCContent p,
+      #rxLayoutCContent span,
+      #rxLayoutCContent li,
+      .rx-layout-c-text-content,
+      .rx-layout-c-text-content p,
+      .rx-layout-c-text-content span,
+      .rx-layout-c-text-content li,
+      .rx-page-block,
+      .rx-page-block p,
+      .rx-page-block span,
+      .rx-page-block li,
+      .standard-doc-view,
+      .standard-doc-view p,
+      .standard-doc-view span,
+      .standard-doc-view li,
+      #modalStandardContainer .standard-doc-view,
+      #modalStandardContainer .standard-doc-view p,
+      #modalStandardContainer .standard-doc-view span,
+      .sentence
+    `;
     document.querySelectorAll(readingSelectors).forEach(el => {
       el.style.setProperty('font-family', fontFamilyVal, 'important');
       el.style.setProperty('word-spacing', wordSpacingVal, 'important');
@@ -897,6 +932,10 @@ const App = {
     });
 
     if (typeof ReadingAssist.updateFocusBar === 'function') ReadingAssist.updateFocusBar();
+
+    try {
+      window.dispatchEvent(new CustomEvent('readx:settings-changed', { detail: s }));
+    } catch (e) {}
 
     const valSpacing = document.getElementById('valLetterSpacing');
     const valSize = document.getElementById('valTextSize');

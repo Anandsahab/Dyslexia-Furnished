@@ -653,10 +653,17 @@ body.dyslexia-mode .reading-content p:last-child {
 .ws-explanation,
 #articleContent,
 #modalReadXContainer,
+#modalStandardContainer .standard-doc-view,
+#rxLayoutCCanvas,
+#rxLayoutCContent,
+.rx-layout-c-text-content,
+.rx-page-block,
 body.dyslexia-mode .text-readx,
 body.dyslexia-mode .reading-content,
 body.dyslexia-mode .reading-content.text-readx,
-body.dyslexia-mode .ws-explanation {
+body.dyslexia-mode .ws-explanation,
+body.dyslexia-mode #modalReadXContainer,
+body.dyslexia-mode #modalStandardContainer .standard-doc-view {
   font-family: var(--user-font-family, var(--readx-font, 'OpenDyslexic', 'Lexend', sans-serif)) !important;
   font-size: var(--user-font-size, 18px) !important;
   letter-spacing: var(--user-letter-spacing, 0.05em) !important;
@@ -680,7 +687,16 @@ body.dyslexia-mode .ws-explanation {
 .rx-pdf-text-layer p,
 .rx-pdf-text-layer span,
 .rx-text-overlay-panel p,
-.rx-text-overlay-panel span {
+.rx-text-overlay-panel span,
+.rx-layout-c-text-content p,
+.rx-layout-c-text-content li,
+.rx-layout-c-text-content span,
+.rx-page-block p,
+.rx-page-block li,
+.rx-page-block span,
+.standard-doc-view p,
+.standard-doc-view li,
+.standard-doc-view span {
   font-family: inherit !important;
   font-size: inherit !important;
   letter-spacing: inherit !important;
@@ -695,7 +711,19 @@ body.dyslexia-mode .ws-explanation {
 .rx-pdf-text-layer h1,
 .rx-pdf-text-layer h2,
 .rx-pdf-text-layer h3,
-.rx-pdf-text-layer h4 {
+.rx-pdf-text-layer h4,
+.rx-layout-c-text-content h1,
+.rx-layout-c-text-content h2,
+.rx-layout-c-text-content h3,
+.rx-layout-c-text-content h4,
+.rx-page-block h1,
+.rx-page-block h2,
+.rx-page-block h3,
+.rx-page-block h4,
+.standard-doc-view h1,
+.standard-doc-view h2,
+.standard-doc-view h3,
+.standard-doc-view h4 {
   font-family: inherit !important;
   letter-spacing: inherit !important;
   margin-top: 1.4em;

@@ -43,12 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
       readingFocus: false
     };
     try {
+      const savedGlobal = localStorage.getItem('readx-accessibility-settings');
+      if (savedGlobal) return { ...defaultSettings, ...JSON.parse(savedGlobal) };
       const uid = (typeof ReadXData !== 'undefined' && ReadXData.getCurrentUserId) ? ReadXData.getCurrentUserId() : 'usr_guest';
       const key = `readx_user_${uid}_settings`;
-      const saved = localStorage.getItem(key);
-      if (saved) return { ...defaultSettings, ...JSON.parse(saved) };
-      const legacy = localStorage.getItem('readx-accessibility-settings');
-      if (legacy) return { ...defaultSettings, ...JSON.parse(legacy) };
+      const savedUser = localStorage.getItem(key);
+      if (savedUser) return { ...defaultSettings, ...JSON.parse(savedUser) };
     } catch (e) {
       console.error('Error reading user settings:', e);
     }
@@ -57,10 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveReadXUserSettings(settings) {
     try {
+      const s = { ...getReadXUserSettings(), ...settings };
+      localStorage.setItem('readx-accessibility-settings', JSON.stringify(s));
       const uid = (typeof ReadXData !== 'undefined' && ReadXData.getCurrentUserId) ? ReadXData.getCurrentUserId() : 'usr_guest';
       const key = `readx_user_${uid}_settings`;
-      localStorage.setItem(key, JSON.stringify(settings));
-      localStorage.setItem('readx-accessibility-settings', JSON.stringify(settings));
+      localStorage.setItem(key, JSON.stringify(s));
     } catch (e) {
       console.error('Error saving user settings:', e);
     }
@@ -71,20 +72,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = settings || getReadXUserSettings();
     const container = document.getElementById('modalReadXContainer');
     const canvas = document.getElementById('rxLayoutCCanvas');
-    if (!container || !canvas) return;
 
-    container.setAttribute('data-theme', s.theme || 'dark');
+    const textSizeStr = typeof s.textSize === 'number' || (!isNaN(parseInt(s.textSize, 10)) && !String(s.textSize).includes('px')) 
+      ? s.textSize + 'px' 
+      : String(s.textSize || '18px');
+    const letterSpacingStr = typeof s.letterSpacing === 'number' || (!isNaN(parseFloat(s.letterSpacing)) && !String(s.letterSpacing).includes('em')) 
+      ? s.letterSpacing + 'em' 
+      : String(s.letterSpacing || '0.04em');
+    const wordSpacingStr = typeof s.wordSpacing === 'number' || (!isNaN(parseFloat(s.wordSpacing)) && !String(s.wordSpacing).includes('em')) 
+      ? s.wordSpacing + 'em' 
+      : String(s.wordSpacing || '0.12em');
+    const lineHeightStr = String(s.lineHeight || '1.85');
+    const fontFamilyStr = s.fontFamily || "'OpenDyslexic', 'Lexend', sans-serif";
 
-    canvas.style.fontSize = (s.textSize || 18) + 'px';
-    canvas.style.fontFamily = s.fontFamily || 'inherit';
-    canvas.style.lineHeight = s.lineHeight || 1.85;
-    canvas.style.letterSpacing = (s.letterSpacing || 0.04) + 'em';
-    canvas.style.wordSpacing = (s.wordSpacing || 0.12) + 'em';
+    // Set CSS variables on document root
+    const root = document.documentElement;
+    root.style.setProperty('--user-font-size', textSizeStr);
+    root.style.setProperty('--user-letter-spacing', letterSpacingStr);
+    root.style.setProperty('--user-word-spacing', wordSpacingStr);
+    root.style.setProperty('--user-line-height', lineHeightStr);
+    root.style.setProperty('--user-font-family', fontFamilyStr);
+    root.style.setProperty('--reader-font-size', textSizeStr);
+    root.style.setProperty('--reader-letter-spacing', letterSpacingStr);
+    root.style.setProperty('--reader-word-spacing', wordSpacingStr);
+    root.style.setProperty('--reader-line-height', lineHeightStr);
+    root.style.setProperty('--reader-font-family', fontFamilyStr);
+
+    if (container) {
+      container.setAttribute('data-theme', s.theme || 'dark');
+      container.style.setProperty('--user-font-size', textSizeStr);
+      container.style.setProperty('--user-letter-spacing', letterSpacingStr);
+      container.style.setProperty('--user-word-spacing', wordSpacingStr);
+      container.style.setProperty('--user-line-height', lineHeightStr);
+      container.style.setProperty('--user-font-family', fontFamilyStr);
+    }
+
+    if (canvas) {
+      canvas.style.setProperty('font-size', textSizeStr, 'important');
+      canvas.style.setProperty('font-family', fontFamilyStr, 'important');
+      canvas.style.setProperty('line-height', lineHeightStr, 'important');
+      canvas.style.setProperty('letter-spacing', letterSpacingStr, 'important');
+      canvas.style.setProperty('word-spacing', wordSpacingStr, 'important');
+    }
+
+    // Direct styling on all rendered document text elements across both ReadX and Standard modes
+    const readerTextElements = document.querySelectorAll(`
+      #rxLayoutCCanvas,
+      #rxLayoutCContent,
+      #rxLayoutCContent p,
+      #rxLayoutCContent span,
+      #rxLayoutCContent li,
+      #rxLayoutCContent div,
+      .rx-layout-c-text-content,
+      .rx-layout-c-text-content p,
+      .rx-layout-c-text-content span,
+      .rx-layout-c-text-content li,
+      .rx-page-block,
+      .rx-page-block p,
+      .rx-page-block span,
+      .rx-page-block li,
+      .standard-doc-view,
+      .standard-doc-view p,
+      .standard-doc-view span,
+      .standard-doc-view li,
+      #modalStandardContainer .standard-doc-view,
+      #modalStandardContainer .standard-doc-view p,
+      #modalStandardContainer .standard-doc-view span,
+      .rx-layout-c-text-content .sentence
+    `);
+
+    readerTextElements.forEach(el => {
+      el.style.setProperty('font-family', fontFamilyStr, 'important');
+      el.style.setProperty('font-size', textSizeStr, 'important');
+      el.style.setProperty('letter-spacing', letterSpacingStr, 'important');
+      el.style.setProperty('word-spacing', wordSpacingStr, 'important');
+      el.style.setProperty('line-height', lineHeightStr, 'important');
+    });
 
     const valLine = document.getElementById('rxValLineHeight');
-    if (valLine) valLine.textContent = s.lineHeight || 1.85;
+    if (valLine) valLine.textContent = Number(parseFloat(lineHeightStr)).toFixed(2);
     const valLetter = document.getElementById('rxValLetterSpacing');
-    if (valLetter) valLetter.textContent = (s.letterSpacing || 0.04) + 'em';
+    if (valLetter) valLetter.textContent = letterSpacingStr;
 
     const dot = document.getElementById('rxThemeDot');
     if (dot) {
@@ -97,6 +165,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ReadingAssist.applySettingsToDOM(s);
     }
   }
+
+  // Subscribe to live settings changes from navbar personalize panel & storage
+  window.addEventListener('readx:settings-changed', (e) => {
+    if (e.detail) applySettingsToReadXCanvas(e.detail);
+  });
+  window.addEventListener('storage', () => {
+    applySettingsToReadXCanvas(getReadXUserSettings());
+  });
+  window.addEventListener('readx:comfort-change', () => {
+    applySettingsToReadXCanvas(getReadXUserSettings());
+  });
 
   // Active session Blob URLs for high-fidelity instant preview
   const activeBlobUrls = new Map();
