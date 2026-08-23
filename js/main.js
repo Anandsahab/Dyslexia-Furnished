@@ -3,6 +3,12 @@
 const ReadingAssist = {
   sentences: [],
   
+  applySettingsToDOM(s) {
+    if (typeof App !== 'undefined' && App.applySettingsToDOM) {
+      App.applySettingsToDOM(s);
+    }
+  },
+
   init() {
     this.isReadingPage = !!document.querySelector('.reading-article');
     
@@ -849,13 +855,25 @@ const App = {
   applySettingsToDOM(settings) {
     const root = document.documentElement;
     const s = { ...this.defaultSettings, ...settings };
-    
-    root.style.setProperty('--user-font-size', s.textSize + 'px');
-    root.style.setProperty('--user-letter-spacing', s.letterSpacing + 'em');
-    root.style.setProperty('--user-word-spacing', s.wordSpacing + 'em');
-    root.style.setProperty('--user-line-height', s.lineHeight);
-    root.style.setProperty('--user-font-family', s.fontFamily);
-    
+
+    const wordSpacingVal = typeof s.wordSpacing === 'number' || (!isNaN(parseFloat(s.wordSpacing)) && !String(s.wordSpacing).includes('em')) 
+      ? s.wordSpacing + 'em' 
+      : String(s.wordSpacing || '0.12em');
+    const letterSpacingVal = typeof s.letterSpacing === 'number' || (!isNaN(parseFloat(s.letterSpacing)) && !String(s.letterSpacing).includes('em')) 
+      ? s.letterSpacing + 'em' 
+      : String(s.letterSpacing || '0.05em');
+    const textSizeVal = typeof s.textSize === 'number' || (!isNaN(parseInt(s.textSize, 10)) && !String(s.textSize).includes('px')) 
+      ? s.textSize + 'px' 
+      : String(s.textSize || '18px');
+    const lineHeightVal = String(s.lineHeight || '1.8');
+    const fontFamilyVal = s.fontFamily || "'OpenDyslexic', 'Lexend', sans-serif";
+
+    root.style.setProperty('--user-font-size', textSizeVal);
+    root.style.setProperty('--user-letter-spacing', letterSpacingVal);
+    root.style.setProperty('--user-word-spacing', wordSpacingVal);
+    root.style.setProperty('--user-line-height', lineHeightVal);
+    root.style.setProperty('--user-font-family', fontFamilyVal);
+
     let widthVal = '70ch';
     if (s.readingWidth === 'narrow') widthVal = '55ch';
     if (s.readingWidth === 'wide') widthVal = '100ch';
@@ -869,25 +887,26 @@ const App = {
     localStorage.setItem('readxFocusEnabled', s.readingFocus ? 'true' : 'false');
 
     // Keep active text elements in sync immediately
-    document.querySelectorAll('.text-readx, .rx-text-overlay-panel').forEach(el => {
-      el.style.fontSize = s.textSize + 'px';
-      el.style.letterSpacing = s.letterSpacing + 'em';
-      el.style.wordSpacing = s.wordSpacing + 'em';
-      el.style.lineHeight = s.lineHeight;
-      el.style.fontFamily = s.fontFamily;
+    const readingSelectors = '.text-readx, .reading-content, .rx-text-overlay-panel, .ws-explanation, .live-sentence, #articleContent, #modalReadXContainer';
+    document.querySelectorAll(readingSelectors).forEach(el => {
+      el.style.setProperty('font-family', fontFamilyVal, 'important');
+      el.style.setProperty('word-spacing', wordSpacingVal, 'important');
+      el.style.setProperty('line-height', lineHeightVal, 'important');
+      el.style.setProperty('letter-spacing', letterSpacingVal, 'important');
+      el.style.setProperty('font-size', textSizeVal, 'important');
     });
 
     if (typeof ReadingAssist.updateFocusBar === 'function') ReadingAssist.updateFocusBar();
-    
+
     const valSpacing = document.getElementById('valLetterSpacing');
     const valSize = document.getElementById('valTextSize');
     const valWordSpacing = document.getElementById('valWordSpacing');
     const valLineHeight = document.getElementById('valLineHeight');
 
-    if (valSpacing) valSpacing.textContent = s.letterSpacing + 'em';
-    if (valSize) valSize.textContent = s.textSize + 'px';
-    if (valWordSpacing) valWordSpacing.textContent = s.wordSpacing + 'em';
-    if (valLineHeight) valLineHeight.textContent = s.lineHeight;
+    if (valSpacing) valSpacing.textContent = letterSpacingVal;
+    if (valSize) valSize.textContent = textSizeVal;
+    if (valWordSpacing) valWordSpacing.textContent = wordSpacingVal;
+    if (valLineHeight) valLineHeight.textContent = lineHeightVal;
   },
 
   initSettingsPanel() {

@@ -3,7 +3,31 @@
    Premium editorial × education technology × accessibility.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Italic.otf') format('opentype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
 
 :root {
   /* ---- Surfaces (premium graphite, layered depth) ---- */
@@ -622,11 +646,19 @@ body.dyslexia-mode .reading-content p:last-child {
    ACTUAL READX TYPOGRAPHY ADAPTATION (Visible Accessibility)
    ============================================================ */
 .text-readx,
+.reading-content,
 .reading-content.text-readx,
 .rx-pdf-text-layer,
 .rx-text-overlay-panel,
+.ws-explanation,
+.live-sentence,
+#articleContent,
+#modalReadXContainer,
 body.dyslexia-mode .text-readx,
-body.dyslexia-mode .reading-content.text-readx {
+body.dyslexia-mode .reading-content,
+body.dyslexia-mode .reading-content.text-readx,
+body.dyslexia-mode .ws-explanation,
+body.dyslexia-mode .live-sentence {
   font-family: var(--user-font-family, var(--readx-font, 'OpenDyslexic', 'Lexend', sans-serif)) !important;
   font-size: var(--user-font-size, 18px) !important;
   letter-spacing: var(--user-letter-spacing, 0.05em) !important;
@@ -640,10 +672,18 @@ body.dyslexia-mode .reading-content.text-readx {
 .text-readx td,
 .text-readx th,
 .text-readx span,
+.reading-content p,
+.reading-content li,
+.reading-content td,
+.reading-content th,
+.reading-content span,
+.ws-explanation p,
+.ws-explanation span,
 .rx-pdf-text-layer p,
 .rx-pdf-text-layer span,
 .rx-text-overlay-panel p,
-.rx-text-overlay-panel span {
+.rx-text-overlay-panel span,
+.live-sentence {
   font-family: inherit !important;
   font-size: inherit !important;
   letter-spacing: inherit !important;
