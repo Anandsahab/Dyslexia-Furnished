@@ -224,10 +224,12 @@ async function handler(req, res) {
 
     const data = await geminiResponse.json();
 
-    console.log('[GEMINI] upstream status:', geminiResponse.status);
-    console.log('[GEMINI] upstream error:', data?.error?.message || null);
-    console.log('[GEMINI] upstream statusText:', data?.error?.status || null);
-    console.log('[GEMINI] model:', targetModel);
+    res.setHeader('X-Gemini-Upstream-Status', String(geminiResponse.status));
+
+    console.log('[GEMINI DIAGNOSTIC] status:', geminiResponse.status);
+    console.log('[GEMINI DIAGNOSTIC] errorCode:', data?.error?.code ?? null);
+    console.log('[GEMINI DIAGNOSTIC] errorStatus:', data?.error?.status ?? null);
+    console.log('[GEMINI DIAGNOSTIC] errorMessage:', data?.error?.message ?? null);
 
     if (!geminiResponse.ok) {
       const errorMsg = data?.error?.message || 'Upstream Gemini API error';
