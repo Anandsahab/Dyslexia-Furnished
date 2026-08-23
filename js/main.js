@@ -535,7 +535,7 @@ const App = {
       <nav class="navbar">
         <div class="container nav-container">
           <div class="nav-logo">
-            <a href="index.html">READX</a>
+            <a href="index.html"><img src="assets/readx-logo.png" alt="ReadX Logo" class="nav-logo-img">READX</a>
           </div>
           <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
             <span></span><span></span><span></span>

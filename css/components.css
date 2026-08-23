@@ -42,17 +42,32 @@
 
 .nav-logo {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .nav-logo a {
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-primary);
+  text-decoration: none;
   transition: opacity var(--transition-fast);
+}
+
+.nav-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 4px;
+  image-rendering: -webkit-optimize-contrast;
+  flex-shrink: 0;
 }
 
 .nav-logo a::after {
