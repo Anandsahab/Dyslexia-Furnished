@@ -313,7 +313,7 @@ public:
       utterance = new SpeechSynthesisUtterance(text);
       // Premium matching rate
       utterance.rate = 1.0;
-      
+
       utterance.onend = function () {
         if (isSpeaking && isReadXMode) {
           // Once speech finishes, go to the next sentence
@@ -538,7 +538,7 @@ public:
     swatchBtns.forEach(btn => {
       btn.addEventListener('click', function () {
         const theme = this.getAttribute('data-theme');
-        
+
         swatchBtns.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
@@ -576,7 +576,7 @@ public:
       if (wsTopicName) wsTopicName.textContent = data.name;
       if (wsTopicCategory) wsTopicCategory.textContent = data.category;
       if (wsCodeBlock) wsCodeBlock.textContent = data[currentLang];
-      
+
       // Reset output console
       if (workspaceConsole) {
         workspaceConsole.innerHTML = `<div class="console-line console-system">> Ready. Click 'Run Code' to execute.</div>`;
@@ -674,10 +674,10 @@ public:
     function runBinarySearchViz() {
       const arr = [2, 5, 8, 12, 16, 23, 38, 56, 72];
       const target = 23;
-      
+
       const arrayContainer = document.createElement('div');
       arrayContainer.className = 'viz-array';
-      
+
       arr.forEach(num => {
         const el = document.createElement('div');
         el.className = 'viz-element';
@@ -758,7 +758,7 @@ public:
       const arr = [10, 20, 30, 0, 0];
       const arrayContainer = document.createElement('div');
       arrayContainer.className = 'viz-array';
-      
+
       arr.forEach(num => {
         const el = document.createElement('div');
         el.className = 'viz-element';
@@ -987,7 +987,7 @@ public:
         this.style.borderColor = 'var(--sage)';
         const titleEl = this.querySelector('.drop-title');
         const formatsEl = this.querySelector('.drop-formats');
-        
+
         if (titleEl) titleEl.textContent = 'FILE RECEIVED';
         if (formatsEl) formatsEl.textContent = 'Processing document content...';
 

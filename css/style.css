@@ -651,14 +651,12 @@ body.dyslexia-mode .reading-content p:last-child {
 .rx-pdf-text-layer,
 .rx-text-overlay-panel,
 .ws-explanation,
-.live-sentence,
 #articleContent,
 #modalReadXContainer,
 body.dyslexia-mode .text-readx,
 body.dyslexia-mode .reading-content,
 body.dyslexia-mode .reading-content.text-readx,
-body.dyslexia-mode .ws-explanation,
-body.dyslexia-mode .live-sentence {
+body.dyslexia-mode .ws-explanation {
   font-family: var(--user-font-family, var(--readx-font, 'OpenDyslexic', 'Lexend', sans-serif)) !important;
   font-size: var(--user-font-size, 18px) !important;
   letter-spacing: var(--user-letter-spacing, 0.05em) !important;
@@ -682,8 +680,7 @@ body.dyslexia-mode .live-sentence {
 .rx-pdf-text-layer p,
 .rx-pdf-text-layer span,
 .rx-text-overlay-panel p,
-.rx-text-overlay-panel span,
-.live-sentence {
+.rx-text-overlay-panel span {
   font-family: inherit !important;
   font-size: inherit !important;
   letter-spacing: inherit !important;
