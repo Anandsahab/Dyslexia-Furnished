@@ -2,8 +2,15 @@
    css/home.css — premium landing page
    ============================================================ */
 
-/* ---- Global Section Layouts ---- */
-section {
+/* ---- Landing Page Section Layouts ---- */
+main > section,
+.hero-section,
+.section-difference,
+.section-changes,
+.section-learn,
+.section-practice,
+.section-upload,
+.section-final-cta {
   padding: 6.5rem 0;
   position: relative;
   overflow: hidden;
@@ -1732,7 +1739,14 @@ section {
 }
 
 @media (max-width: 768px) {
-  section {
+  main > section,
+  .hero-section,
+  .section-difference,
+  .section-changes,
+  .section-learn,
+  .section-practice,
+  .section-upload,
+  .section-final-cta {
     padding: 4.5rem 0;
   }
 
