@@ -60,6 +60,11 @@ function sanitizeOutput(text, apiKey) {
 async function handler(req, res) {
   const method = (req.method || 'POST').toUpperCase();
 
+  console.log('[GEMINI] request received', {
+    method: req.method,
+    hasBody: !!req.body
+  });
+
   // Set CORS and Security headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -197,50 +202,55 @@ async function handler(req, res) {
       };
     }
 
-    // Build model try list starting with requested model
-    const geminiEndpoint =
-  `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    console.log('[GEMINI] upstream request', {
+      model: targetModel,
+      inputLength: inputContent.length
+    });
 
-const geminiResponse = await fetch(geminiEndpoint, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(geminiPayload)
-});
+    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
-const data = await geminiResponse.json();
+    const geminiResponse = await fetch(geminiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(geminiPayload)
+    });
 
-if (!geminiResponse.ok) {
-  const errorMsg = data?.error?.message || 'Upstream Gemini API error';
-  const safeMsg = sanitizeOutput(errorMsg, apiKey);
+    console.log('[GEMINI] upstream response', {
+      status: geminiResponse.status,
+      model: targetModel
+    });
 
-  return res.status(geminiResponse.status).json({
-    success: false,
-    error: safeMsg
-  });
-}
+    const data = await geminiResponse.json();
 
-const candidate = data.candidates?.[0];
-const generatedText =
-  candidate?.content?.parts?.map(p => p.text || '').join('') || '';
+    if (!geminiResponse.ok) {
+      const errorMsg = data?.error?.message || 'Upstream Gemini API error';
+      const safeMsg = sanitizeOutput(errorMsg, apiKey);
 
-if (!generatedText.trim()) {
-  return res.status(502).json({
-    success: false,
-    error: 'Gemini returned an empty response. Content may have triggered safety filters.'
-  });
-}
+      return res.status(geminiResponse.status).json({
+        success: false,
+        error: safeMsg
+      });
+    }
 
-return res.status(200).json({
-  success: true,
-  text: sanitizeOutput(generatedText, apiKey),
-  action,
-  model: targetModel,
-  finishReason: candidate?.finishReason || 'STOP'
-});
+    const candidate = data.candidates?.[0];
+    const generatedText = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
 
-    // Extract text from Gemini response
+    if (!generatedText.trim()) {
+      return res.status(502).json({
+        success: false,
+        error: 'Gemini returned an empty response. Content may have triggered safety filters.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      text: sanitizeOutput(generatedText, apiKey),
+      action,
+      model: targetModel,
+      finishReason: candidate?.finishReason || 'STOP'
+    });
 
   } catch (err) {
     const safeError = sanitizeOutput(err?.message || 'Internal server error while processing request.', apiKey);

@@ -1268,6 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnAnalyze.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!selectedText) return;
+        if (drawerLoading && drawerLoading.style.display === 'flex') return;
         hideToolbar();
         openAiDrawer('Text Analysis', selectedText);
 
@@ -1289,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSummarize) {
       btnSummarize.addEventListener('click', async (e) => {
         e.stopPropagation();
+        if (drawerLoading && drawerLoading.style.display === 'flex') return;
         hideToolbar();
 
         let docText = '';
