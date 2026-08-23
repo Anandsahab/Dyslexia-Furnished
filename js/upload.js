@@ -311,7 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ReadXData.startReadingSession(item.id, item.title, item.wordCount || 0);
     }
 
-    if (modalDocTitle) modalDocTitle.textContent = item.title || item.filename || 'Document Viewer';
+    if (modalDocTitle) {
+      modalDocTitle.textContent = item.title || item.filename || 'Document Viewer';
+      modalDocTitle.dataset.docId = String(item.id || item.title);
+    }
+    if (window.ReadXNotes && typeof window.ReadXNotes.updateButtons === 'function') {
+      window.ReadXNotes.updateButtons();
+    }
     const ext = (item.ext || 'doc').toUpperCase();
     if (modalFormatBadge) modalFormatBadge.textContent = ext;
 

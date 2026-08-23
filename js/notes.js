@@ -1,7 +1,8 @@
-// js/notes.js — ReadX Notes Feature
-// Scope: ONLY library.html (Library Topic Workspace) and upload.html (My Content Reader)
-// Adds a small, compact "✎ Notes" tab immediately to the right of the code panel / reader.
-// Clicking it opens a smooth notes drawer. Closing it returns exactly to the existing layout.
+// js/notes.js — ReadX "MAKE MY NOTES" Feature
+// Scope: Exclusively on Library topic content pages and My Content document reader.
+// Positioned on the right side of the content/reading area.
+// Allows creating, writing/editing, saving, viewing, and deleting notes per topic / document.
+// Client-side localStorage persistence. Zero backend/API dependencies.
 
 (function () {
   'use strict';
@@ -16,70 +17,56 @@
     return 'readx_notes_' + type + '_' + sanitizeKey(id);
   }
 
-  function loadNote(type, id) {
+  function loadNotes(type, id) {
+    if (!type || !id) return [];
     try {
       var key = getStorageKey(type, id);
       var raw = localStorage.getItem(key);
-      if (!raw) return { text: '', savedAt: null };
-      return JSON.parse(raw);
-    } catch (e) {
-      return { text: '', savedAt: null };
-    }
-  }
-
-  function saveNote(type, id, text) {
-    try {
-      var key = getStorageKey(type, id);
-      var data = { text: text, savedAt: Date.now() };
-      localStorage.setItem(key, JSON.stringify(data));
-      return data;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function deleteNote(type, id) {
-    try {
-      var key = getStorageKey(type, id);
-      localStorage.removeItem(key);
-    } catch (e) {}
-  }
-
-  function getAllNotes() {
-    var notes = [];
-    for (var i = 0; i < localStorage.length; i++) {
-      var k = localStorage.key(i);
-      if (k && k.indexOf('readx_notes_') === 0) {
-        try {
-          var raw = localStorage.getItem(k);
-          var parsed = raw ? JSON.parse(raw) : null;
-          if (parsed && parsed.text && parsed.text.trim()) {
-            var parts = k.replace('readx_notes_', '').split('_');
-            var type = parts[0] || 'topic';
-            var id = parts.slice(1).join('_') || '';
-            notes.push({
-              key: k,
-              type: type,
-              id: id,
-              text: parsed.text,
-              savedAt: parsed.savedAt
-            });
-          }
-        } catch (err) {}
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      // Handle legacy single-object format if present
+      if (parsed && typeof parsed === 'object' && parsed.text && parsed.text.trim()) {
+        return [{
+          id: 'note_' + (parsed.savedAt || Date.now()),
+          text: parsed.text,
+          createdAt: parsed.savedAt || Date.now(),
+          updatedAt: parsed.savedAt || Date.now()
+        }];
       }
+      return [];
+    } catch (e) {
+      return [];
     }
-    notes.sort(function (a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
-    return notes;
   }
 
-  function formatTime(ts) {
-    if (!ts) return 'Just now';
-    var d = new Date(ts);
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
-      ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  function saveNotes(type, id, notes) {
+    if (!type || !id) return false;
+    try {
+      var key = getStorageKey(type, id);
+      if (!notes || notes.length === 0) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify(notes));
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
-  function escapeHTML(str) {
+  function formatDate(ts) {
+    if (!ts) return '';
+    try {
+      var d = new Date(ts);
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+        ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function escapeHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -87,602 +74,386 @@
       .replace(/"/g, '&quot;');
   }
 
-  // ── Confirmation Modal ───────────────────────────────────────────────────────
+  // ── Active Context & Drawer UI ───────────────────────────────────────────────
 
-  var _confirmModalEl = null;
-
-  function showConfirmModal(onConfirm) {
-    if (!_confirmModalEl) {
-      var modal = document.createElement('div');
-      modal.className = 'rx-notes-modal-overlay';
-      modal.innerHTML = [
-        '<div class="rx-notes-modal" role="dialog" aria-modal="true">',
-          '<div class="rx-notes-modal-icon">🗑️</div>',
-          '<h3 class="rx-notes-modal-title">Clear Notes?</h3>',
-          '<p class="rx-notes-modal-msg">This will permanently delete your notes for this document. This cannot be undone.</p>',
-          '<div class="rx-notes-modal-actions">',
-            '<button type="button" class="rx-notes-modal-cancel" id="rxNotesCancelBtn">Cancel</button>',
-            '<button type="button" class="rx-notes-modal-confirm" id="rxNotesConfirmBtn">Yes, Clear</button>',
-          '</div>',
-        '</div>'
-      ].join('');
-      document.body.appendChild(modal);
-      _confirmModalEl = modal;
-    }
-
-    _confirmModalEl.style.display = 'flex';
-    requestAnimationFrame(function () {
-      _confirmModalEl.classList.add('active');
-    });
-
-    var cancelBtn = _confirmModalEl.querySelector('#rxNotesCancelBtn');
-    var confirmBtn = _confirmModalEl.querySelector('#rxNotesConfirmBtn');
-
-    function close() {
-      _confirmModalEl.classList.remove('active');
-      setTimeout(function () {
-        _confirmModalEl.style.display = 'none';
-      }, 200);
-    }
-
-    cancelBtn.onclick = close;
-    _confirmModalEl.onclick = function (e) {
-      if (e.target === _confirmModalEl) close();
-    };
-
-    confirmBtn.onclick = function () {
-      close();
-      if (typeof onConfirm === 'function') onConfirm();
-    };
-  }
-
-  // ── Unified Notes Drawer ─────────────────────────────────────────────────────
-
+  var _activeType = null;   // 'topic' | 'doc'
+  var _activeId = null;     // topicId | docId
+  var _activeTitle = '';    // human readable title
+  var _editingNoteId = null;
   var _drawerEl = null;
-  var _activeType = null;
-  var _activeId = null;
-  var _activeTitle = '';
-  var _autosaveTimer = null;
-  var _onDrawerStateChange = null;
 
   function ensureDrawerInDOM() {
-    if (_drawerEl) return;
+    if (_drawerEl) return _drawerEl;
 
-    var el = document.createElement('div');
-    el.id = 'rxNotesDrawer';
-    el.className = 'rx-notes-drawer';
-    el.setAttribute('aria-label', 'Notes drawer');
-    el.innerHTML = [
-      '<div class="rx-notes-drawer-inner">',
+    var overlay = document.createElement('div');
+    overlay.id = 'rxNotesDrawerOverlay';
+    overlay.className = 'rx-notes-drawer-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = [
+      '<div class="rx-notes-drawer-backdrop" id="rxNotesBackdrop"></div>',
+      '<div class="rx-notes-drawer" role="dialog" aria-modal="true" aria-label="Make My Notes">',
         '<div class="rx-notes-drawer-header">',
-          '<div class="rx-notes-header-title-group">',
-            '<span class="rx-notes-icon">📝</span>',
-            '<h3 class="rx-notes-heading">YOUR NOTES</h3>',
+          '<div class="rx-notes-header-left">',
+            '<span class="rx-notes-header-icon">📝</span>',
+            '<div class="rx-notes-header-titles">',
+              '<h3 class="rx-notes-heading">MAKE MY NOTES</h3>',
+              '<span class="rx-notes-doc-badge" id="rxNotesDocBadge">Content</span>',
+            '</div>',
           '</div>',
-          '<button type="button" class="rx-notes-close-btn" id="rxDrawerCloseBtn" aria-label="Close notes" title="Close notes (saved)">✕</button>',
+          '<div class="rx-notes-header-right">',
+            '<span class="rx-notes-badge" id="rxNotesCountBadge">0 notes</span>',
+            '<button type="button" class="rx-notes-close-btn" id="rxNotesDrawerCloseBtn" aria-label="Close notes" title="Close">✕</button>',
+          '</div>',
         '</div>',
-        '<div class="rx-notes-meta-bar">',
-          '<span class="rx-notes-doc-badge" id="rxDrawerDocBadge">Document</span>',
-          '<span class="rx-notes-status" id="rxDrawerStatus">Saved</span>',
-        '</div>',
-        '<div class="rx-notes-editor-container">',
-          '<textarea class="rx-notes-textarea" id="rxDrawerTextarea" placeholder="Start writing your notes here…&#10;&#10;• Key concepts&#10;• Code explanations&#10;• Questions" spellcheck="true" aria-label="Notes"></textarea>',
-        '</div>',
-        '<div class="rx-notes-box-footer">',
-          '<button type="button" class="rx-notes-clear-action" id="rxDrawerClearBtn" title="Clear notes">🗑 Clear</button>',
-          '<span class="rx-notes-char-indicator" id="rxDrawerCharCount">0 chars</span>',
+        '<div class="rx-notes-drawer-body">',
+          '<div class="rx-notes-list" id="rxNotesDrawerList"></div>',
+          '<div class="rx-notes-compose">',
+            '<span class="rx-notes-compose-label">Add a Note</span>',
+            '<textarea class="rx-notes-textarea" id="rxNotesDrawerInput" placeholder="Write your note here… (key concepts, formulas, reminders, questions)" rows="4"></textarea>',
+            '<div class="rx-notes-compose-actions">',
+              '<button type="button" class="btn btn-primary btn-sm" id="rxNotesDrawerSaveBtn">Save Note</button>',
+              '<button type="button" class="btn btn-ghost btn-sm" id="rxNotesDrawerClearBtn">Clear</button>',
+            '</div>',
+          '</div>',
         '</div>',
       '</div>'
     ].join('');
 
-    document.body.appendChild(el);
-    _drawerEl = el;
+    document.body.appendChild(overlay);
+    _drawerEl = overlay;
 
-    var closeBtn = el.querySelector('#rxDrawerCloseBtn');
-    var clearBtn = el.querySelector('#rxDrawerClearBtn');
-    var textarea = el.querySelector('#rxDrawerTextarea');
-    var statusEl = el.querySelector('#rxDrawerStatus');
-    var charsEl = el.querySelector('#rxDrawerCharCount');
+    var backdrop = overlay.querySelector('#rxNotesBackdrop');
+    var closeBtn = overlay.querySelector('#rxNotesDrawerCloseBtn');
+    var saveBtn = overlay.querySelector('#rxNotesDrawerSaveBtn');
+    var clearBtn = overlay.querySelector('#rxNotesDrawerClearBtn');
+    var textarea = overlay.querySelector('#rxNotesDrawerInput');
 
-    closeBtn.addEventListener('click', function () {
-      closeDrawer();
-    });
+    backdrop.addEventListener('click', closeNotesDrawer);
+    closeBtn.addEventListener('click', closeNotesDrawer);
 
-    textarea.addEventListener('input', function () {
-      var val = textarea.value;
-      charsEl.textContent = val.length + ' chars';
-      statusEl.textContent = 'Saving…';
-      statusEl.classList.remove('saved');
-
-      clearTimeout(_autosaveTimer);
-      _autosaveTimer = setTimeout(function () {
-        if (_activeType && _activeId) {
-          saveNote(_activeType, _activeId, val);
-          statusEl.textContent = '✓ Saved';
-          statusEl.classList.add('saved');
-          updateTabLabel();
-        }
-      }, 500);
+    saveBtn.addEventListener('click', function () {
+      if (!_activeType || !_activeId) return;
+      var text = (textarea.value || '').trim();
+      if (!text) return;
+      var current = loadNotes(_activeType, _activeId);
+      var newNote = {
+        id: 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        text: text,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      current.push(newNote);
+      saveNotes(_activeType, _activeId, current);
+      textarea.value = '';
+      renderDrawerNotes();
+      updateTriggerButtons();
     });
 
     clearBtn.addEventListener('click', function () {
-      showConfirmModal(function () {
-        if (_activeType && _activeId) {
-          textarea.value = '';
-          deleteNote(_activeType, _activeId);
-          statusEl.textContent = 'Cleared';
-          charsEl.textContent = '0 chars';
-          updateTabLabel();
+      textarea.value = '';
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isNotesDrawerOpen()) {
+        closeNotesDrawer();
+      }
+    });
+
+    return _drawerEl;
+  }
+
+  function isNotesDrawerOpen() {
+    return Boolean(_drawerEl && _drawerEl.classList.contains('active'));
+  }
+
+  function openNotesDrawer(type, id, title) {
+    _activeType = type;
+    _activeId = id;
+    _activeTitle = title || 'Content';
+    _editingNoteId = null;
+
+    ensureDrawerInDOM();
+
+    var badge = _drawerEl.querySelector('#rxNotesDocBadge');
+    if (badge) badge.textContent = _activeTitle;
+
+    var textarea = _drawerEl.querySelector('#rxNotesDrawerInput');
+    if (textarea) textarea.value = '';
+
+    renderDrawerNotes();
+
+    _drawerEl.style.display = 'block';
+    _drawerEl.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      _drawerEl.classList.add('active');
+      if (textarea) textarea.focus();
+    });
+  }
+
+  function closeNotesDrawer() {
+    if (!_drawerEl) return;
+    _editingNoteId = null;
+    _drawerEl.classList.remove('active');
+    _drawerEl.setAttribute('aria-hidden', 'true');
+    setTimeout(function () {
+      if (!_drawerEl.classList.contains('active')) {
+        _drawerEl.style.display = 'none';
+      }
+    }, 250);
+    updateTriggerButtons();
+  }
+
+  function renderDrawerNotes() {
+    if (!_drawerEl || !_activeType || !_activeId) return;
+
+    var listEl = _drawerEl.querySelector('#rxNotesDrawerList');
+    var countBadge = _drawerEl.querySelector('#rxNotesCountBadge');
+    if (!listEl) return;
+
+    var notes = loadNotes(_activeType, _activeId);
+
+    if (countBadge) {
+      countBadge.textContent = notes.length + ' note' + (notes.length === 1 ? '' : 's');
+    }
+
+    if (notes.length === 0) {
+      listEl.innerHTML = '<div class="rx-notes-empty-state">No notes saved yet for this content. Write your first note below!</div>';
+      return;
+    }
+
+    listEl.innerHTML = notes.map(function (note) {
+      var isEditing = _editingNoteId === note.id;
+      if (isEditing) {
+        return [
+          '<div class="rx-note-card rx-note-card--editing" data-note-id="' + escapeHtml(note.id) + '">',
+            '<div class="rx-note-edit-box">',
+              '<textarea class="rx-notes-textarea rx-notes-edit-input" id="rxEditInput_' + escapeHtml(note.id) + '">' + escapeHtml(note.text) + '</textarea>',
+              '<div class="rx-note-actions">',
+                '<button type="button" class="btn btn-primary btn-sm rx-note-save-edit-btn" data-note-id="' + escapeHtml(note.id) + '">Save Changes</button>',
+                '<button type="button" class="btn btn-ghost btn-sm rx-note-cancel-edit-btn" data-note-id="' + escapeHtml(note.id) + '">Cancel</button>',
+              '</div>',
+            '</div>',
+          '</div>'
+        ].join('');
+      }
+
+      var dateLabel = formatDate(note.updatedAt || note.createdAt);
+      return [
+        '<div class="rx-note-card" data-note-id="' + escapeHtml(note.id) + '">',
+          '<div class="rx-note-card-header">',
+            '<span class="rx-note-date">' + escapeHtml(dateLabel) + '</span>',
+            '<div class="rx-note-actions">',
+              '<button type="button" class="rx-note-action-btn rx-note-edit-btn" data-note-id="' + escapeHtml(note.id) + '" title="Edit note">✏️ Edit</button>',
+              '<button type="button" class="rx-note-action-btn delete-btn rx-note-delete-btn" data-note-id="' + escapeHtml(note.id) + '" title="Delete note">🗑️ Delete</button>',
+            '</div>',
+          '</div>',
+          '<div class="rx-note-text">' + escapeHtml(note.text) + '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+
+    // Bind Edit buttons
+    listEl.querySelectorAll('.rx-note-edit-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var noteId = btn.getAttribute('data-note-id');
+        _editingNoteId = noteId;
+        renderDrawerNotes();
+        var editInput = document.getElementById('rxEditInput_' + noteId);
+        if (editInput) {
+          editInput.focus();
+          editInput.setSelectionRange(editInput.value.length, editInput.value.length);
         }
+      });
+    });
+
+    // Bind Save Edit buttons
+    listEl.querySelectorAll('.rx-note-save-edit-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var noteId = btn.getAttribute('data-note-id');
+        var editInput = document.getElementById('rxEditInput_' + noteId);
+        if (!editInput) return;
+        var updatedText = (editInput.value || '').trim();
+        if (!updatedText) return;
+
+        var current = loadNotes(_activeType, _activeId);
+        var target = current.find(function (n) { return n.id === noteId; });
+        if (target) {
+          target.text = updatedText;
+          target.updatedAt = Date.now();
+          saveNotes(_activeType, _activeId, current);
+        }
+        _editingNoteId = null;
+        renderDrawerNotes();
+        updateTriggerButtons();
+      });
+    });
+
+    // Bind Cancel Edit buttons
+    listEl.querySelectorAll('.rx-note-cancel-edit-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        _editingNoteId = null;
+        renderDrawerNotes();
+      });
+    });
+
+    // Bind Delete buttons
+    listEl.querySelectorAll('.rx-note-delete-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var noteId = btn.getAttribute('data-note-id');
+        var current = loadNotes(_activeType, _activeId);
+        var filtered = current.filter(function (n) { return n.id !== noteId; });
+        saveNotes(_activeType, _activeId, filtered);
+        if (_editingNoteId === noteId) {
+          _editingNoteId = null;
+        }
+        renderDrawerNotes();
+        updateTriggerButtons();
       });
     });
   }
 
-  function openDrawer(type, id, title, stateChangeCallback) {
-    ensureDrawerInDOM();
-    _activeType = type;
-    _activeId = id;
-    _activeTitle = title || 'Document';
-    _onDrawerStateChange = stateChangeCallback;
+  // ── Trigger Buttons Update ───────────────────────────────────────────────────
 
-    var noteData = loadNote(type, id);
-    var textarea = _drawerEl.querySelector('#rxDrawerTextarea');
-    var statusEl = _drawerEl.querySelector('#rxDrawerStatus');
-    var charsEl = _drawerEl.querySelector('#rxDrawerCharCount');
-    var badgeEl = _drawerEl.querySelector('#rxDrawerDocBadge');
-
-    badgeEl.textContent = _activeTitle;
-    textarea.value = noteData.text || '';
-    charsEl.textContent = (noteData.text || '').length + ' chars';
-    statusEl.textContent = noteData.savedAt ? '✓ Saved' : 'Ready';
-
-    _drawerEl.classList.add('open');
-
-    if (typeof _onDrawerStateChange === 'function') {
-      _onDrawerStateChange(true);
+  function updateTriggerButtons() {
+    // 1. Library button
+    var libBtn = document.getElementById('wsMakeNotesBtn');
+    var libTopicId = getActiveLibraryTopicId();
+    if (libBtn && libTopicId) {
+      var libNotes = loadNotes('topic', libTopicId);
+      var libCount = libNotes.length;
+      libBtn.innerHTML = '<span>📝</span> MAKE MY NOTES' + (libCount > 0 ? ' <span class="notes-count-pill">' + libCount + '</span>' : '');
     }
 
-    setTimeout(function () {
-      textarea.focus();
-    }, 150);
-  }
-
-  function closeDrawer() {
-    if (!_drawerEl) return;
-
-    var textarea = _drawerEl.querySelector('#rxDrawerTextarea');
-    if (_activeType && _activeId && textarea) {
-      saveNote(_activeType, _activeId, textarea.value);
-    }
-
-    _drawerEl.classList.remove('open');
-    updateTabLabel();
-
-    if (typeof _onDrawerStateChange === 'function') {
-      _onDrawerStateChange(false);
+    // 2. My Content button
+    var uploadBtn = document.getElementById('uploadMakeNotesBtn');
+    var docId = getActiveUploadDocId();
+    if (uploadBtn && docId) {
+      var docNotes = loadNotes('doc', docId);
+      var docCount = docNotes.length;
+      uploadBtn.innerHTML = '<span>📝</span> MAKE MY NOTES' + (docCount > 0 ? ' <span class="notes-count-pill">' + docCount + '</span>' : '');
     }
   }
 
-  function isDrawerOpen() {
-    return Boolean(_drawerEl && _drawerEl.classList.contains('open'));
+  // ── Helper ID getters ────────────────────────────────────────────────────────
+
+  function getActiveLibraryTopicId() {
+    var params = new URLSearchParams(window.location.search);
+    var fromUrl = params.get('topic');
+    if (fromUrl) return fromUrl;
+    var titleEl = document.getElementById('wsTitle');
+    if (titleEl && titleEl.dataset && titleEl.dataset.topicId) {
+      return titleEl.dataset.topicId;
+    }
+    return null;
   }
 
-  // ── Tab Management ───────────────────────────────────────────────────────────
-
-  function updateTabLabel() {
-    var libTab = document.getElementById('rxNotesLibraryTab');
-    var readerTab = document.getElementById('rxNotesReaderTab');
-    if (!_activeType || !_activeId) return;
-
-    var noteData = loadNote(_activeType, _activeId);
-    var hasNotes = Boolean(noteData.text && noteData.text.trim());
-
-    var html = hasNotes
-      ? '<span class="rx-tab-icon">✎</span><span class="rx-tab-label">Notes</span><span class="rx-tab-dot"></span>'
-      : '<span class="rx-tab-icon">📝</span><span class="rx-tab-label">Want to make notes?</span>';
-
-    if (libTab) {
-      libTab.classList.toggle('rx-prompt-state', !hasNotes);
-      libTab.innerHTML = html;
-    }
-    if (readerTab) {
-      readerTab.classList.toggle('rx-prompt-state', !hasNotes);
-      readerTab.innerHTML = html;
-    }
+  function getActiveLibraryTopicTitle() {
+    var titleEl = document.getElementById('wsTitle');
+    return titleEl ? (titleEl.textContent || '').trim() : 'Topic';
   }
 
-  // ── Library Topic Workspace Integration ──────────────────────────────────────
+  function getActiveUploadDocId() {
+    var titleEl = document.getElementById('modalDocTitle');
+    if (!titleEl) return null;
+    var title = (titleEl.textContent || '').trim();
+    if (!title || title === 'Document Viewer') return null;
+    return sanitizeKey(title);
+  }
 
-  function initLibraryWorkspace() {
+  function getActiveUploadDocTitle() {
+    var titleEl = document.getElementById('modalDocTitle');
+    return titleEl ? (titleEl.textContent || '').trim() : 'Document';
+  }
+
+  // ── Library Integration ──────────────────────────────────────────────────────
+
+  function initLibraryIntegration() {
     var workspace = document.getElementById('libraryWorkspace');
     if (!workspace) return;
 
-    function getActiveTopicId() {
-      // Primary: URL param (set by library.js before showing workspace)
-      var params = new URLSearchParams(window.location.search);
-      var fromUrl = params.get('topic');
-      if (fromUrl) return fromUrl;
-      // Fallback: read from wsTitle data attribute if library.js sets it
-      var titleEl = document.getElementById('wsTitle');
-      if (titleEl && titleEl.dataset && titleEl.dataset.topicId) return titleEl.dataset.topicId;
-      return null;
+    var btn = document.getElementById('wsMakeNotesBtn');
+    if (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var topicId = getActiveLibraryTopicId();
+        if (!topicId) return;
+        var title = getActiveLibraryTopicTitle();
+        openNotesDrawer('topic', topicId, title);
+      });
     }
 
-    function onTopicOpen() {
-      var topicId = getActiveTopicId();
-      if (!topicId) {
-        // Retry once more after a longer delay in case URL hasn't updated yet
-        setTimeout(function () {
-          topicId = getActiveTopicId();
-          if (!topicId) return;
-          bindTopic(topicId);
-        }, 200);
-        return;
-      }
-      bindTopic(topicId);
+    if (typeof MutationObserver !== 'undefined') {
+      var workspaceObserver = new MutationObserver(function () {
+        if (!workspace.hidden) {
+          updateTriggerButtons();
+        } else if (isNotesDrawerOpen()) {
+          closeNotesDrawer();
+        }
+      });
+      workspaceObserver.observe(workspace, { attributes: true, attributeFilter: ['hidden'] });
     }
-
-    function bindTopic(topicId) {
-      var titleEl = document.getElementById('wsTitle');
-      var title = titleEl ? (titleEl.textContent || topicId) : topicId;
-
-      _activeType = 'topic';
-      _activeId = topicId;
-      _activeTitle = title;
-
-      // Remove stale tab from previous topic before injecting new one
-      var oldTab = document.getElementById('rxNotesLibraryTab');
-      if (oldTab) oldTab.remove();
-
-      injectLibraryEdgeTab();
-      injectLibraryToolbarBtn();
-      updateTabLabel();
-    }
-
-    function onTopicClose() {
-      closeDrawer();
-      var tab = document.getElementById('rxNotesLibraryTab');
-      if (tab) tab.remove();
-      var btn = document.getElementById('wsToggleNotes');
-      if (btn) btn.remove();
-    }
-
-    var observer = new MutationObserver(function () {
-      if (!workspace.hidden) {
-        setTimeout(onTopicOpen, 80);
-      } else {
-        onTopicClose();
-      }
-    });
-    observer.observe(workspace, { attributes: true, attributeFilter: ['hidden'] });
 
     if (!workspace.hidden) {
-      setTimeout(onTopicOpen, 80);
+      updateTriggerButtons();
     }
   }
 
-  function injectLibraryEdgeTab() {
-    if (document.getElementById('rxNotesLibraryTab')) return;
+  // ── My Content Integration ───────────────────────────────────────────────────
 
-    var tab = document.createElement('button');
-    tab.type = 'button';
-    tab.id = 'rxNotesLibraryTab';
-    tab.className = 'rx-notes-edge-tab';
-    tab.setAttribute('aria-label', 'Open notes panel');
-
-    tab.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (isDrawerOpen()) {
-        closeDrawer();
-      } else {
-        openDrawer(_activeType, _activeId, _activeTitle, function (open) {
-          tab.classList.toggle('active', open);
-          var tbBtn = document.getElementById('wsToggleNotes');
-          if (tbBtn) tbBtn.classList.toggle('active', open);
-        });
-      }
-    });
-
-    document.body.appendChild(tab);
-  }
-
-  function injectLibraryToolbarBtn() {
-    var row = document.querySelector('.ws-tools-row');
-    if (!row || document.getElementById('wsToggleNotes')) return;
-
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'wsToggleNotes';
-    btn.className = 'ws-tool-btn ws-notes-tool-btn';
-    btn.innerHTML = '📝 Notes';
-    btn.title = 'Toggle Notes panel';
-    btn.addEventListener('click', function () {
-      if (isDrawerOpen()) {
-        closeDrawer();
-      } else {
-        openDrawer(_activeType, _activeId, _activeTitle, function (open) {
-          btn.classList.toggle('active', open);
-          var tab = document.getElementById('rxNotesLibraryTab');
-          if (tab) tab.classList.toggle('active', open);
-        });
-      }
-    });
-    row.appendChild(btn);
-  }
-
-  // ── My Content Document Reader Integration ───────────────────────────────────
-
-  function initUploadReader() {
+  function initUploadIntegration() {
     var modal = document.getElementById('rxReaderModal');
     if (!modal) return;
 
-    function getUploadDocId() {
-      var titleEl = document.getElementById('modalDocTitle');
-      if (!titleEl) return null;
-      var title = (titleEl.textContent || '').trim();
-      if (!title || title === 'Document Viewer') return null;
-      return sanitizeKey(title);
-    }
-
-    function onModalOpen() {
-      var docId = getUploadDocId();
-      if (!docId) return;
-
-      var titleEl = document.getElementById('modalDocTitle');
-      var docTitle = titleEl ? titleEl.textContent : 'Document';
-
-      _activeType = 'upload';
-      _activeId = docId;
-      _activeTitle = docTitle;
-
-      injectUploadFloatingBarBtn();
-      injectUploadReaderTab();
-    }
-
-    function onModalClose() {
-      closeDrawer();
-      var btn = document.getElementById('rxBtnNotes');
-      if (btn) btn.remove();
-      var div = document.getElementById('rxBtnNotesDivider');
-      if (div) div.remove();
-      var tab = document.getElementById('rxNotesReaderTab');
-      if (tab) tab.remove();
-    }
-
-    var observer = new MutationObserver(function () {
-      if (modal.classList.contains('active')) {
-        setTimeout(onModalOpen, 80);
-      } else {
-        onModalClose();
-      }
-    });
-    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
-
-    var styleObserver = new MutationObserver(function () {
-      if (modal.style.display === 'none') {
-        onModalClose();
-      }
-    });
-    styleObserver.observe(modal, { attributes: true, attributeFilter: ['style'] });
-  }
-
-  function injectUploadReaderTab() {
-    if (document.getElementById('rxNotesReaderTab')) return;
-
-    var container = document.querySelector('.rx-reader-modal-container');
-    if (!container) return;
-
-    var tab = document.createElement('button');
-    tab.type = 'button';
-    tab.id = 'rxNotesReaderTab';
-    tab.className = 'rx-notes-reader-tab';
-    tab.setAttribute('aria-label', 'Open notes panel');
-
-    var noteData = loadNote(_activeType, _activeId);
-    var hasNotes = Boolean(noteData.text && noteData.text.trim());
-
-    if (hasNotes) {
-      tab.innerHTML = '<span class="rx-tab-icon">✎</span><span class="rx-tab-label">Notes</span>';
-    } else {
-      tab.innerHTML = '<span class="rx-tab-icon">📝</span><span class="rx-tab-label">Want to make notes?</span>';
-    }
-
-    tab.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (isDrawerOpen()) {
-        closeDrawer();
-      } else {
-        openDrawer(_activeType, _activeId, _activeTitle, function (open) {
-          tab.classList.toggle('active', open);
-          var barBtn = document.getElementById('rxBtnNotes');
-          if (barBtn) barBtn.classList.toggle('active', open);
-        });
-      }
-    });
-
-    container.appendChild(tab);
-  }
-
-  function injectUploadFloatingBarBtn() {
-    var bar = document.getElementById('rxFloatingControlBar');
-    if (!bar || document.getElementById('rxBtnNotes')) return;
-
-    var divider = document.createElement('span');
-    divider.id = 'rxBtnNotesDivider';
-    divider.className = 'rx-bar-divider';
-    bar.appendChild(divider);
-
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'rxBtnNotes';
-    btn.className = 'rx-bar-btn rx-toggle-btn';
-    btn.innerHTML = '<span>📝</span> Notes';
-    btn.title = 'Toggle Notes panel';
-    btn.addEventListener('click', function () {
-      if (isDrawerOpen()) {
-        closeDrawer();
-      } else {
-        openDrawer(_activeType, _activeId, _activeTitle, function (open) {
-          btn.classList.toggle('active', open);
-          var tab = document.getElementById('rxNotesReaderTab');
-          if (tab) tab.classList.toggle('active', open);
-        });
-      }
-    });
-    bar.appendChild(btn);
-  }
-
-  // ── Library All-Notes View ───────────────────────────────────────────────────
-
-  function initLibraryNotesView() {
-    var toolbar = document.querySelector('.toolbar');
-    if (!toolbar || document.getElementById('libraryNotesNavBtn')) return;
-
-    var navBtn = document.createElement('button');
-    navBtn.type = 'button';
-    navBtn.id = 'libraryNotesNavBtn';
-    navBtn.className = 'library-notes-nav-btn';
-    navBtn.innerHTML = '📝 Notes';
-    navBtn.title = 'View all your saved notes';
-    toolbar.appendChild(navBtn);
-
-    var main = document.querySelector('.page-main');
-    if (!main) return;
-
-    var viewEl = document.createElement('div');
-    viewEl.id = 'rxLibraryNotesView';
-    viewEl.className = 'rx-library-notes-view';
-    viewEl.hidden = true;
-    viewEl.innerHTML = [
-      '<div class="rx-lnv-header">',
-        '<button type="button" class="rx-lnv-back" id="rxLnvBack">← Back to Library</button>',
-        '<h2 class="rx-lnv-title">📝 Your Saved Notes</h2>',
-        '<p class="rx-lnv-subtitle">Browse and manage notes across all your Library topics and uploaded documents.</p>',
-      '</div>',
-      '<div class="rx-lnv-body">',
-        '<div class="rx-lnv-empty" id="rxLnvEmpty" hidden>',
-          '<span class="rx-lnv-empty-icon">📒</span>',
-          '<p>No notes written yet. Open any Library topic or uploaded document to start taking notes!</p>',
-        '</div>',
-        '<div class="rx-lnv-list" id="rxLnvList"></div>',
-      '</div>'
-    ].join('');
-
-    main.appendChild(viewEl);
-
-    navBtn.addEventListener('click', showNotesView);
-    viewEl.querySelector('#rxLnvBack').addEventListener('click', hideNotesView);
-
-    function showNotesView() {
-      var browse = document.getElementById('libraryBrowse');
-      var workspace = document.getElementById('libraryWorkspace');
-      if (browse) browse.hidden = true;
-      if (workspace) workspace.hidden = true;
-
-      renderNotesList();
-      viewEl.hidden = false;
-      navBtn.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function hideNotesView() {
-      viewEl.hidden = true;
-      navBtn.classList.remove('active');
-      var browse = document.getElementById('libraryBrowse');
-      if (browse) browse.hidden = false;
-    }
-
-    function renderNotesList() {
-      var list = document.getElementById('rxLnvList');
-      var empty = document.getElementById('rxLnvEmpty');
-      if (!list) return;
-
-      list.innerHTML = '';
-      var all = getAllNotes();
-
-      if (all.length === 0) {
-        if (empty) empty.hidden = false;
-        return;
-      }
-      if (empty) empty.hidden = true;
-
-      all.forEach(function (n) {
-        var card = document.createElement('div');
-        card.className = 'rx-lnv-card';
-
-        var isUpload = n.type === 'upload';
-        var badge = isUpload ? '📄 My Content' : '📚 Library Topic';
-        var titleDisplay = n.id.replace(/-/g, ' ');
-
-        card.innerHTML = [
-          '<div class="rx-lnv-card-header">',
-            '<span class="rx-lnv-card-type">' + badge + '</span>',
-            '<span class="rx-lnv-card-date">' + formatTime(n.savedAt) + '</span>',
-          '</div>',
-          '<h4 class="rx-lnv-card-title">' + escapeHTML(titleDisplay) + '</h4>',
-          '<p class="rx-lnv-card-preview">' + escapeHTML(n.text) + '</p>',
-          '<div class="rx-lnv-card-footer">',
-            (!isUpload
-              ? '<button type="button" class="rx-lnv-open-btn" data-topic="' + escapeHTML(n.id) + '">Open Topic →</button>'
-              : '<span class="rx-lnv-upload-note">Open in My Content</span>'),
-            '<button type="button" class="rx-lnv-delete-btn" title="Delete note">🗑</button>',
-          '</div>'
-        ].join('');
-
-        var openBtn = card.querySelector('.rx-lnv-open-btn');
-        if (openBtn) {
-          openBtn.addEventListener('click', function () {
-            hideNotesView();
-            var tid = openBtn.getAttribute('data-topic');
-            window.location.href = 'library.html?topic=' + encodeURIComponent(tid);
-          });
-        }
-
-        var deleteBtn = card.querySelector('.rx-lnv-delete-btn');
-        if (deleteBtn) {
-          deleteBtn.addEventListener('click', function () {
-            showConfirmModal(function () {
-              deleteNote(n.type, n.id);
-              renderNotesList();
-            });
-          });
-        }
-
-        list.appendChild(card);
+    var btn = document.getElementById('uploadMakeNotesBtn');
+    if (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var docId = getActiveUploadDocId();
+        if (!docId) return;
+        var title = getActiveUploadDocTitle();
+        openNotesDrawer('doc', docId, title);
       });
     }
+
+    if (typeof MutationObserver !== 'undefined') {
+      var modalObserver = new MutationObserver(function () {
+        if (modal.classList.contains('active')) {
+          setTimeout(updateTriggerButtons, 50);
+        } else if (isNotesDrawerOpen()) {
+          closeNotesDrawer();
+        }
+      });
+      modalObserver.observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
   }
 
-  // ── Page Initializer ─────────────────────────────────────────────────────────
+  // ── Main Initializer ─────────────────────────────────────────────────────────
 
   function init() {
     var page = window.location.pathname.split('/').pop() || '';
 
     if (page === 'library.html' || page === '' || page === 'index.html') {
-      if (document.getElementById('libraryWorkspace')) {
-        document.addEventListener('DOMContentLoaded', function () {
-          initLibraryWorkspace();
-          initLibraryNotesView();
-        });
-      }
+      initLibraryIntegration();
     }
 
     if (page === 'upload.html') {
-      document.addEventListener('DOMContentLoaded', function () {
-        initUploadReader();
-      });
+      initUploadIntegration();
     }
   }
 
-  init();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
-  // Public debug API
+  // Public API
   window.ReadXNotes = {
-    open: function () { openDrawer(_activeType, _activeId, _activeTitle); },
-    close: closeDrawer,
-    load: loadNote,
-    save: saveNote,
-    getAll: getAllNotes
+    getNotes: loadNotes,
+    saveNotes: saveNotes,
+    open: openNotesDrawer,
+    close: closeNotesDrawer,
+    updateButtons: updateTriggerButtons
   };
 
 })();

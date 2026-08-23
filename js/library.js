@@ -1065,6 +1065,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </section>
       `).join('');
       chunkSentences(contentEl);
+      if (window.ReadXNotes && typeof window.ReadXNotes.updateButtons === 'function') {
+        window.ReadXNotes.updateButtons();
+      }
     }
 
     CodeEditor.setTopic(id);
