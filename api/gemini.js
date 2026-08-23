@@ -224,6 +224,11 @@ async function handler(req, res) {
 
     const data = await geminiResponse.json();
 
+    console.log('[GEMINI] upstream status:', geminiResponse.status);
+    console.log('[GEMINI] upstream error:', data?.error?.message || null);
+    console.log('[GEMINI] upstream statusText:', data?.error?.status || null);
+    console.log('[GEMINI] model:', targetModel);
+
     if (!geminiResponse.ok) {
       const errorMsg = data?.error?.message || 'Upstream Gemini API error';
       const safeMsg = sanitizeOutput(errorMsg, apiKey);
