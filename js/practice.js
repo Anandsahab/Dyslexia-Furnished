@@ -247,8 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resMsg) {
       resMsg.textContent =
         pct >= 80 ? `Excellent work on ${currentQuiz.title}!` :
-        pct >= 60 ? `Good effort on ${currentQuiz.title}. Review the topics and try again.` :
-        `Keep studying ${currentQuiz.category} topics and retake the quiz.`;
+          pct >= 60 ? `Good effort on ${currentQuiz.title}. Review the topics and try again.` :
+            `Keep studying ${currentQuiz.category} topics and retake the quiz.`;
     }
 
     if (typeof ReadXData !== 'undefined' && ReadXData.recordTopicPractice) {

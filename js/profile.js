@@ -1,48 +1,79 @@
-// js/profile.js — Personal Reading Intelligence Dashboard Controller
+// js/profile.js — Personal Reading Intelligence Dashboard Controller (100% Live & User-Specific)
+
+let activeChartRange = 7;
 
 document.addEventListener('DOMContentLoaded', () => {
+  initDashboardController();
+});
+
+function initDashboardController() {
   // 1. Require login
   if (typeof ReadXAuth !== 'undefined' && !ReadXAuth.protectPage()) {
     return;
   }
 
+  // 2. Render initial dashboard
+  refreshDashboard();
+
+  // 3. Setup Chart Toggle Listeners once
+  setupChartToggleListeners();
+
+  // 4. Reactive live updates whenever user performs actions in other tabs or returns to page
+  window.addEventListener('storage', () => {
+    refreshDashboard();
+  });
+
+  window.addEventListener('focus', () => {
+    refreshDashboard();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      refreshDashboard();
+    }
+  });
+}
+
+function refreshDashboard() {
   const currentUser = typeof ReadXAuth !== 'undefined' ? ReadXAuth.getCurrentUser() : null;
   if (!currentUser) return;
 
   const profile = ReadXData.getProfile(currentUser.id);
   const stats = ReadXData.getLearningStats(currentUser.id);
 
-  // 2. Profile Hero
+  // 1. Profile Hero Info
   initProfileHero(currentUser, profile);
 
-  // 3. Four Primary Performance Metrics
+  // 2. Key Performance Metrics (4 cards)
   renderKeyMetrics(stats);
 
-  // 4. Reading Activity Chart
-  initReadingChart(stats);
+  // 3. Reading Activity Chart
+  renderReadingChart(stats);
 
-  // 5. Reading Streak Widget
+  // 4. Reading Streak Widget
   renderStreakWidget(stats);
 
-  // 6. Continue Reading Card (Zero-state: Start Reading → library.html)
+  // 5. Continue Reading Card
   renderContinueReadingCard(stats);
 
-  // 7. Learning Progress Bars
+  // 6. Learning Progress Bars
   renderLearningProgress(stats);
 
-  // 8. Recent Activity Timeline
+  // 7. Recent Activity Timeline
   renderRecentActivityTimeline(stats);
 
-  // 9. Reading Pattern
+  // 8. Reading Patterns
   renderReadingPatterns(stats);
 
-  // 10. READX Preferences Summary
+  // 9. READX Preferences Summary
   renderReadXPreferences();
-});
+}
 
 /* ============================================================
    1. HERO & PROFILE EDIT FORM
    ============================================================ */
+let heroInitialized = false;
+
 function initProfileHero(currentUser, profile) {
   const avatarEl = document.getElementById('profileAvatar');
   const nameEl = document.getElementById('profileDisplayName');
@@ -61,8 +92,8 @@ function initProfileHero(currentUser, profile) {
 
   const displayName = profile.name || currentUser.name || 'ReadX Learner';
   const displayEmail = profile.email || currentUser.email || 'learner@readx.app';
-  const displayBio = profile.bio || currentUser.bio || 'Computer Science Student · ReadX Learner';
-  const joinedDateStr = profile.joined || currentUser.joined || '2026-08-01';
+  const displayBio = profile.bio || currentUser.bio || 'ReadX Learner';
+  const joinedDateStr = profile.joined || currentUser.joined || new Date().toISOString().split('T')[0];
 
   if (avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
   if (nameEl) nameEl.textContent = displayName;
@@ -73,62 +104,71 @@ function initProfileHero(currentUser, profile) {
     joinedEl.textContent = `Joined ${formattedJoined}`;
   }
 
-  if (nameInput) nameInput.value = displayName;
-  if (emailInput) emailInput.value = displayEmail;
-  if (bioInput) bioInput.value = displayBio;
+  if (nameInput && editForm.style.display === 'none') nameInput.value = displayName;
+  if (emailInput && editForm.style.display === 'none') emailInput.value = displayEmail;
+  if (bioInput && editForm.style.display === 'none') bioInput.value = displayBio;
 
-  if (toggleEditBtn && editForm) {
-    toggleEditBtn.addEventListener('click', () => {
-      const isHidden = editForm.style.display === 'none';
-      editForm.style.display = isHidden ? 'block' : 'none';
-      toggleEditBtn.textContent = isHidden ? 'Hide Form' : 'Edit Profile';
-    });
-  }
+  if (!heroInitialized) {
+    heroInitialized = true;
 
-  if (cancelEditBtn && editForm) {
-    cancelEditBtn.addEventListener('click', () => {
-      editForm.style.display = 'none';
-      if (toggleEditBtn) toggleEditBtn.textContent = 'Edit Profile';
-    });
-  }
+    if (toggleEditBtn && editForm) {
+      toggleEditBtn.addEventListener('click', () => {
+        const isHidden = editForm.style.display === 'none';
+        editForm.style.display = isHidden ? 'block' : 'none';
+        toggleEditBtn.textContent = isHidden ? 'Hide Form' : 'Edit Profile';
+        if (isHidden) {
+          if (nameInput) nameInput.value = nameEl?.textContent || '';
+          if (emailInput) emailInput.value = emailEl?.textContent || '';
+          if (bioInput) bioInput.value = bioEl?.textContent || '';
+        }
+      });
+    }
 
-  if (editForm) {
-    editForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const updated = {
-        ...profile,
-        id: currentUser.id,
-        name: nameInput.value.trim() || displayName,
-        email: emailInput.value.trim() || displayEmail,
-        bio: bioInput.value.trim() || displayBio
-      };
+    if (cancelEditBtn && editForm) {
+      cancelEditBtn.addEventListener('click', () => {
+        editForm.style.display = 'none';
+        if (toggleEditBtn) toggleEditBtn.textContent = 'Edit Profile';
+      });
+    }
 
-      if (typeof ReadXAuth !== 'undefined') {
-        ReadXAuth.updateCurrentUserProfile(updated);
-      }
-      ReadXData.saveProfile(updated, currentUser.id);
+    if (editForm) {
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const updated = {
+          ...profile,
+          id: currentUser.id,
+          name: (nameInput.value || displayName).trim(),
+          email: (emailInput.value || displayEmail).trim(),
+          bio: (bioInput.value || displayBio).trim()
+        };
 
-      if (nameEl) nameEl.textContent = updated.name;
-      if (emailEl) emailEl.textContent = updated.email;
-      if (bioEl) bioEl.textContent = updated.bio;
-      if (avatarEl) avatarEl.textContent = updated.name.charAt(0).toUpperCase();
+        if (typeof ReadXAuth !== 'undefined') {
+          ReadXAuth.updateCurrentUserProfile(updated);
+        }
+        ReadXData.saveProfile(updated, currentUser.id);
 
-      if (typeof App !== 'undefined' && App.updateNavAvatar) {
-        App.updateNavAvatar(updated.name);
-      }
+        if (nameEl) nameEl.textContent = updated.name;
+        if (emailEl) emailEl.textContent = updated.email;
+        if (bioEl) bioEl.textContent = updated.bio;
+        if (avatarEl) avatarEl.textContent = updated.name.charAt(0).toUpperCase();
 
-      editForm.style.display = 'none';
-      if (toggleEditBtn) toggleEditBtn.textContent = 'Edit Profile';
-    });
-  }
+        if (typeof App !== 'undefined' && App.updateNavAvatar) {
+          App.updateNavAvatar(updated.name);
+        }
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (typeof ReadXAuth !== 'undefined') {
-        ReadXAuth.logout();
-      }
-    });
+        editForm.style.display = 'none';
+        if (toggleEditBtn) toggleEditBtn.textContent = 'Edit Profile';
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof ReadXAuth !== 'undefined') {
+          ReadXAuth.logout();
+        }
+      });
+    }
   }
 }
 
@@ -149,8 +189,11 @@ function renderKeyMetrics(stats) {
   if (sessionsEl) sessionsEl.textContent = sessions;
   
   if (wordsEl) {
-    const formattedWords = words >= 1000 ? (words / 1000).toFixed(1) + 'k' : words;
-    wordsEl.textContent = formattedWords;
+    if (words >= 1000) {
+      wordsEl.textContent = (words / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    } else {
+      wordsEl.textContent = words;
+    }
   }
 
   if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
@@ -165,90 +208,107 @@ function renderKeyMetrics(stats) {
 /* ============================================================
    3. READING ACTIVITY CHART (7 DAYS / 30 DAYS)
    ============================================================ */
-function initReadingChart(stats) {
+let chartToggleListenersAttached = false;
+
+function setupChartToggleListeners() {
+  if (chartToggleListenersAttached) return;
+  chartToggleListenersAttached = true;
+
   const toggle7 = document.getElementById('chartToggle7');
   const toggle30 = document.getElementById('chartToggle30');
 
-  let activeRange = 7;
-
-  function renderChart() {
-    const chartBars = document.getElementById('readingChartBars');
-    const chartLabels = document.getElementById('readingChartLabels');
-    const emptyState = document.getElementById('chartEmptyState');
-    const chartContainer = document.getElementById('readingChartContainer');
-
-    if (!chartBars || !chartLabels) return;
-
-    chartBars.innerHTML = '';
-    chartLabels.innerHTML = '';
-
-    const history = stats.readingHistory || {};
-    const dates = [];
-    const now = new Date();
-
-    for (let i = activeRange - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const iso = d.toISOString().split('T')[0];
-      dates.push({
-        iso,
-        dateObj: d,
-        minutes: history[iso] || 0
-      });
-    }
-
-    const totalMinutes = dates.reduce((sum, d) => sum + d.minutes, 0);
-
-    if (totalMinutes === 0) {
-      if (chartContainer) chartContainer.style.display = 'none';
-      if (emptyState) emptyState.style.display = 'block';
-      return;
-    } else {
-      if (chartContainer) chartContainer.style.display = 'block';
-      if (emptyState) emptyState.style.display = 'none';
-    }
-
-    const peakMinutes = Math.max(...dates.map(d => d.minutes), 1);
-
-    dates.forEach(item => {
-      const barCol = document.createElement('div');
-      barCol.className = 'dash-read-col';
-      
-      const heightPercent = item.minutes > 0 ? Math.max(8, Math.round((item.minutes / peakMinutes) * 100)) : 4;
-      
-      barCol.innerHTML = `
-        <div class="dash-read-bar" style="height:${heightPercent}%" title="${item.iso}: ${item.minutes} mins"></div>
-        <span class="dash-read-label">${item.minutes > 0 ? item.minutes + 'm' : ''}</span>
-      `;
-      chartBars.appendChild(barCol);
-
-      const labelSpan = document.createElement('span');
-      if (activeRange === 7) {
-        labelSpan.textContent = item.dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-      } else {
-        labelSpan.textContent = `${item.dateObj.getDate()}/${item.dateObj.getMonth() + 1}`;
-      }
-      chartLabels.appendChild(labelSpan);
-    });
-  }
-
   if (toggle7 && toggle30) {
     toggle7.addEventListener('click', () => {
-      activeRange = 7;
+      activeChartRange = 7;
       toggle7.classList.add('active');
       toggle30.classList.remove('active');
-      renderChart();
+      const currentUser = typeof ReadXAuth !== 'undefined' ? ReadXAuth.getCurrentUser() : null;
+      if (currentUser) {
+        renderReadingChart(ReadXData.getLearningStats(currentUser.id));
+      }
     });
 
     toggle30.addEventListener('click', () => {
-      activeRange = 30;
+      activeChartRange = 30;
       toggle30.classList.add('active');
       toggle7.classList.remove('active');
-      renderChart();
+      const currentUser = typeof ReadXAuth !== 'undefined' ? ReadXAuth.getCurrentUser() : null;
+      if (currentUser) {
+        renderReadingChart(ReadXData.getLearningStats(currentUser.id));
+      }
+    });
+  }
+}
+
+function renderReadingChart(stats) {
+  const chartBars = document.getElementById('readingChartBars');
+  const chartLabels = document.getElementById('readingChartLabels');
+  const emptyState = document.getElementById('chartEmptyState');
+  const chartContainer = document.getElementById('readingChartContainer');
+
+  if (!chartBars || !chartLabels) return;
+
+  chartBars.innerHTML = '';
+  chartLabels.innerHTML = '';
+
+  const history = stats.readingHistory || {};
+  const dates = [];
+  const now = new Date();
+
+  for (let i = activeChartRange - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().split('T')[0];
+    dates.push({
+      iso,
+      dateObj: d,
+      minutes: history[iso] || 0
     });
   }
 
-  renderChart();
+  const totalMinutes = dates.reduce((sum, d) => sum + d.minutes, 0);
+
+  if (totalMinutes === 0) {
+    if (chartContainer) chartContainer.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'block';
+    return;
+  } else {
+    if (chartContainer) chartContainer.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+  }
+
+  const peakMinutes = Math.max(...dates.map(d => d.minutes), 1);
+
+  if (activeChartRange === 30) {
+    chartBars.classList.add('range-30');
+    chartLabels.classList.add('range-30');
+    if (chartContainer) chartContainer.classList.add('range-30');
+  } else {
+    chartBars.classList.remove('range-30');
+    chartLabels.classList.remove('range-30');
+    if (chartContainer) chartContainer.classList.remove('range-30');
+  }
+
+  dates.forEach(item => {
+    const barCol = document.createElement('div');
+    barCol.className = 'dash-read-col';
+    
+    const heightPercent = item.minutes > 0 ? Math.max(8, Math.round((item.minutes / peakMinutes) * 100)) : 4;
+    
+    barCol.innerHTML = `
+      <div class="dash-read-bar" style="height:${heightPercent}%" title="${item.iso}: ${item.minutes} mins"></div>
+      <span class="dash-read-label">${item.minutes > 0 ? item.minutes + 'm' : ''}</span>
+    `;
+    chartBars.appendChild(barCol);
+
+    const labelSpan = document.createElement('span');
+    if (activeChartRange === 7) {
+      labelSpan.textContent = item.dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    } else {
+      labelSpan.textContent = `${item.dateObj.getDate()}/${item.dateObj.getMonth() + 1}`;
+    }
+    chartLabels.appendChild(labelSpan);
+  });
 }
 
 /* ============================================================
@@ -307,7 +367,7 @@ function renderContinueReadingCard(stats) {
 
   if (lastItem && lastItem.docId) {
     const relativeTime = formatRelativeTime(lastItem.timestamp);
-    const progress = lastItem.progress || 10;
+    const progress = Math.min(100, Math.max(1, lastItem.progress || 10));
 
     container.innerHTML = `
       <div class="continue-reading-card">
@@ -337,11 +397,11 @@ function renderContinueReadingCard(stats) {
       });
     }
   } else {
-    // EMPTY STATE — NO UPLOAD BUTTON! Navigates directly to library.html
+    // EMPTY STATE — Dynamic zero-state
     container.innerHTML = `
       <div class="dash-empty-state">
         <div class="empty-title">No active reading session</div>
-        <p class="empty-quote">"Your reading journey starts here."</p>
+        <p class="empty-sub">Your reading journey starts here. Explore our topic library to begin.</p>
         <a href="library.html" class="btn btn-outline btn-sm">Start Reading →</a>
       </div>
     `;
@@ -352,7 +412,7 @@ function openDocumentById(docId) {
   if (docId.startsWith('upload-')) {
     window.location.href = `upload.html?doc=${docId}`;
   } else {
-    window.location.href = `library.html?topic=${docId}`;
+    window.location.href = `reader.html?article=${docId}`;
   }
 }
 
@@ -421,7 +481,7 @@ function renderRecentActivityTimeline(stats) {
     timelineEl.innerHTML = `
       <div class="dash-empty-state">
         <div class="empty-title">No activity yet</div>
-        <p class="empty-sub">Your reading and learning activity will appear here.</p>
+        <p class="empty-sub">Your reading and learning activity will appear here automatically as you read and practice.</p>
       </div>
     `;
     return;

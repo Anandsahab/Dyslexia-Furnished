@@ -326,8 +326,14 @@ body[data-theme="light"] {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 html {
-  overflow-x: clip;
   scroll-behavior: smooth;
 }
 

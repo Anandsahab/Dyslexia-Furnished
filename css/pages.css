@@ -2566,6 +2566,8 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 840px) {
@@ -2581,6 +2583,11 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   background: var(--surface-primary);
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dash-panel-full {
@@ -2643,7 +2650,35 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   margin: 0.25rem 0 0.5rem 0;
 }
 
-/* CHART STYLING */
+/* CHART STYLING & INTERNAL SCROLL VIEWPORT */
+#readingChartContainer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+#readingChartContainer::-webkit-scrollbar {
+  height: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--copper);
+}
+
 .dash-reading-chart {
   display: flex;
   align-items: flex-end;
@@ -2652,6 +2687,9 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   margin-bottom: 0.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 .dash-read-col {
@@ -2662,6 +2700,7 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   gap: 0.25rem;
   height: 100%;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .dash-read-bar {
@@ -2688,6 +2727,9 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   justify-content: space-between;
   gap: var(--space-1);
   padding-top: 0.25rem;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 .chart-x-labels span {
@@ -2695,6 +2737,32 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   text-align: center;
   font-size: 0.65rem;
   color: var(--text-muted);
+  min-width: 0;
+}
+
+/* 30-day internal horizontal scroll sizing */
+.dash-reading-chart.range-30,
+.chart-x-labels.range-30,
+#readingChartContainer.range-30 .dash-reading-chart,
+#readingChartContainer.range-30 .chart-x-labels {
+  width: max-content;
+  min-width: 100%;
+  gap: 8px;
+  padding-right: 8px;
+}
+
+.dash-reading-chart.range-30 .dash-read-col,
+#readingChartContainer.range-30 .dash-read-col {
+  flex: 0 0 24px;
+  min-width: 24px;
+}
+
+.chart-x-labels.range-30 span,
+#readingChartContainer.range-30 .chart-x-labels span {
+  flex: 0 0 24px;
+  min-width: 24px;
+  font-size: 0.6rem;
+  white-space: nowrap;
 }
 
 .chart-toggle-group {
@@ -5822,6 +5890,8 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 840px) {
@@ -5837,6 +5907,11 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   background: var(--surface-primary);
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dash-panel-full {
@@ -5899,7 +5974,35 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   margin: 0.25rem 0 0.5rem 0;
 }
 
-/* CHART STYLING */
+/* CHART STYLING & INTERNAL SCROLL VIEWPORT */
+#readingChartContainer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+#readingChartContainer::-webkit-scrollbar {
+  height: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+#readingChartContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--copper);
+}
+
 .dash-reading-chart {
   display: flex;
   align-items: flex-end;
@@ -5908,6 +6011,9 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   margin-bottom: 0.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 .dash-read-col {
@@ -5918,6 +6024,7 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   gap: 0.25rem;
   height: 100%;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .dash-read-bar {
@@ -5944,6 +6051,9 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   justify-content: space-between;
   gap: var(--space-1);
   padding-top: 0.25rem;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 .chart-x-labels span {
@@ -5951,6 +6061,32 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
   text-align: center;
   font-size: 0.65rem;
   color: var(--text-muted);
+  min-width: 0;
+}
+
+/* 30-day internal horizontal scroll sizing */
+.dash-reading-chart.range-30,
+.chart-x-labels.range-30,
+#readingChartContainer.range-30 .dash-reading-chart,
+#readingChartContainer.range-30 .chart-x-labels {
+  width: max-content;
+  min-width: 100%;
+  gap: 8px;
+  padding-right: 8px;
+}
+
+.dash-reading-chart.range-30 .dash-read-col,
+#readingChartContainer.range-30 .dash-read-col {
+  flex: 0 0 24px;
+  min-width: 24px;
+}
+
+.chart-x-labels.range-30 span,
+#readingChartContainer.range-30 .chart-x-labels span {
+  flex: 0 0 24px;
+  min-width: 24px;
+  font-size: 0.6rem;
+  white-space: nowrap;
 }
 
 .chart-toggle-group {

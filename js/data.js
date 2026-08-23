@@ -202,30 +202,40 @@ const ReadXData = {
           q: 'What is the time complexity of binary search on a sorted array of n elements?',
           options: ['O(n)', 'O(log n)', 'O(n log n)', 'O(1)'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'Binary search halves the search space with each comparison, resulting in O(log n) time complexity.'
         },
         {
           q: 'Which data structure is most appropriate for implementing BFS?',
           options: ['Stack', 'Queue', 'Heap', 'Hash Map'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'BFS processes nodes level by level, which requires a FIFO structure — a queue.'
         },
         {
           q: 'Dynamic programming is applicable when a problem has:',
           options: ['Greedy choice property only', 'Optimal substructure and overlapping subproblems', 'No recursive structure', 'Constant space requirements'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'DP requires optimal substructure (optimal solution built from optimal subproblems) and overlapping subproblems (same subproblems solved repeatedly).'
         },
         {
           q: 'Which sorting algorithm guarantees O(n log n) worst-case time and is stable?',
           options: ['Quicksort', 'Heapsort', 'Merge sort', 'Bubble sort'],
           answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
           explanation: 'Merge sort always runs in O(n log n) and preserves the relative order of equal elements (stable sort).'
         },
         {
           q: 'In a graph with V vertices and E edges, what is the time complexity of DFS using an adjacency list?',
           options: ['O(V²)', 'O(V + E)', 'O(E log V)', 'O(V × E)'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'DFS visits each vertex once and examines each edge once, giving O(V + E) with adjacency list representation.'
         }
       ]
@@ -239,31 +249,1146 @@ const ReadXData = {
           q: 'What does the learning rate control in gradient descent?',
           options: ['Number of epochs', 'Step size during parameter updates', 'Batch size', 'Number of hidden layers'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'The learning rate (α) determines how large each parameter update step is: θ = θ - α·∇L.'
         },
         {
           q: 'Which activation function is most commonly used in hidden layers of modern networks?',
           options: ['Sigmoid', 'Tanh', 'ReLU', 'Linear'],
           answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
           explanation: 'ReLU (f(x) = max(0,x)) is the default choice due to computational efficiency and reduced vanishing gradient problems.'
         },
         {
           q: 'What is the key innovation of the Transformer architecture?',
           options: ['Recurrent connections', 'Self-attention mechanism', 'Convolutional filters', 'Decision tree ensembles'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'Transformers replace recurrence with self-attention, enabling parallel processing and capturing long-range dependencies.'
         },
         {
           q: 'Random forests reduce overfitting primarily by:',
           options: ['Using deeper trees', 'Averaging predictions from many decorrelated trees', 'Removing all features', 'Increasing learning rate'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'Ensemble averaging of many trees trained on random subsets reduces variance without increasing bias significantly.'
         },
         {
           q: 'Backpropagation is used to:',
           options: ['Initialize weights randomly', 'Compute loss gradients for weight updates', 'Normalize input data', 'Select activation functions'],
           answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
           explanation: 'Backpropagation efficiently computes gradients of the loss function with respect to all network weights using the chain rule.'
+        }
+      ]
+    },
+    'data-structures': {
+      title: 'Data Structures',
+      category: 'DSA',
+      desc: 'Test your mastery of Arrays, Linked Lists, Stacks, Queues, Trees, and Hashing.',
+      questions: [
+        {
+          q: 'What is the amortized time complexity of appending an element to a dynamic array (like std::vector or Python list)?',
+          options: ['O(n)', 'O(log n)', 'O(1)', 'O(n²)'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'When capacity doubles periodically, resizing costs O(n) occasionally, averaging out to O(1) amortized time per append.'
+        },
+        {
+          q: 'In a singly linked list with only a head pointer, what is the time complexity to delete the last node?',
+          options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'To delete the last node, you must traverse to the second-to-last node to update its next pointer, taking O(n) time.'
+        },
+        {
+          q: 'Which data structure is ideal for evaluating postfix expressions and matching parentheses?',
+          options: ['Queue', 'Stack', 'Heap', 'Binary Tree'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Stacks provide LIFO (Last-In, First-Out) ordering, perfect for balancing symbols and evaluating postfix expressions.'
+        },
+        {
+          q: 'What is the minimum number of queues needed to implement a standard FIFO Stack?',
+          options: ['1', '2', '3', 'Cannot be implemented'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'A stack can be implemented using 2 queues by making either the push or pop operation transfer elements between queues.'
+        },
+        {
+          q: 'Which tree traversal visits nodes in strictly ascending non-decreasing order for a valid Binary Search Tree (BST)?',
+          options: ['Pre-order (Root, Left, Right)', 'In-order (Left, Root, Right)', 'Post-order (Left, Right, Root)', 'Level-order (BFS)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'In-order traversal visits left subtree, root, then right subtree, producing strictly sorted order for a BST.'
+        },
+        {
+          q: 'What collision resolution technique links colliding elements into a linked list at the same bucket index in a Hash Table?',
+          options: ['Linear Probing', 'Quadratic Probing', 'Separate Chaining', 'Double Hashing'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'Separate Chaining maintains an independent chain (e.g., linked list) of all entries that hash to the same bucket slot.'
+        },
+        {
+          q: 'In an AVL Tree, what is the maximum allowed difference between the heights of the left and right subtrees of any node?',
+          options: ['0', '1', '2', 'log(n)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The balance factor of any node in an AVL tree must strictly be -1, 0, or +1; otherwise, tree rotations are performed.'
+        },
+        {
+          q: 'In a complete binary Min-Heap stored as an array with root at index 0, where is the parent of a node at index i located?',
+          options: ['2*i + 1', '2*i + 2', 'Math.floor((i - 1) / 2)', 'i / 2'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'With 0-based array indexing, the parent of index i is Math.floor((i - 1) / 2).'
+        },
+        {
+          q: 'What is the worst-case search time complexity for a word of length L in a Trie containing N total words?',
+          options: ['O(N)', 'O(L)', 'O(N * L)', 'O(log N)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Searching in a Trie depends strictly on the length of the query string L, giving O(L) time independent of total words N.'
+        },
+        {
+          q: 'What happens when a Hash Table’s load factor (λ = n / k) exceeds its threshold (typically 0.75)?',
+          options: ['Deletes oldest keys', 'Doubles bucket capacity and rehashes all elements', 'Switches to binary search', 'Throws an overflow exception'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'To prevent chain degradation and maintain O(1) average performance, the hash table dynamically resizes (typically doubles) and rehashes keys.'
+        }
+      ]
+    },
+    'algorithms': {
+      title: 'Algorithms',
+      category: 'ALGORITHMS',
+      desc: 'Master Searching, Sorting, Recursion, Greedy, Dynamic Programming, and Complexity.',
+      questions: [
+        {
+          q: 'Which algorithm finds the single-source shortest path in a weighted graph with non-negative edge weights?',
+          options: ['Bellman-Ford Algorithm', 'Dijkstra’s Algorithm', 'Floyd-Warshall Algorithm', 'Kruskal’s Algorithm'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Dijkstra’s algorithm greedily explores minimum distance vertices using a priority queue in O((V + E) log V) time.'
+        },
+        {
+          q: 'What is the time complexity of the classic Merge Sort algorithm in all cases (best, average, worst)?',
+          options: ['O(n)', 'O(n log n)', 'O(n²)', 'O(log n)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Merge sort divides the array in half and merges sorted halves in linear time at each level of log n depth, always taking O(n log n).'
+        },
+        {
+          q: 'What is the primary condition required to solve an optimization problem using a Greedy Algorithm?',
+          options: ['Overlapping subproblems only', 'Greedy Choice Property and Optimal Substructure', 'Tabulation table available', 'Graph must be cyclic'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'A greedy algorithm works if a locally optimal choice leads to a globally optimal solution (greedy choice property and optimal substructure).'
+        },
+        {
+          q: 'What is the time complexity of the 0/1 Knapsack problem with n items and capacity W using Dynamic Programming?',
+          options: ['O(n log n)', 'O(n * W)', 'O(2ⁿ)', 'O(W²)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The 0/1 Knapsack DP table has dimensions (n+1) × (W+1), requiring O(n * W) pseudo-polynomial time.'
+        },
+        {
+          q: 'Which technique avoids the worst-case O(n²) behavior of QuickSort on sorted or reverse-sorted inputs?',
+          options: ['Choosing the first element as pivot', 'Randomized Pivot Selection or Median-of-Three', 'Replacing recursion with iteration', 'Using bubble sort on partitions'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Selecting a random pivot or median-of-three ensures balanced partitioning, preventing the degenerate O(n²) worst-case on sorted data.'
+        },
+        {
+          q: 'Kadane’s algorithm is used to solve which problem in O(n) linear time and O(1) auxiliary space?',
+          options: ['Longest Common Subsequence', 'Maximum Sum Contiguous Subarray', 'Matrix Chain Multiplication', 'Shortest Cycle in Graph'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Kadane’s algorithm tracks the maximum sum ending at the current position and the global maximum in a single pass.'
+        },
+        {
+          q: 'Which algorithm solves the All-Pairs Shortest Path problem on a directed graph with V vertices in O(V³) time?',
+          options: ['Prim’s Algorithm', 'Floyd-Warshall Algorithm', 'Kruskal’s Algorithm', 'Tarjan’s SCC Algorithm'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Floyd-Warshall uses a 3D/2D dynamic programming formulation over intermediate vertices k to compute all-pairs shortest paths in O(V³).'
+        },
+        {
+          q: 'What is the space complexity of the Call Stack during naive recursion computing the nth Fibonacci number?',
+          options: ['O(1)', 'O(n)', 'O(2ⁿ)', 'O(log n)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The maximum depth of the recursive call tree is n, meaning the call stack consumes O(n) auxiliary memory.'
+        },
+        {
+          q: 'What does Big-Omega (Ω) notation denote in asymptotic complexity?',
+          options: ['Asymptotic Upper Bound', 'Asymptotic Lower Bound (best case growth rate)', 'Exact Tight Bound (Θ)', 'Average runtime only'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Big-Omega (Ω) represents the asymptotic lower bound: f(n) = Ω(g(n)) means f grows at least as fast as g for large n.'
+        },
+        {
+          q: 'Which greedy algorithm construct a Minimum Spanning Tree (MST) by sorting all edges and adding them if they do not create a cycle (using Disjoint Set / Union-Find)?',
+          options: ['Dijkstra’s Algorithm', 'Kruskal’s Algorithm', 'Bellman-Ford Algorithm', 'BFS Algorithm'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Kruskal’s algorithm sorts edges by weight in O(E log E) and uses Union-Find with path compression to connect components without cycles.'
+        }
+      ]
+    },
+    'cpp-programming': {
+      title: 'C++ Programming',
+      category: 'PROGRAMMING',
+      desc: 'OOP, pointers, STL, constructors, inheritance, templates, and memory management.',
+      questions: [
+        {
+          q: 'Which mechanism enables runtime (dynamic) polymorphism in C++?',
+          options: ['Templates', 'Virtual Functions and VTable/VPtr', 'Function Overloading', 'Friend Functions'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Virtual functions use a virtual method table (vtable) and pointer (vptr) to dispatch derived class methods at runtime.'
+        },
+        {
+          q: 'What happens when an array allocated with `new int[10]` is deallocated using `delete ptr` instead of `delete[] ptr`?',
+          options: ['Compile error', 'Undefined behavior and potential memory leak', 'Automatic destructor call for all elements', 'Safe garbage collection'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Mixing array `new[]` with scalar `delete` invokes undefined behavior because the runtime cannot clean up all elements correctly.'
+        },
+        {
+          q: 'Which C++11 smart pointer manages exclusive, non-copyable ownership of a dynamically allocated resource?',
+          options: ['std::shared_ptr', 'std::unique_ptr', 'std::weak_ptr', 'std::auto_ptr'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: '`std::unique_ptr` explicitly owns a resource exclusively; it cannot be copied, only moved via `std::move`.'
+        },
+        {
+          q: 'What is the order of constructor and destructor execution in inheritance hierarchies?',
+          options: [
+            'Base constructor -> Derived constructor; Derived destructor -> Base destructor',
+            'Derived constructor -> Base constructor; Base destructor -> Derived destructor',
+            'Base constructor -> Derived constructor; Base destructor -> Derived destructor',
+            'Derived constructor -> Base constructor; Derived destructor -> Base destructor'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Constructors execute base-first then derived-second; destructors execute in reverse (derived-first, base-second).'
+        },
+        {
+          q: 'What is the underlying data structure and lookup complexity of `std::map` in the C++ Standard Template Library?',
+          options: ['Hash Table with O(1) average lookup', 'Red-Black Tree with O(log n) guaranteed lookup', 'Dynamic Array with O(n) lookup', 'Doubly Linked List'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: '`std::map` is an ordered associative container implemented as a self-balancing Red-Black Tree with O(log n) operations.'
+        },
+        {
+          q: 'What is the key difference between `std::vector::reserve()` and `std::vector::resize()`?',
+          options: [
+            'reserve() allocates capacity without changing size; resize() changes size and constructs/destructs elements',
+            'resize() allocates capacity without changing size; reserve() changes size',
+            'Both functions are completely interchangeable',
+            'reserve() deallocates memory when called with a smaller number'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '`reserve(n)` pre-allocates memory buffer without creating elements, while `resize(n)` alters element count and initializes new items.'
+        },
+        {
+          q: 'What is the purpose of Move Semantics and Rvalue References (`&&`) introduced in C++11?',
+          options: [
+            'To automatically garbage-collect dangling pointers',
+            'To transfer ownership of resources without expensive deep copying',
+            'To make all variables constant by default',
+            'To enable multi-threading without mutex locks'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Move semantics allow stealing internal resources from temporary rvalues (via move constructors/assignment) without allocating new memory.'
+        },
+        {
+          q: 'How is the "Diamond Problem" resolved in C++ multiple inheritance?',
+          options: ['Private Inheritance', 'Virtual Base Classes (`virtual public Base`)', 'Template Specialization', 'Friend Classes'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Declaring common base classes `virtual` ensures only a single shared instance of the base class subobject exists in the most derived class.'
+        },
+        {
+          q: 'What does the declaration `const int* const ptr` signify in C++?',
+          options: [
+            'A constant pointer pointing to a constant integer (neither address nor value can change)',
+            'A mutable pointer pointing to a constant integer',
+            'A constant pointer pointing to a mutable integer',
+            'Syntax error in modern C++'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Reading right-to-left: `ptr` is a const pointer (address fixed) to a const int (underlying value cannot be modified through ptr).'
+        },
+        {
+          q: 'What is RAII (Resource Acquisition Is Initialization) in C++ design philosophy?',
+          options: [
+            'Initializing all variables to zero at startup',
+            'Binding resource lifecycle (memory, locks, file handles) to object lifetime via constructors and destructors',
+            'A compiler optimization flag',
+            'A runtime garbage collector'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'RAII guarantees that acquired resources are automatically released when the managing object goes out of scope or on exceptions.'
+        }
+      ]
+    },
+    'python-programming': {
+      title: 'Python Programming',
+      category: 'PROGRAMMING',
+      desc: 'Lists, tuples, dictionaries, functions, loops, generators, OOP, and NumPy basics.',
+      questions: [
+        {
+          q: 'Which of the following built-in Python data types is MUTABLE?',
+          options: ['tuple', 'str', 'list', 'frozenset'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'Lists, dictionaries, and sets are mutable (modifiable in-place); tuples, strings, integers, and frozensets are immutable.'
+        },
+        {
+          q: 'What is the average time complexity of looking up a key in a Python dictionary (`dict`)?',
+          options: ['O(n)', 'O(log n)', 'O(1)', 'O(n log n)'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'Python dicts are implemented as compact hash tables, providing O(1) average lookup, insertion, and deletion.'
+        },
+        {
+          q: 'What does a Python function containing the `yield` keyword return when called?',
+          options: ['The computed integer value immediately', 'A Generator object for lazy evaluation', 'A List containing all yielded values', 'None'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: '`yield` transforms a function into a generator iterator, yielding values one at a time on demand without loading everything in memory.'
+        },
+        {
+          q: 'What is the Global Interpreter Lock (GIL) in CPython?',
+          options: [
+            'A file encryption protocol for .pyc files',
+            'A mutex preventing multiple native OS threads from executing Python bytecodes simultaneously',
+            'A compiler optimization for faster loops',
+            'A security sandbox for untrusted scripts'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The GIL is a mutex in CPython that protects internal memory management by allowing only one thread to execute Python bytecode at a time.'
+        },
+        {
+          q: 'What is the difference between `@classmethod` and `@staticmethod` in a Python class?',
+          options: [
+            '@classmethod receives `cls` as the first argument; @staticmethod receives neither `self` nor `cls`',
+            '@staticmethod receives `self`; @classmethod receives nothing',
+            '@classmethod can only be called on instances; @staticmethod only on classes',
+            'They are exact synonyms with identical behavior'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '`@classmethod` receives the class object `cls` as its first parameter, while `@staticmethod` behaves like a plain function placed in class scope.'
+        },
+        {
+          q: 'What is the output of `[x**2 for x in range(5) if x % 2 == 1]` in Python?',
+          options: ['[0, 4, 16]', '[1, 9]', '[1, 4, 9]', '[0, 1, 4, 9, 16]'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Odd numbers in range(5) are 1 and 3. Squaring them yields [1, 9].'
+        },
+        {
+          q: 'What happens when using `copy.deepcopy()` instead of shallow `copy.copy()` on nested lists?',
+          options: [
+            'Copies only references to inner sublists',
+            'Recursively clones all compound child objects, creating an entirely independent copy',
+            'Deletes the original list to save memory',
+            'Converts all sublists into tuples'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: '`deepcopy` constructs a new compound object and recursively inserts copies of the objects found in the original.'
+        },
+        {
+          q: 'In NumPy, what are the Broadcasting rules when adding arrays of shapes (3, 1) and (1, 4)?',
+          options: [
+            'Shapes are incompatible and throw ValueError',
+            'Dimensions with size 1 stretch to match the other array, resulting in shape (3, 4)',
+            'Result is flattened into shape (12,)',
+            'Result keeps shape (3, 1)'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'NumPy compares dimensions element-wise from right to left; dimensions of size 1 are broadcast to match the larger dimension, yielding shape (3, 4).'
+        },
+        {
+          q: 'Which special dunder method defines the string representation for developers returned by `repr(obj)`?',
+          options: ['__str__()', '__repr__()', '__format__()', '__show__()'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: '`__repr__()` provides an unambiguous developer-facing representation of an object, ideally valid Python code to recreate it.'
+        },
+        {
+          q: 'In Python parameter lists, what do `*args` and `**kwargs` capture respectively?',
+          options: [
+            'Variable positional arguments as a tuple, and keyword arguments as a dictionary',
+            'Keyword arguments as a list, and positional arguments as a set',
+            'Pointers to integer arrays',
+            'Default arguments only'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '`*args` gathers arbitrary positional parameters into a tuple; `**kwargs` collects arbitrary keyword arguments into a dictionary.'
+        }
+      ]
+    },
+    'machine-learning': {
+      title: 'Machine Learning',
+      category: 'AI/ML',
+      desc: 'Supervised/Unsupervised Learning, Linear Regression, Logistic Regression, Classification, Overfitting, Evaluation Metrics.',
+      questions: [
+        {
+          q: 'What is the primary difference between Supervised and Unsupervised learning?',
+          options: [
+            'Supervised learning trains on labeled target data (X, y); Unsupervised learning discovers patterns in unlabeled data (X only)',
+            'Unsupervised learning requires more CPU memory than supervised learning',
+            'Supervised learning is only used for image processing',
+            'Unsupervised learning always achieves 100% accuracy'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Supervised learning learns a mapping from input features to known output labels, while unsupervised learning clusters or finds representations without ground truth labels.'
+        },
+        {
+          q: 'What is the closed-form solution (Normal Equation) for Linear Regression weights θ minimizing Mean Squared Error?',
+          options: ['θ = (XᵀX)⁻¹ Xᵀ y', 'θ = X yᵀ', 'θ = (X Xᵀ)⁻¹ y', 'θ = 1 / (1 + e⁻ˣ)'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'The Normal Equation calculates optimal weights directly by setting the gradient of MSE loss to zero: θ = (XᵀX)⁻¹ Xᵀ y.'
+        },
+        {
+          q: 'In Logistic Regression for binary classification, which function maps linear scores z = wᵀx + b to probabilities in [0, 1]?',
+          options: ['ReLU function', 'Sigmoid (Logistic) function: σ(z) = 1 / (1 + e⁻ᶻ)', 'Softmax function', 'Step function'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The Sigmoid function squashes any real-valued number into a valid probability output between 0 and 1.'
+        },
+        {
+          q: 'What is the fundamental difference between L1 Regularization (Lasso) and L2 Regularization (Ridge)?',
+          options: [
+            'L1 adds absolute weight penalty (λΣ|w|) producing sparse feature selection; L2 adds squared penalty (λΣw²) shrinking weights toward zero',
+            'L2 always eliminates uninformative features by setting them to zero; L1 does not',
+            'L1 is only used in Decision Trees',
+            'L2 cannot be used with gradient descent'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'L1 regularization’s diamond-shaped constraint boundary forces less important feature weights to exactly zero, enabling automatic feature selection.'
+        },
+        {
+          q: 'In binary classification evaluation, what is the formula for the F1-Score?',
+          options: [
+            'Arithmetic Mean: (Precision + Recall) / 2',
+            'Harmonic Mean: 2 * (Precision * Recall) / (Precision + Recall)',
+            'Geometric Mean: √(Precision * Recall)',
+            'True Positive Rate - False Positive Rate'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'F1-score is the harmonic mean of precision and recall, balancing false positives and false negatives on imbalanced datasets.'
+        },
+        {
+          q: 'What is a Type I Error in hypothesis testing and classification confusion matrices?',
+          options: ['False Positive (rejecting true null hypothesis)', 'False Negative (failing to detect positive case)', 'True Positive', 'True Negative'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'A Type I error is a False Positive (predicting positive when actual is negative); a Type II error is a False Negative.'
+        },
+        {
+          q: 'In the Bias-Variance Trade-off, what does High Variance typically indicate?',
+          options: [
+            'Underfitting: model is too simple to capture patterns in data',
+            'Overfitting: model is overly complex and memorizes noise in the training set',
+            'Optimal generalization performance',
+            'Learning rate is set to zero'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'High variance means the model is highly sensitive to fluctuations in the training data, leading to overfitting and poor test performance.'
+        },
+        {
+          q: 'In the K-Means Clustering algorithm, what objective function is minimized iteratively?',
+          options: [
+            'Within-Cluster Sum of Squares (Inertia)',
+            'Cross-Entropy Loss',
+            'Maximum Margin between hyperplanes',
+            'Number of features'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'K-Means optimizes inertia (the sum of squared Euclidean distances between each point and its assigned cluster centroid).'
+        },
+        {
+          q: 'Which splitting criterion in Decision Trees measures the probability of misclassifying a randomly chosen element if labeled according to the class distribution in the node?',
+          options: ['Mean Absolute Error', 'Gini Impurity', 'Hinge Loss', 'Huber Loss'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Gini Impurity = 1 - Σ(pᵢ²); a Gini index of 0 represents a completely pure node where all samples belong to a single class.'
+        },
+        {
+          q: 'Why is K-Fold Cross-Validation preferred over a single train-test split?',
+          options: [
+            'It trains the final production model in fewer iterations',
+            'It evaluates model performance across k different validation splits, providing an unbiased variance estimate',
+            'It eliminates the need for any hyperparameter tuning',
+            'It compresses model weights for edge deployment'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'K-fold CV splits data into k equal folds, training on k-1 and validating on the remaining fold k times to ensure reliable metrics.'
+        }
+      ]
+    },
+    'deep-learning': {
+      title: 'Deep Learning',
+      category: 'AI/ML',
+      desc: 'Neural Networks, Activation Functions, CNN, RNN, Backpropagation, Epochs.',
+      questions: [
+        {
+          q: 'Why are non-linear activation functions necessary in Multi-Layer Perceptrons (MLPs)?',
+          options: [
+            'To prevent weights from becoming floating point numbers',
+            'Without non-linearity, stacking multiple linear layers collapses mathematically into a single linear transformation',
+            'To speed up CPU clock frequency',
+            'To reduce dataset size'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Linear combinations of linear functions remain strictly linear (W₂·(W₁x) = W_comb·x); non-linearities allow learning complex functions.'
+        },
+        {
+          q: 'Why does the Rectified Linear Unit (ReLU: f(x) = max(0, x)) alleviate the Vanishing Gradient problem compared to Sigmoid?',
+          options: [
+            'Its derivative for positive inputs is constant 1, preventing gradient decay during backpropagation',
+            'It bounds outputs between -1 and +1',
+            'It has zero parameters',
+            'It eliminates the need for loss functions'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Sigmoid derivatives saturate to near 0 for large positive/negative values; ReLU’s derivative is 1 for all x > 0, allowing gradients to flow back unchanged.'
+        },
+        {
+          q: 'What is the primary architectural purpose of Convolutional Layers in CNNs for computer vision?',
+          options: [
+            'Enforcing Translation Invariance and Parameter Sharing using localized spatial filters',
+            'Storing sequence tokens over infinite time steps',
+            'Performing decision tree splits',
+            'Calculating database joins'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Convolutions slide small weight kernels across the image, exploiting spatial locality and sharing parameters across all image locations.'
+        },
+        {
+          q: 'What is the primary function of Max-Pooling layers in Convolutional Neural Networks?',
+          options: [
+            'Doubling feature map resolution',
+            'Spatial downsampling to reduce feature map dimensions, parameter count, and computational cost',
+            'Adding non-linearity to output classes',
+            'Normalizing batch gradients to zero mean'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Max-pooling extracts the maximum value in spatial windows (e.g. 2x2 with stride 2), reducing spatial dimensions and providing translational robustness.'
+        },
+        {
+          q: 'How do Long Short-Term Memory (LSTM) networks overcome the vanishing gradient problem in standard RNNs?',
+          options: [
+            'By removing all recurrent connections',
+            'Using an additive Constant Error Carousel (CEC) cell state regulated by Input, Forget, and Output gates',
+            'By training exclusively on single tokens',
+            'By replacing backpropagation with genetic algorithms'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'LSTMs maintain an uninterrupted highway cell state where gradients can flow back through time additively rather than multiplicatively.'
+        },
+        {
+          q: 'What mathematical rule is the foundation of the Backpropagation algorithm in neural networks?',
+          options: ['Bayes Theorem', 'Chain Rule of multivariable calculus', 'Central Limit Theorem', 'Fourier Transform'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Backpropagation applies the Chain Rule recursively from the output loss layer backward to calculate ∂Loss/∂W for every network parameter.'
+        },
+        {
+          q: 'In deep learning terminology, what is an "Epoch"?',
+          options: [
+            'A single forward and backward pass of one mini-batch',
+            'One complete pass of the entire training dataset through the neural network',
+            'The time required to initialize network weights',
+            'The number of hidden layers in a model'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'An epoch consists of processing all training samples once (broken down into multiple mini-batch iterations).'
+        },
+        {
+          q: 'How does Dropout Regularization behave during training vs evaluation (testing)?',
+          options: [
+            'Randomly drops neurons with probability p during training; keeps all neurons active and scales weights during testing',
+            'Drops neurons only during testing',
+            'Permanently deletes weights from the model file',
+            'Freezes learning rates to zero'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'During training, dropout randomly deactivates units to prevent co-adaptation; during inference, all units are active with scaled outputs.'
+        },
+        {
+          q: 'What distinguishes the Adam optimizer from basic Stochastic Gradient Descent (SGD)?',
+          options: [
+            'It calculates individual adaptive learning rates per parameter using exponential moving averages of gradients (1st moment) and squared gradients (2nd moment)',
+            'It does not compute gradients at all',
+            'It is exclusively limited to linear regression',
+            'It requires batch size of 1'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Adam (Adaptive Moment Estimation) combines the advantages of AdaGrad (handling sparse gradients) and RMSProp (handling non-stationary objectives).'
+        },
+        {
+          q: 'Which combination of output layer activation and loss function is standard for multi-class classification (K classes)?',
+          options: [
+            'Sigmoid activation with Mean Squared Error loss',
+            'Softmax activation with Categorical Cross-Entropy loss',
+            'Linear activation with Hinge loss',
+            'ReLU activation with Binary Cross-Entropy loss'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Softmax converts K raw output logits into a normalized probability distribution (Σpᵢ = 1), and Categorical Cross-Entropy calculates loss against one-hot targets.'
+        }
+      ]
+    },
+    'dbms': {
+      title: 'SQL & DBMS',
+      category: 'DATABASE',
+      desc: 'SELECT, WHERE, JOIN, GROUP BY, Keys, Normalization, Transactions, and Indexing.',
+      questions: [
+        {
+          q: 'In SQL, what is the execution difference between the WHERE clause and the HAVING clause?',
+          options: [
+            'WHERE filters rows BEFORE grouping; HAVING filters aggregated groups AFTER GROUP BY',
+            'HAVING filters individual rows; WHERE filters aggregated groups',
+            'WHERE is only used with SELECT; HAVING is only used with UPDATE',
+            'They are exact synonyms with identical execution order'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '`WHERE` filters individual table rows prior to aggregation; `HAVING` filters the grouped result sets generated by `GROUP BY`.'
+        },
+        {
+          q: 'Which SQL JOIN returns all rows from the left table and matched rows from the right table (with NULLs for unmatched right rows)?',
+          options: ['INNER JOIN', 'LEFT OUTER JOIN', 'FULL OUTER JOIN', 'CROSS JOIN'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'A `LEFT JOIN` preserves all records from the left table regardless of whether matching rows exist in the right table.'
+        },
+        {
+          q: 'What is a Foreign Key constraint in relational database management?',
+          options: [
+            'A key used exclusively for international characters',
+            'A column in one table referencing the Primary Key of another table, enforcing Referential Integrity',
+            'An index created on encrypted table columns',
+            'A temporary primary key generated during query execution'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Foreign keys establish relationships between tables and ensure that referenced parent records cannot be deleted or orphaned inconsistently.'
+        },
+        {
+          q: 'What condition defines Third Normal Form (3NF) in relational schema design?',
+          options: [
+            'Relation is in 2NF and has no transitive functional dependencies (no non-prime attribute depends on another non-prime attribute)',
+            'Table contains only primary keys and zero foreign keys',
+            'All column data types are strings',
+            'Every column is indexed with a B+ Tree'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '3NF requires 2NF compliance and ensures that every non-key attribute depends directly only on candidate keys, eliminating transitive dependencies.'
+        },
+        {
+          q: 'What does the "I" in ACID transaction properties guarantee?',
+          options: [
+            'Integrity of foreign key constraints',
+            'Isolation: concurrent transactions execute independently without interfering with one another’s intermediate states',
+            'Indexing of query predicates',
+            'Immediate disk write without caching'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Isolation ensures that concurrent transactions do not see uncommitted modifications of other transactions according to the configured isolation level.'
+        },
+        {
+          q: 'What is a "Dirty Read" in database concurrency control?',
+          options: [
+            'Reading uncommitted data from a transaction that may subsequently roll back',
+            'Reading data from corrupted disk blocks',
+            'Reading query results over an unencrypted WiFi connection',
+            'Reading table records without an index'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'A dirty read occurs when Transaction A reads data modified by Transaction B before Transaction B commits; if B rolls back, A holds invalid data.'
+        },
+        {
+          q: 'Why do relational databases (MySQL InnoDB, PostgreSQL) predominantly use B+ Trees instead of Binary Search Trees for table indexing?',
+          options: [
+            'Large fan-out minimizes tree height and disk I/O reads; leaf nodes form a linked list enabling fast sequential range scans',
+            'Binary search trees require 10x more RAM than B+ trees',
+            'SQL standard prohibits binary trees',
+            'B+ trees do not require sorting'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'B+ Tree nodes match disk block sizes (fanout of hundreds), keeping tree depth small (3-4 levels for millions of rows) and linking leaves for range scans.'
+        },
+        {
+          q: 'What is the purpose of Write-Ahead Logging (WAL) in database crash recovery?',
+          options: [
+            'Flushing log records of data modifications to non-volatile disk BEFORE dirty data pages are written to table storage',
+            'Exporting table schemas to CSV every hour',
+            'Printing SQL queries to developer console',
+            'Disabling RAM cache completely'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'WAL ensures that changes are safely recorded in append-only sequential disk logs before database pages are updated, enabling Redo/Undo on crash.'
+        },
+        {
+          q: 'What does the SQL statement `SELECT department, COUNT(*) FROM employees GROUP BY department HAVING COUNT(*) > 5;` do?',
+          options: [
+            'Returns all employees in departments having more than 5 members',
+            'Returns department names and employee counts for departments with strictly more than 5 employees',
+            'Deletes departments with fewer than 5 employees',
+            'Inserts 5 new employee records into each department'
+          ],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'It groups employees by department, counts members in each group, and filters to display only departments where COUNT(*) > 5.'
+        },
+        {
+          q: 'What is the difference between a Clustered Index and a Non-Clustered Index?',
+          options: [
+            'A clustered index physically orders the actual table data rows on disk (only 1 per table); non-clustered indexes store separate lookup pointers to data rows',
+            'Non-clustered indexes can only be created on Primary Keys',
+            'Clustered indexes are stored in RAM; non-clustered indexes on disk',
+            'There is no performance difference between them'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'A clustered index determines the physical storage order of rows (leaf nodes are data pages); non-clustered indexes are secondary search structures.'
+        }
+      ]
+    },
+    'computer-networks': {
+      title: 'Computer Networks',
+      category: 'NETWORKING',
+      desc: 'OSI Model, TCP/IP, IP Addressing, HTTP, TCP, UDP, DNS, and Routing.',
+      questions: [
+        {
+          q: 'Which OSI model layer is responsible for logical IP addressing and packet routing across intermediate networks?',
+          options: ['Data Link Layer (Layer 2)', 'Network Layer (Layer 3)', 'Transport Layer (Layer 4)', 'Session Layer (Layer 5)'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'The Network Layer (Layer 3, e.g. IPv4, IPv6, ICMP) handles logical host addressing and determines packet routing paths across networks.'
+        },
+        {
+          q: 'What is the correct packet exchange sequence in the TCP Three-Way Handshake connection establishment?',
+          options: ['SYN -> SYN-ACK -> ACK', 'ACK -> SYN -> SYN-ACK', 'FIN -> ACK -> FIN-ACK', 'SYN -> ACK -> DATA'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'The client sends SYN (synchronize), the server replies with SYN-ACK, and the client returns ACK to establish a full-duplex connection.'
+        },
+        {
+          q: 'What is the fundamental architectural difference between TCP and UDP transport protocols?',
+          options: [
+            'TCP is connection-oriented, reliable (acknowledgments, retransmissions, ordered); UDP is connectionless, lightweight, and unordered without delivery guarantees',
+            'UDP is encrypted; TCP is unencrypted',
+            'TCP operates on Layer 3; UDP on Layer 4',
+            'UDP has a larger header (20 bytes) than TCP (8 bytes)'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'TCP guarantees in-order, error-checked packet stream delivery with flow control; UDP sends independent datagrams with minimal overhead.'
+        },
+        {
+          q: 'In IPv4 CIDR subnetting, how many usable host IP addresses are available in a `/24` subnet?',
+          options: ['256', '254', '128', '512'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'A `/24` prefix leaves 8 bits for hosts: 2⁸ = 256 addresses, minus 2 reserved addresses (Network ID and Broadcast address) = 254 usable hosts.'
+        },
+        {
+          q: 'How does the Domain Name System (DNS) resolve a hostname like `www.example.com`?',
+          options: [
+            'Hierarchical recursive lookup: Resolving DNS -> Root Nameserver (.) -> TLD Nameserver (.com) -> Authoritative Nameserver (example.com)',
+            'Broadcast flood to all computers connected to the Internet',
+            'Single centralized database server in Washington DC',
+            'P2P query over BitTorrent protocol'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'DNS uses a distributed tree hierarchy: the resolver queries the Root, then the .com TLD server, and finally the authoritative server for example.com.'
+        },
+        {
+          q: 'What is the primary function of the Address Resolution Protocol (ARP)?',
+          options: [
+            'Mapping an IP address (Layer 3) to a physical MAC address (Layer 2) on a local network',
+            'Translating domain names into IPv6 addresses',
+            'Encrypting HTTP payload data',
+            'Routing packets across Autonomous Systems'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'ARP broadcasts on the local ethernet broadcast domain to resolve an unknown hardware MAC address corresponding to a known IPv4 address.'
+        },
+        {
+          q: 'How does TLS (Transport Layer Security) establish a secure HTTPS connection?',
+          options: [
+            'Uses asymmetric cryptography during handshake to authenticate certificates and negotiate a shared symmetric key; uses symmetric encryption for fast data payload transfer',
+            'Encrypts all web pages with static ROT13 hashing',
+            'Transmits passwords in plain text with MD5 checksums',
+            'Uses asymmetric encryption for all subsequent web data transfer'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'TLS uses asymmetric public-key cryptography (RSA/ECDHE) to authenticate the server and securely exchange a symmetric AES session key.'
+        },
+        {
+          q: 'What major improvement did HTTP/2 introduce over HTTP/1.1 to eliminate Head-of-Line blocking at the application layer?',
+          options: [
+            'Binary Framing and Multiplexing multiple concurrent requests over a single TCP connection',
+            'Replacing TCP transport with raw Ethernet frames',
+            'Removing SSL/TLS encryption requirements',
+            'Disabling caching completely'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'HTTP/2 uses binary multiplexing over a single TCP stream, HPACK header compression, and server push to overcome HTTP/1.1 request serialization.'
+        },
+        {
+          q: 'Which routing protocol is the standardized Exterior Gateway Protocol (EGP) used to route traffic between Autonomous Systems (AS) on the Internet backbone?',
+          options: ['OSPF (Open Shortest Path First)', 'RIP (Routing Information Protocol)', 'BGP (Border Gateway Protocol)', 'ICMP'],
+          answer: 2,
+          correctAnswer: 2,
+          correctLetter: 'C',
+          explanation: 'BGP (Border Gateway Protocol) is the path-vector protocol that routes data across distinct internet service providers and autonomous systems.'
+        },
+        {
+          q: 'What is the primary function of Network Address Translation (NAT)?',
+          options: [
+            'Allowing multiple devices with private IP addresses (RFC 1918) on a local network to share a single public IP address on the WAN',
+            'Translating HTML into PDF files',
+            'Increasing MTU packet size to 9000 bytes',
+            'Assigning DNS names to wireless routers'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'NAT maps private local IP addresses and ports to a public routable IP address, conserving IPv4 space and masking internal network topology.'
+        }
+      ]
+    },
+    'operating-systems': {
+      title: 'Operating Systems',
+      category: 'SYSTEMS',
+      desc: 'Processes, Threads, Scheduling, Deadlock, Memory Management, File Systems.',
+      questions: [
+        {
+          q: 'What is the primary architectural distinction between a Process and a Thread in modern operating systems?',
+          options: [
+            'A process has its own isolated virtual address space and resources; threads within a process share the same address space, code, and heap',
+            'Threads have isolated address spaces; processes share an address space',
+            'Threads cannot execute concurrently on multi-core CPUs',
+            'Processes are managed solely in user-space'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Processes provide strong memory isolation; threads (lightweight processes) exist inside a process and share memory, heap, and open files.'
+        },
+        {
+          q: 'Which CPU scheduling algorithm is provably optimal for minimizing the average waiting time for a set of stationary processes?',
+          options: ['First-Come, First-Served (FCFS)', 'Shortest Job First (SJF / SRTF)', 'Round Robin (RR)', 'Priority Scheduling without aging'],
+          answer: 1,
+          correctAnswer: 1,
+          correctLetter: 'B',
+          explanation: 'Shortest Job First (SJF) schedules the process with the shortest burst time first, mathematically minimizing average waiting time.'
+        },
+        {
+          q: 'Which of the following is NOT one of the four Coffman conditions necessary for a Deadlock to occur?',
+          options: ['Mutual Exclusion', 'Hold and Wait', 'No Preemption', 'Round Robin Quantum Expiration'],
+          answer: 3,
+          correctAnswer: 3,
+          correctLetter: 'D',
+          explanation: 'The four Coffman conditions are Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait. Round Robin is a CPU scheduling algorithm.'
+        },
+        {
+          q: 'What is Dijkstra’s Banker’s Algorithm used for in operating systems?',
+          options: ['Deadlock Avoidance by ensuring resource allocations maintain a Safe Execution State', 'Deadlock Detection in distributed clusters', 'Process CPU billing', 'Virtual memory paging'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'The Banker’s algorithm simulates worst-case maximum resource requests before granting resources to ensure the system remains in a safe state.'
+        },
+        {
+          q: 'What is the Translation Lookaside Buffer (TLB) inside a CPU?',
+          options: [
+            'A high-speed associative hardware cache storing recent virtual-to-physical page table address translations',
+            'A disk cache for file read operations',
+            'A queue of processes waiting for I/O',
+            'A hardware interrupt vector table'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'The TLB caches recent virtual-to-physical address mappings in hardware, avoiding multi-level page table lookups in RAM on hits.'
+        },
+        {
+          q: 'What is "Thrashing" in virtual memory management?',
+          options: [
+            'A state where the CPU spends more time swapping pages between RAM and disk than executing instructions due to insufficient physical memory',
+            'Sudden kernel panic caused by power failure',
+            'Overclocking processor frequencies',
+            'Defragmenting storage blocks during boot'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Thrashing occurs when the sum of working sets of active processes exceeds physical RAM, causing constant page faults and I/O thrashing.'
+        },
+        {
+          q: 'What is Belady’s Anomaly in page replacement algorithms?',
+          options: [
+            'Under FIFO page replacement, increasing the number of allocated page frames can paradoxically increase the number of page faults',
+            'LRU failing on circular loop patterns',
+            'Optimal replacement running in exponential time',
+            'Virtual memory running out of address bits'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Belady’s anomaly shows that for certain reference strings, giving more physical page frames under FIFO increases the total page faults.'
+        },
+        {
+          q: 'What occurs during a CPU Context Switch?',
+          options: [
+            'Saving the CPU register state, Program Counter, and Stack Pointer of the active process in its PCB and loading the state of the scheduled process',
+            'Recompiling C++ source code into binary assembly',
+            'Flushing all databases to disk',
+            'Allocating a new IP address to the network adapter'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'A context switch stores the processor execution state (registers, PC, stack pointer) of the current process and restores the state of the next process.'
+        },
+        {
+          q: 'What is the difference between a Mutex and a Counting Semaphore?',
+          options: [
+            'A mutex has state 0/1 with ownership (only the lock holder can release it); a semaphore tracks integer resource counts and can be signaled by any thread',
+            'A mutex can be locked by multiple threads simultaneously',
+            'A semaphore can only be used by the Linux kernel',
+            'They are identical in POSIX specifications'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'A mutex provides exclusive locking with ownership; a counting semaphore maintains a counter of available identical resource units.'
+        },
+        {
+          q: 'In UNIX-like file systems, what information is stored inside an Inode (index node)?',
+          options: [
+            'File metadata (permissions, owner, size, timestamps, disk block pointers) but NOT the file name',
+            'Only the file name and directory path',
+            'The entire content of video files',
+            'User passwords'
+          ],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'An inode contains file metadata and block pointers; file names are stored separately inside directory file entries mapped to inode numbers.'
+        }
+      ]
+    },
+    'aptitude': {
+      title: 'Aptitude & Reasoning',
+      category: 'APTITUDE',
+      desc: 'Percentages, Ratios, Probability, Number Systems, Series, and Logical Reasoning.',
+      questions: [
+        {
+          q: 'If the price of a commodity increases by 25%, by what percentage must a household reduce its consumption so that total expenditure remains unchanged?',
+          options: ['20%', '25%', '15%', '30%'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Reduction % = [R / (100 + R)] * 100 = [25 / 125] * 100 = (1/5) * 100 = 20%.'
+        },
+        {
+          q: 'A and B invest in a business in the ratio 3 : 5. If total annual profit is $40,000, what is A’s share of the profit?',
+          options: ['$15,000', '$25,000', '$12,000', '$18,000'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Total parts = 3 + 5 = 8. A’s share = (3 / 8) * 40,000 = 3 * 5,000 = $15,000.'
+        },
+        {
+          q: 'Two fair six-sided dice are rolled simultaneously. What is the probability that the sum of the numbers is equal to 7?',
+          options: ['1 / 6', '1 / 12', '7 / 36', '5 / 36'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Pairs summing to 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) = 6 favorable outcomes. Total outcomes = 36. Probability = 6/36 = 1/6.'
+        },
+        {
+          q: 'A train 180 meters long crosses a stationary platform 120 meters long in 15 seconds. What is the speed of the train in km/h?',
+          options: ['72 km/h', '60 km/h', '80 km/h', '54 km/h'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Total distance = 180 + 120 = 300 m. Speed = 300 m / 15 s = 20 m/s. In km/h = 20 * (18 / 5) = 72 km/h.'
+        },
+        {
+          q: 'A can complete a task in 12 days and B can complete the same task in 24 days. Working together, in how many days will they finish the task?',
+          options: ['8 days', '6 days', '9 days', '10 days'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Combined 1-day work = 1/12 + 1/24 = 2/24 + 1/24 = 3/24 = 1/8. Total days = 8 days.'
+        },
+        {
+          q: 'What is the remainder when (7¹²⁵) is divided by 6?',
+          options: ['1', '5', '0', '3'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: '7 ≡ 1 (mod 6). Therefore, 7¹²⁵ ≡ 1¹²⁵ ≡ 1 (mod 6). The remainder is 1.'
+        },
+        {
+          q: 'Find the missing number in the sequence: 2, 6, 12, 20, 30, 42, ?',
+          options: ['56', '54', '60', '48'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Differences are +4, +6, +8, +10, +12, so the next difference is +14: 42 + 14 = 56 (or n² + n for n=7: 49 + 7 = 56).'
+        },
+        {
+          q: 'Pointing to a photograph, John said, "She is the daughter of my grandfather’s only son." How is the woman in the photograph related to John?',
+          options: ['Sister', 'Mother', 'Aunt', 'Cousin'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'John’s grandfather’s only son is John’s father. The daughter of John’s father is John’s sister.'
+        },
+        {
+          q: 'Statements: "All dogs are pets. All pets are animals." Which conclusion logically follows?',
+          options: ['All dogs are animals', 'Some animals are not pets', 'All animals are dogs', 'No pets are dogs'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'By standard categorical syllogism transitive rule: Dogs ⊂ Pets and Pets ⊂ Animals, therefore Dogs ⊂ Animals.'
+        },
+        {
+          q: 'In a certain code language, if "COMPUTER" is written as "DPNQVUFS" (each letter shifted +1), how is "PYTHON" coded in that language?',
+          options: ['QZUIPO', 'QZUJPO', 'PZUIPO', 'QYTHPN'],
+          answer: 0,
+          correctAnswer: 0,
+          correctLetter: 'A',
+          explanation: 'Each letter is shifted forward by 1: P->Q, Y->Z, T->U, H->I, O->P, N->O => QZUIPO.'
         }
       ]
     }
@@ -1804,8 +2929,8 @@ const ReadXData = {
           id: u.id,
           name: u.name || 'ReadX Learner',
           email: u.email || 'user@readx.app',
-          joined: u.joined || '2026-01-15',
-          bio: u.bio || 'Computer Science student · ReadX learner'
+          joined: u.joined || new Date().toISOString().split('T')[0],
+          bio: u.bio || 'ReadX Learner'
         };
       }
     }
@@ -1815,7 +2940,7 @@ const ReadXData = {
       name: 'ReadX Learner',
       email: 'user@readx.app',
       joined: new Date().toISOString().split('T')[0],
-      bio: 'ReadX learner'
+      bio: 'ReadX Learner'
     };
   },
 
@@ -1995,15 +3120,27 @@ const ReadXData = {
       timestamp: now
     };
 
-    this.addRecentActivity({
+    stats.recentActivity = stats.recentActivity || [];
+    stats.recentActivity.unshift({
+      id: 'act_' + now,
       type: 'opened',
       title: docTitle || 'Document',
       detail: 'Opened reader session',
-      timestamp: now
-    }, uid);
+      timestamp: now,
+      date: new Date(now).toISOString()
+    });
+    stats.recentActivity = stats.recentActivity.slice(0, 10);
 
     this.saveLearningStats(stats, uid);
     return sessionInfo;
+  },
+
+  toLocalCalendarDate(d = new Date()) {
+    const dateObj = typeof d === 'string' || typeof d === 'number' ? new Date(d) : d;
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   endReadingSession(docId, wordCount = 0) {
@@ -2026,8 +3163,10 @@ const ReadXData = {
       const wordsToAdd = wordCount || session.wordCount || 0;
       stats.wordsRead = (stats.wordsRead || 0) + wordsToAdd;
 
-      const todayStr = new Date().toISOString().split('T')[0];
-      stats.readingHistory[todayStr] = (stats.readingHistory[todayStr] || 0) + Math.max(1, elapsedMinutes);
+      const todayStr = this.toLocalCalendarDate(new Date());
+      if (elapsedMinutes > 0) {
+        stats.readingHistory[todayStr] = (stats.readingHistory[todayStr] || 0) + elapsedMinutes;
+      }
 
       this.recalculateStreak(stats, todayStr);
       this.saveLearningStats(stats, uid);
@@ -2052,31 +3191,29 @@ const ReadXData = {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayISO = this.toLocalCalendarDate(today);
 
-    let checkDate = new Date(today);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayISO = this.toLocalCalendarDate(yesterday);
+
     let current = 0;
 
-    const todayISO = checkDate.toISOString().split('T')[0];
-    let hasActivityNearNow = false;
-
     if (history[todayISO] && history[todayISO] > 0) {
-      hasActivityNearNow = true;
-    } else {
-      checkDate.setDate(checkDate.getDate() - 1);
-      const yesterdayISO = checkDate.toISOString().split('T')[0];
-      if (history[yesterdayISO] && history[yesterdayISO] > 0) {
-        hasActivityNearNow = true;
-      }
-    }
-
-    if (hasActivityNearNow) {
-      checkDate = new Date(today);
-      if (!history[todayISO]) {
-        checkDate.setDate(checkDate.getDate() - 1);
-      }
+      let checkDate = new Date(today);
       while (true) {
-        const dStr = checkDate.toISOString().split('T')[0];
+        const dStr = this.toLocalCalendarDate(checkDate);
+        if (history[dStr] && history[dStr] > 0) {
+          current++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+    } else if (history[yesterdayISO] && history[yesterdayISO] > 0) {
+      let checkDate = new Date(yesterday);
+      while (true) {
+        const dStr = this.toLocalCalendarDate(checkDate);
         if (history[dStr] && history[dStr] > 0) {
           current++;
           checkDate.setDate(checkDate.getDate() - 1);
@@ -2087,7 +3224,7 @@ const ReadXData = {
     }
 
     stats.streak.current = current;
-    stats.streak.longest = Math.max(stats.streak.longest || 0, current, datesWithActivity.length);
+    stats.streak.longest = Math.max(stats.streak.longest || 0, current, 1);
   },
 
   recordTopicPractice(topicId, score, total, topicTitle) {
@@ -2112,12 +3249,17 @@ const ReadXData = {
       stats.topicsCompleted.push(title);
     }
 
-    this.addRecentActivity({
+    const now = Date.now();
+    stats.recentActivity = stats.recentActivity || [];
+    stats.recentActivity.unshift({
+      id: 'act_' + now,
       type: 'practice',
       title: title,
       detail: `${Math.round((score / total) * 100)}% accuracy (${score}/${total})`,
-      timestamp: Date.now()
-    }, uid);
+      timestamp: now,
+      date: new Date(now).toISOString()
+    });
+    stats.recentActivity = stats.recentActivity.slice(0, 10);
 
     this.saveLearningStats(stats, uid);
   },
@@ -2125,42 +3267,55 @@ const ReadXData = {
   recordFeatureUse(featureName, docTitle) {
     const uid = this.getCurrentUserId();
     const stats = this.getLearningStats(uid);
+    const now = Date.now();
+
+    stats.recentActivity = stats.recentActivity || [];
 
     if (featureName === 'readAloud') {
       stats.readAloudUsageCount = (stats.readAloudUsageCount || 0) + 1;
-      this.addRecentActivity({
+      stats.recentActivity.unshift({
+        id: 'act_' + now,
         type: 'readAloud',
         title: docTitle || 'Read Aloud',
         detail: 'Text-to-speech audio active',
-        timestamp: Date.now()
-      }, uid);
+        timestamp: now,
+        date: new Date(now).toISOString()
+      });
     } else if (featureName === 'readx') {
       stats.readxSessionsCount = (stats.readxSessionsCount || 0) + 1;
-      this.addRecentActivity({
+      stats.recentActivity.unshift({
+        id: 'act_' + now,
         type: 'readx',
         title: 'READX Mode',
         detail: 'Toggled adaptive accessibility layout',
-        timestamp: Date.now()
-      }, uid);
+        timestamp: now,
+        date: new Date(now).toISOString()
+      });
     } else if (featureName === 'lineFocus') {
       stats.lineFocusUsageCount = (stats.lineFocusUsageCount || 0) + 1;
     } else if (featureName === 'readingGuide') {
       stats.readingGuideUsageCount = (stats.readingGuideUsageCount || 0) + 1;
     }
 
+    stats.recentActivity = stats.recentActivity.slice(0, 10);
     this.saveLearningStats(stats, uid);
   },
 
   recordDocumentUpload(title, ext, words = 0) {
     const uid = this.getCurrentUserId();
     const stats = this.getLearningStats(uid);
+    const now = Date.now();
 
-    this.addRecentActivity({
+    stats.recentActivity = stats.recentActivity || [];
+    stats.recentActivity.unshift({
+      id: 'act_' + now,
       type: 'uploaded',
       title: title,
       detail: `${(ext || 'DOCUMENT').toUpperCase()} file ${words > 0 ? '· ' + words + ' words' : ''}`,
-      timestamp: Date.now()
-    }, uid);
+      timestamp: now,
+      date: new Date(now).toISOString()
+    });
+    stats.recentActivity = stats.recentActivity.slice(0, 10);
 
     this.saveLearningStats(stats, uid);
   },
@@ -2168,14 +3323,15 @@ const ReadXData = {
   addRecentActivity(activityObj, userId) {
     const uid = userId || this.getCurrentUserId();
     const stats = this.getLearningStats(uid);
+    const now = activityObj.timestamp || Date.now();
 
     const newActivity = {
-      id: 'act_' + Date.now(),
+      id: 'act_' + now,
       type: activityObj.type || 'opened',
       title: activityObj.title || 'Action',
       detail: activityObj.detail || '',
-      timestamp: activityObj.timestamp || Date.now(),
-      date: new Date().toISOString()
+      timestamp: now,
+      date: new Date(now).toISOString()
     };
 
     stats.recentActivity = stats.recentActivity || [];

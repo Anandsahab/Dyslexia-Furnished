@@ -45,9 +45,9 @@ const ReadXAuth = {
       ReadXData.saveProfile({
         name: currentUser.name,
         email: currentUser.email,
-        joined: currentUser.joined || '2026-01-15',
-        bio: currentUser.bio || 'ReadX learner'
-      });
+        joined: currentUser.joined || new Date().toISOString().split('T')[0],
+        bio: currentUser.bio || 'ReadX Learner'
+      }, currentUser.id);
     }
   },
 
