@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://dyslexia-1.vercel.app/">🚀 Live Demo</a>
+  &nbsp; • &nbsp;
+  <a href="https://github.com/Anandsahab/Dyslexia-Furnished">💻 GitHub Repository</a>
+</p>
+
 # ReadX
 
 ReadX is an accessibility-focused learning platform designed to make digital educational content easier to read, understand, and interact with.
