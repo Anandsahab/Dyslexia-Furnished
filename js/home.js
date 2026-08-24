@@ -346,21 +346,23 @@ public:
     }
 
     // Tab switcher events
-    tabStandard.addEventListener('click', setStandardMode);
-    tabReadX.addEventListener('click', setReadXMode);
+    if (tabStandard) tabStandard.addEventListener('click', setStandardMode);
+    if (tabReadX) tabReadX.addEventListener('click', setReadXMode);
 
     // Read Aloud click event
-    heroReadAloudBtn.addEventListener('click', function () {
-      if (!isReadXMode) {
-        // Toggle to ReadX first
-        setReadXMode();
-        setTimeout(() => {
+    if (heroReadAloudBtn) {
+      heroReadAloudBtn.addEventListener('click', function () {
+        if (!isReadXMode) {
+          // Toggle to ReadX first
+          setReadXMode();
+          setTimeout(() => {
+            triggerSpeech();
+          }, 1100);
+        } else {
           triggerSpeech();
-        }, 1100);
-      } else {
-        triggerSpeech();
-      }
-    });
+        }
+      });
+    }
 
     function triggerSpeech() {
       if (isSpeaking) {
@@ -396,7 +398,9 @@ public:
     });
 
     // Auto trigger ReadX adaptation shortly after load for visual wow-factor
-    setTimeout(setReadXMode, 2200);
+    if (heroLiveCard) {
+      setTimeout(setReadXMode, 2200);
+    }
 
 
     // ============================================================
