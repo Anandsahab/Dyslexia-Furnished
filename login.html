@@ -90,12 +90,7 @@
               <input type="checkbox" id="rememberMe" checked>
               <span>Remember me</span>
             </label>
-            <a href="#" id="forgotPasswordLink" class="auth-text-link">Forgot password?</a>
-          </div>
-
-          <!-- Forgot password hint box (for demo) -->
-          <div id="forgotNotice" class="auth-forgot-notice" role="region" aria-live="polite">
-            <strong>Demo Account Hint:</strong> Use <code class="auth-demo-code">chaitanya@readx.app</code> with password <code class="auth-demo-code">password123</code> or create a new account.
+            <a href="forgot-password.html" id="forgotPasswordLink" class="auth-text-link">Forgot password?</a>
           </div>
 
           <!-- Submit Button -->
@@ -140,7 +135,6 @@
       const togglePassBtn = document.getElementById('togglePasswordBtn');
       const eyeIcon = document.getElementById('eyeIcon');
       const forgotLink = document.getElementById('forgotPasswordLink');
-      const forgotNotice = document.getElementById('forgotNotice');
       const fillDemoBtn = document.getElementById('fillDemoBtn');
 
       const groupEmail = document.getElementById('groupEmail');
@@ -178,12 +172,6 @@
             <circle cx="12" cy="12" r="3"></circle>
           `;
         }
-      });
-
-      // Toggle forgot password region
-      forgotLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        forgotNotice.classList.toggle('visible');
       });
 
       // Quick autofill demo credentials button

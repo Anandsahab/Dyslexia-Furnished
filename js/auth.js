@@ -266,6 +266,152 @@ const ReadXAuth = {
       return true;
     }
     return false;
+  },
+
+  // ==========================================
+  // CAPTCHA-BASED PASSWORD RESET FLOW
+  // ==========================================
+
+  // Step 1: Validate Email Address
+  verifyResetEmail(email) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+
+    const user = this.getUserByEmail(cleanEmail);
+    if (!user) {
+      return { success: false, error: 'No account found with this email address.' };
+    }
+
+    return {
+      success: true,
+      email: cleanEmail,
+      name: user.name
+    };
+  },
+
+  // Step 2: Generate dynamic CAPTCHA challenge
+  generateCaptchaChallenge() {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const captchaData = {
+      code,
+      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+    };
+
+    try {
+      sessionStorage.setItem('readx-captcha-challenge', JSON.stringify(captchaData));
+    } catch (e) {}
+
+    return {
+      captchaCode: code
+    };
+  },
+
+  // Step 2b: Verify CAPTCHA Code
+  verifyCaptchaChallenge(inputCode, email) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanInput = String(inputCode || '').trim().toUpperCase();
+
+    if (!cleanInput) {
+      return { success: false, error: 'Please enter the verification code.' };
+    }
+
+    let captchaData = null;
+    try {
+      const raw = sessionStorage.getItem('readx-captcha-challenge');
+      if (raw) captchaData = JSON.parse(raw);
+    } catch (e) {}
+
+    if (!captchaData) {
+      return { success: false, error: 'Verification code expired. Please refresh the code.' };
+    }
+
+    if (Date.now() > captchaData.expiresAt) {
+      return { success: false, error: 'Verification code expired. Please refresh the code.' };
+    }
+
+    if (cleanInput !== captchaData.code.toUpperCase()) {
+      return { success: false, error: 'Incorrect verification code. Please try again.' };
+    }
+
+    // Invalidate CAPTCHA immediately after successful verification
+    try {
+      sessionStorage.removeItem('readx-captcha-challenge');
+    } catch (e) {}
+
+    // Create verified reset session
+    const resetToken = 'rst_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    const resetSession = {
+      email: cleanEmail,
+      resetToken,
+      expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
+    };
+
+    try {
+      sessionStorage.setItem('readx-reset-session', JSON.stringify(resetSession));
+    } catch (e) {}
+
+    return { success: true, resetToken, email: cleanEmail };
+  },
+
+  // Step 3/4: Update Password
+  resetPasswordWithVerifiedSession({ email, newPassword, confirmPassword, resetToken }) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPass = newPassword || '';
+    const cleanConfirm = confirmPassword || '';
+
+    if (!cleanPass || cleanPass.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters long.' };
+    }
+
+    if (cleanPass !== cleanConfirm) {
+      return { success: false, error: 'Passwords do not match. Please re-enter.' };
+    }
+
+    let session = null;
+    try {
+      const raw = sessionStorage.getItem('readx-reset-session');
+      if (raw) session = JSON.parse(raw);
+    } catch (e) {}
+
+    if (!session || session.email !== cleanEmail) {
+      return { success: false, error: 'Reset session is invalid or has expired. Please restart.' };
+    }
+
+    if (resetToken && session.resetToken !== resetToken) {
+      return { success: false, error: 'Invalid reset authorization token.' };
+    }
+
+    if (Date.now() > session.expiresAt) {
+      return { success: false, error: 'Reset session timed out. Please restart the reset process.' };
+    }
+
+    const users = this.getUsers();
+    const userIndex = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+
+    if (userIndex === -1) {
+      return { success: false, error: 'Account could not be found to update password.' };
+    }
+
+    // Update password in users list
+    users[userIndex].password = cleanPass;
+
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.USERS, JSON.stringify(users));
+      sessionStorage.removeItem('readx-reset-session');
+    } catch (e) {
+      return { success: false, error: 'Storage error while saving updated password.' };
+    }
+
+    return { success: true, email: cleanEmail };
   }
 };
 
