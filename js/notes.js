@@ -436,9 +436,9 @@
       initLibraryIntegration();
     }
 
-    if (page === 'upload.html') {
-      initUploadIntegration();
-    }
+    if (page === 'upload.html' || page === 'upload') {
+  initUploadIntegration();
+}
   }
 
   if (document.readyState === 'loading') {
