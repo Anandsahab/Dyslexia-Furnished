@@ -432,7 +432,7 @@
   function init() {
     var page = window.location.pathname.split('/').pop() || '';
 
-    if (page === 'library.html' || page === '' || page === 'index.html') {
+    if (page === 'library.html' || page === 'library' || page === 'index.html') {
       initLibraryIntegration();
     }
 
