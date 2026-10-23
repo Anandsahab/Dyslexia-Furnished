@@ -19,10 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalCloseBtn = document.getElementById('modalCloseBtn');
   const modalBtnStandard = document.getElementById('modalBtnStandard');
   const modalBtnReadX = document.getElementById('modalBtnReadX');
+  const modalBtnVisual = document.getElementById('modalBtnVisual');
   const modalDocTitle = document.getElementById('modalDocTitle');
   const modalFormatBadge = document.getElementById('modalFormatBadge');
   const modalStandardContainer = document.getElementById('modalStandardContainer');
   const modalReadXContainer = document.getElementById('modalReadXContainer');
+  const modalVisualContainer = document.getElementById('modalVisualContainer');
   const modalFooterMeta = document.getElementById('modalFooterMeta');
   const modalTtsBtn = document.getElementById('modalTtsBtn');
 
@@ -333,6 +335,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    if (modalBtnVisual) {
+      if (!hasText) {
+        modalBtnVisual.classList.add('disabled');
+        modalBtnVisual.title = "Visual Learning isn't available for this file type.";
+      } else {
+        modalBtnVisual.classList.remove('disabled');
+        modalBtnVisual.removeAttribute('title');
+      }
+    }
+
     // STEP 1: Render Standard Reading View FIRST
     try {
       renderModalStandardView(item);
@@ -574,20 +586,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalFooterActions = document.getElementById('modalFooterActions');
     const modalAudioBar = document.getElementById('modalAudioBar');
 
+    // Deactivate all mode buttons
+    if (modalBtnStandard) modalBtnStandard.classList.remove('active');
+    if (modalBtnReadX) modalBtnReadX.classList.remove('active');
+    if (modalBtnVisual) modalBtnVisual.classList.remove('active');
+
+    // Hide all view containers
+    if (modalStandardContainer) modalStandardContainer.style.display = 'none';
+    if (modalReadXContainer) modalReadXContainer.style.display = 'none';
+    if (modalVisualContainer) modalVisualContainer.style.display = 'none';
+
+    stopModalSpeech();
+
     if (mode === 'standard') {
-      stopModalSpeech();
-      modalBtnStandard.classList.add('active');
-      modalBtnReadX.classList.remove('active');
-      modalStandardContainer.style.display = 'block';
-      modalReadXContainer.style.display = 'none';
-      modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
+      if (modalBtnStandard) modalBtnStandard.classList.add('active');
+      if (modalStandardContainer) modalStandardContainer.style.display = 'block';
+      if (modalFooterMeta) modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
       updateDocumentPagination();
-    } else {
-      modalBtnReadX.classList.add('active');
-      modalBtnStandard.classList.remove('active');
-      modalReadXContainer.style.display = 'block';
-      modalStandardContainer.style.display = 'none';
-      modalFooterMeta.textContent = 'READX Accessible Mode · Layout C Focus View';
+    } else if (mode === 'readx') {
+      if (modalBtnReadX) modalBtnReadX.classList.add('active');
+      if (modalReadXContainer) modalReadXContainer.style.display = 'block';
+      if (modalFooterMeta) modalFooterMeta.textContent = 'READX Accessible Mode · Layout C Focus View';
 
       applySettingsToReadXCanvas(getReadXUserSettings());
       updateDocumentPagination();
@@ -595,7 +614,271 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentModalItem && typeof ReadXData !== 'undefined') {
         ReadXData.recordFeatureUse('readx', currentModalItem.title);
       }
+    } else if (mode === 'visual') {
+      if (modalBtnVisual) modalBtnVisual.classList.add('active');
+      if (modalVisualContainer) modalVisualContainer.style.display = 'block';
+      if (modalFooterMeta) modalFooterMeta.textContent = 'Visual Learning Mode · Key Concept Cards';
+
+      const pageIndicator = document.getElementById('modalPageIndicator');
+      if (pageIndicator) pageIndicator.textContent = 'Concept Cards';
+      const prevBtn = document.getElementById('modalPrevPageBtn');
+      const nextBtn = document.getElementById('modalNextPageBtn');
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
+
+      renderVisualLearningView(currentModalItem);
+
+      if (currentModalItem && typeof ReadXData !== 'undefined') {
+        ReadXData.recordFeatureUse('visualize', currentModalItem.title);
+      }
     }
+  }
+
+  function escapeVisualHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  let activeVisualSpeechCardIndex = -1;
+
+  async function renderVisualLearningView(item, forceRefresh = false) {
+    const workspace = document.getElementById('rxVisualWorkspace');
+    if (!workspace) return;
+
+    if (!item) {
+      renderVisualEmptyState('No document is currently active.');
+      return;
+    }
+
+    // Check in-memory session cache
+    if (!forceRefresh && item._visualCards) {
+      renderVisualCardsContent(item._visualCards);
+      return;
+    }
+
+    // Extract text content cleanly
+    let docText = '';
+    if (item.content && item.content.trim()) {
+      if (item.content.startsWith('<')) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = item.content;
+        docText = (tmp.textContent || tmp.innerText || '').trim();
+      } else {
+        docText = item.content.trim();
+      }
+    } else {
+      const stdDoc = document.getElementById('modalStandardContainer');
+      docText = (stdDoc?.textContent || '').trim();
+    }
+
+    if (!docText || docText.length < 10) {
+      renderVisualEmptyState('This document contains insufficient readable text to generate visual concept cards.');
+      return;
+    }
+
+    // Cap text to 6,000 characters for optimal and bounded generation
+    const textToAnalyze = docText.length > 6000 ? docText.slice(0, 6000) : docText;
+
+    renderVisualLoadingState();
+
+    try {
+      const visualData = await ReadXGemini.visualizeContent(textToAnalyze);
+      item._visualCards = visualData;
+      renderVisualCardsContent(visualData);
+    } catch (err) {
+      console.error('Visual Learning generation error:', err);
+      renderVisualErrorState(err.message || 'Unable to generate concept cards at this time.');
+    }
+  }
+
+  function renderVisualLoadingState() {
+    const workspace = document.getElementById('rxVisualWorkspace');
+    if (!workspace) return;
+    workspace.innerHTML = `
+      <div class="rx-visual-status-card rx-visual-loading" role="status" aria-live="polite">
+        <div class="rx-visual-spinner">
+          <span class="rx-lettermark">R<span class="rx-accent">x</span></span>
+          <div class="rx-glow-bar"></div>
+        </div>
+        <h3 class="rx-visual-status-title">Generating Visual Learning Concepts...</h3>
+        <p class="rx-visual-status-desc">Gemini AI is analyzing your document text to extract key terms, definitions, and dyslexia-accessible explanations.</p>
+      </div>
+    `;
+  }
+
+  function renderVisualEmptyState(msg) {
+    const workspace = document.getElementById('rxVisualWorkspace');
+    if (!workspace) return;
+    workspace.innerHTML = `
+      <div class="rx-visual-status-card rx-visual-empty">
+        <div class="rx-visual-status-icon">📑</div>
+        <h3 class="rx-visual-status-title">No Concept Cards Available</h3>
+        <p class="rx-visual-status-desc">${escapeVisualHtml(msg || 'This document does not contain enough readable text content to generate concept cards.')}</p>
+        <div class="rx-visual-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="rxBtnVisualSwitchReadX">Switch to ReadX Mode</button>
+        </div>
+      </div>
+    `;
+    const switchBtn = document.getElementById('rxBtnVisualSwitchReadX');
+    if (switchBtn) {
+      switchBtn.onclick = () => switchModalMode('readx');
+    }
+  }
+
+  function renderVisualErrorState(errMsg) {
+    const workspace = document.getElementById('rxVisualWorkspace');
+    if (!workspace) return;
+    workspace.innerHTML = `
+      <div class="rx-visual-status-card rx-visual-error" role="alert">
+        <div class="rx-visual-status-icon">⚠️</div>
+        <h3 class="rx-visual-status-title">Unable to Generate Concept Cards</h3>
+        <p class="rx-visual-status-desc">${escapeVisualHtml(errMsg || 'An error occurred while communicating with Gemini AI.')}</p>
+        <div class="rx-visual-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="rxBtnVisualRetry">🔄 Try Again</button>
+          <button type="button" class="btn btn-outline btn-sm" id="rxBtnVisualFallbackReadX">Read Document</button>
+        </div>
+      </div>
+    `;
+    const retryBtn = document.getElementById('rxBtnVisualRetry');
+    if (retryBtn) {
+      retryBtn.onclick = () => renderVisualLearningView(currentModalItem, true);
+    }
+    const fallbackBtn = document.getElementById('rxBtnVisualFallbackReadX');
+    if (fallbackBtn) {
+      fallbackBtn.onclick = () => switchModalMode('readx');
+    }
+  }
+
+  function renderVisualCardsContent(data) {
+    const workspace = document.getElementById('rxVisualWorkspace');
+    if (!workspace) return;
+
+    const cards = Array.isArray(data.conceptCards) ? data.conceptCards : [];
+    if (cards.length === 0) {
+      renderVisualEmptyState('No concept cards could be extracted from this document.');
+      return;
+    }
+
+    const title = data.title || (currentModalItem ? (currentModalItem.title || currentModalItem.filename) : 'Key Concepts');
+    const summary = data.summary || '';
+
+    workspace.innerHTML = `
+      <div class="rx-visual-header">
+        <div class="rx-visual-header-left">
+          <span class="rx-visual-pill">✨ Visual Learning</span>
+          <h2 class="rx-visual-doc-title">${escapeVisualHtml(title)}</h2>
+          ${summary ? `<p class="rx-visual-summary">${escapeVisualHtml(summary)}</p>` : ''}
+        </div>
+        <div class="rx-visual-header-right">
+          <span class="rx-visual-count-badge">${cards.length} Key Concept${cards.length === 1 ? '' : 's'}</span>
+          <button type="button" class="btn btn-ghost btn-sm rx-visual-refresh-btn" id="rxBtnVisualRegenerate" title="Regenerate concept cards with Gemini AI">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="rx-concept-cards-grid">
+        ${cards.map((card, idx) => `
+          <article class="rx-concept-card" data-card-idx="${idx}" data-card-id="${escapeVisualHtml(card.id || 'card-' + (idx + 1))}">
+            <div class="rx-card-top-row">
+              <span class="rx-card-num-badge">Concept #${idx + 1}</span>
+              <button type="button" class="rx-card-tts-btn" data-tts-idx="${idx}" title="Listen to this concept" aria-label="Listen to concept ${escapeVisualHtml(card.term)}">
+                <span>🔊</span> Listen
+              </button>
+            </div>
+
+            <h3 class="rx-card-term">${escapeVisualHtml(card.term)}</h3>
+
+            <div class="rx-card-section">
+              <span class="rx-card-section-label">Source Definition</span>
+              <p class="rx-card-definition">${escapeVisualHtml(card.definition)}</p>
+            </div>
+
+            <div class="rx-card-section rx-card-section--plain">
+              <span class="rx-card-section-label">Plain Explanation</span>
+              <p class="rx-card-plain">${escapeVisualHtml(card.plainExplanation)}</p>
+            </div>
+
+            ${card.keyTakeaway ? `
+              <div class="rx-card-takeaway">
+                <span class="rx-takeaway-icon">💡</span>
+                <div class="rx-takeaway-body">
+                  <strong>Takeaway:</strong> ${escapeVisualHtml(card.keyTakeaway)}
+                </div>
+              </div>
+            ` : ''}
+
+            ${card.sourceQuote ? `
+              <div class="rx-card-quote">
+                <em>"${escapeVisualHtml(card.sourceQuote)}"</em>
+              </div>
+            ` : ''}
+          </article>
+        `).join('')}
+      </div>
+    `;
+
+    // Hook up refresh button
+    const refreshBtn = document.getElementById('rxBtnVisualRegenerate');
+    if (refreshBtn) {
+      refreshBtn.onclick = () => renderVisualLearningView(currentModalItem, true);
+    }
+
+    // Hook up per-card TTS
+    workspace.querySelectorAll('.rx-card-tts-btn').forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.dataset.ttsIdx, 10);
+        speakConceptCard(cards[idx], idx, btn);
+      };
+    });
+  }
+
+  function speakConceptCard(card, idx, btnEl) {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-speech is not supported by your browser.');
+      return;
+    }
+
+    // If already speaking this card, stop
+    if (window.speechSynthesis.speaking && activeVisualSpeechCardIndex === idx) {
+      window.speechSynthesis.cancel();
+      activeVisualSpeechCardIndex = -1;
+      btnEl.classList.remove('speaking');
+      btnEl.innerHTML = '<span>🔊</span> Listen';
+      return;
+    }
+
+    // Stop any existing speech
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('.rx-card-tts-btn').forEach(b => {
+      b.classList.remove('speaking');
+      b.innerHTML = '<span>🔊</span> Listen';
+    });
+
+    const speakText = `${card.term}. Definition: ${card.definition}. Plain explanation: ${card.plainExplanation}. ${card.keyTakeaway ? 'Key takeaway: ' + card.keyTakeaway : ''}`;
+    const utterance = new SpeechSynthesisUtterance(speakText);
+    utterance.rate = selectedSpeechRate || 1.0;
+
+    activeVisualSpeechCardIndex = idx;
+    btnEl.classList.add('speaking');
+    btnEl.innerHTML = '<span>⏹️</span> Stop';
+
+    utterance.onend = () => {
+      activeVisualSpeechCardIndex = -1;
+      btnEl.classList.remove('speaking');
+      btnEl.innerHTML = '<span>🔊</span> Listen';
+    };
+
+    utterance.onerror = () => {
+      activeVisualSpeechCardIndex = -1;
+      btnEl.classList.remove('speaking');
+      btnEl.innerHTML = '<span>🔊</span> Listen';
+    };
+
+    window.speechSynthesis.speak(utterance);
   }
 
   let currentDocPage = 1;
@@ -1072,6 +1355,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     switchModalMode('readx');
   });
+  if (modalBtnVisual) {
+    modalBtnVisual.addEventListener('click', () => {
+      const hasText = currentModalItem && currentModalItem.hasExtractableText !== false && currentModalItem.isReadable !== false && Boolean(currentModalItem.content && currentModalItem.content.trim());
+      if (!hasText) {
+        alert("Visual Learning isn't available for this file type.");
+        return;
+      }
+      switchModalMode('visual');
+    });
+  }
 
   modalCloseBtn.addEventListener('click', closeModal);
 

@@ -3,14 +3,33 @@
 // NOTE: No API keys are stored or exposed here. All requests proxy through /api/gemini.
 
 const ReadXGemini = (function () {
-  const ENDPOINT = '/api/gemini';
+  /**
+   * Dynamically resolve the Gemini API endpoint based on runtime environment.
+   * - In production / standard dev server (port 3000): returns '/api/gemini'
+   * - In static Live Server (port 5500/5501): routes to 'http://localhost:3000/api/gemini'
+   * - Supports explicit override via window.READX_API_ENDPOINT
+   */
+  function getEndpoint() {
+    if (typeof window !== 'undefined') {
+      if (window.READX_API_ENDPOINT) {
+        return window.READX_API_ENDPOINT;
+      }
+      if (window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        if (['5500', '5501', '8080'].includes(window.location.port)) {
+          return 'http://localhost:3000/api/gemini';
+        }
+      }
+    }
+    return '/api/gemini';
+  }
 
   /**
    * Core request dispatcher to serverless backend
    */
   async function request(payload) {
+    const endpoint = getEndpoint();
     const debugInfo = {
-      endpoint: ENDPOINT,
+      endpoint: endpoint,
       action: payload.action || 'generate',
       model: payload.model || 'gemini-3.6-flash',
       promptPreview: payload.prompt ? (payload.prompt.length > 80 ? payload.prompt.slice(0, 80) + '...' : payload.prompt) : ''
@@ -20,7 +39,7 @@ const ReadXGemini = (function () {
 
     let response;
     try {
-      response = await fetch(ENDPOINT, {
+      response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +49,7 @@ const ReadXGemini = (function () {
       });
     } catch (netErr) {
       console.error('❌ [ReadXGemini Network Error]', netErr);
-      throw new Error(`Network connection error: Unable to reach ${ENDPOINT}. (${netErr.message})`);
+      throw new Error(`Network connection error: Unable to reach ${endpoint}. (${netErr.message})`);
     }
 
     const contentType = response.headers.get('content-type') || '';
@@ -71,7 +90,7 @@ const ReadXGemini = (function () {
       }
 
       if (response.status === 404 && !errorMessage) {
-        errorMessage = `Endpoint ${ENDPOINT} returned 404 Not Found. If testing locally on a static server, /api/gemini requires Vercel CLI ('vercel dev') or serverless deployment.`;
+        errorMessage = `Endpoint ${endpoint} returned 404 Not Found. If testing locally on a static server, run 'npm run dev' to start the ReadX server on port 3000.`;
       }
 
       console.error('❌ [ReadXGemini Error]', errorMessage);
@@ -109,7 +128,9 @@ const ReadXGemini = (function () {
       success: true,
       text: extractedText,
       action: payload.action,
-      model: data.model || payload.model
+      model: data.model || payload.model,
+      visualData: data.visualData,
+      visualType: data.visualType
     };
   }
 
@@ -196,15 +217,45 @@ const ReadXGemini = (function () {
     }
   }
 
+  /**
+   * Generates structured visual learning concept cards
+   * @param {string} text 
+   * @param {Object} options 
+   */
+  async function visualizeContent(text, options = {}) {
+    if (!text || !text.trim()) throw new Error('Content for visual learning cannot be empty.');
+    const res = await request({
+      action: 'visualize',
+      prompt: text,
+      ...options
+    });
+
+    if (res.visualData) {
+      return res.visualData;
+    }
+
+    try {
+      const cleaned = res.text.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch (e) {
+      throw new Error('Unable to parse visual learning structured data.');
+    }
+  }
+
   return {
     generate,
     simplifyText,
     explainConcept,
     summarizeText,
-    generateQuiz
+    generateQuiz,
+    visualizeContent,
+    getEndpoint
   };
 })();
 
 if (typeof window !== 'undefined') {
   window.ReadXGemini = ReadXGemini;
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ReadXGemini;
 }
