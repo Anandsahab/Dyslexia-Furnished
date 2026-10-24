@@ -55,6 +55,84 @@
     }
   }
 
+  // ── Backend MongoDB Sync Helpers ──────────────────────────────────────────
+
+  function syncNotesFromBackend(type, id) {
+    if (!type || !id || typeof fetch !== 'function') return;
+    var targetId = sanitizeKey(id);
+    fetch('/api/notes?type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(targetId))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.success && Array.isArray(data.notes)) {
+          var local = loadNotes(type, id);
+          var localMap = {};
+          local.forEach(function (n) { localMap[n.id] = n; });
+
+          var merged = local.slice();
+          var updated = false;
+
+          data.notes.forEach(function (remote) {
+            if (!localMap[remote.id]) {
+              merged.push(remote);
+              updated = true;
+            } else {
+              var existing = localMap[remote.id];
+              if (remote.updatedAt && remote.updatedAt > (existing.updatedAt || 0)) {
+                existing.text = remote.text;
+                existing.updatedAt = remote.updatedAt;
+                updated = true;
+              }
+            }
+          });
+
+          if (updated) {
+            saveNotes(type, id, merged);
+            if (_activeType === type && _activeId === id) {
+              renderDrawerNotes();
+              updateTriggerButtons();
+            }
+          }
+        }
+      })
+      .catch(function () {});
+  }
+
+  function syncSaveNoteToBackend(type, id, note) {
+    if (!type || !id || !note || typeof fetch !== 'function') return;
+    var targetId = sanitizeKey(id);
+    fetch('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: type,
+        id: targetId,
+        noteId: note.id,
+        text: note.text,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt
+      })
+    }).catch(function () {});
+  }
+
+  function syncUpdateNoteToBackend(noteId, text) {
+    if (!noteId || !text || typeof fetch !== 'function') return;
+    fetch('/api/notes', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        noteId: noteId,
+        text: text
+      })
+    }).catch(function () {});
+  }
+
+  function syncDeleteNoteFromBackend(noteId) {
+    if (!noteId || typeof fetch !== 'function') return;
+    fetch('/api/notes?noteId=' + encodeURIComponent(noteId), {
+      method: 'DELETE'
+    }).catch(function () {});
+  }
+
   function formatDate(ts) {
     if (!ts) return '';
     try {
@@ -938,6 +1016,7 @@
       };
       current.push(newNote);
       saveNotes(_activeType, _activeId, current);
+      syncSaveNoteToBackend(_activeType, _activeId, newNote);
       textarea.value = '';
       _sessionBaseText = '';
       _sessionFinalText = '';
@@ -993,6 +1072,7 @@
     resetSpeechSession();
 
     renderDrawerNotes();
+    syncNotesFromBackend(type, id);
 
     _drawerEl.style.display = 'block';
     _drawerEl.setAttribute('aria-hidden', 'false');
@@ -1096,6 +1176,7 @@
           saveNotes(_activeType, _activeId, current);
         }
         _editingNoteId = null;
+        syncUpdateNoteToBackend(noteId, updatedText);
         renderDrawerNotes();
         updateTriggerButtons();
       });
@@ -1119,6 +1200,7 @@
         if (_editingNoteId === noteId) {
           _editingNoteId = null;
         }
+        syncDeleteNoteFromBackend(noteId);
         renderDrawerNotes();
         updateTriggerButtons();
       });
