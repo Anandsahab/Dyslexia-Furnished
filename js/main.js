@@ -791,6 +791,8 @@ const App = {
     const settingsBtn = document.getElementById('comfortSettingsBtn');
     if (!btn) return;
     
+    const initialBodyTheme = document.body.getAttribute('data-theme');
+
     const applyMasterState = (isOn) => {
       btn.setAttribute('aria-pressed', isOn);
       if (isOn) {
@@ -802,6 +804,12 @@ const App = {
         document.body.classList.remove('dyslexia-mode');
         btn.classList.remove('active');
         settingsBtn.style.display = 'none';
+
+        if (initialBodyTheme !== null) {
+          document.body.setAttribute('data-theme', initialBodyTheme);
+        } else {
+          document.body.removeAttribute('data-theme');
+        }
 
         if (ReadingAssist.tts) ReadingAssist.tts.stop();
         ReadingAssist.sentences.forEach(s => s.classList.remove('focused'));
