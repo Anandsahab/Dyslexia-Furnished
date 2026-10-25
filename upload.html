@@ -198,15 +198,160 @@
           </div>
         </div>
       </footer>
-      <!-- Floating Contextual Selection AI Toolbar (Works in BOTH Standard & ReadX) -->
+      <!-- Floating Contextual Selection Toolbar (Works in BOTH Standard & ReadX) -->
       <div class="rx-selection-ai-toolbar" id="rxSelectionAiToolbar" style="display:none;" aria-hidden="true">
-        <button type="button" class="rx-ai-btn" id="rxAiBtnAnalyze" title="Analyze selected text with Gemini AI">
-          <span class="rx-ai-icon">✨</span> Analyze
+        <button type="button" class="rx-ai-btn" id="rxAiBtnAnalyze" data-action="focus-line" title="Focus Line reading mode">
+          <span class="rx-ai-icon">🎯</span> Focus Line
         </button>
         <span class="rx-ai-divider"></span>
-        <button type="button" class="rx-ai-btn" id="rxAiBtnSummarizeDoc" title="Summarize the entire document with Gemini AI">
-          <span class="rx-ai-icon">📄</span> Summarize PDF
+        <button type="button" class="rx-ai-btn" id="rxAiBtnSummarizeDoc" data-action="read-aloud" title="Read selected text aloud">
+          <span class="rx-ai-icon">🔊</span> Read Aloud
         </button>
+      </div>
+
+      <!-- Dyslexia Focus Line Reading Studio Overlay -->
+      <div class="rx-line-focus-overlay" id="rxLineFocusOverlay" style="display:none;" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Personalised Dyslexia Reading Studio">
+        <div class="rx-line-focus-backdrop" id="rxLineFocusBackdrop" tabindex="-1"></div>
+        <div class="rx-focused-line-card" id="rxFocusedLineCard" tabindex="-1">
+          <header class="rx-focused-card-header">
+            <div class="rx-focused-card-tag">
+              <span class="rx-focused-tag-icon">🎯</span>
+              <div class="rx-focused-tag-info">
+                <span class="rx-focused-tag-text">READING STUDIO</span>
+                <span class="rx-focused-tag-sub">Dyslexia Focused Workspace</span>
+              </div>
+            </div>
+            <div class="rx-focused-card-controls">
+              <button type="button" class="rx-focused-action-btn rx-focused-tts-btn" id="rxFocusedTtsBtn" title="Read focused text aloud (Space)" aria-label="Read focused text aloud">
+                <span class="rx-focused-tts-icon">🔊</span>
+                <span class="rx-focused-tts-label">Read Aloud</span>
+              </button>
+              <button type="button" class="rx-focused-action-btn rx-studio-reset-btn" id="rxStudioResetBtn" title="Reset all focus settings to default" aria-label="Reset all focus settings">
+                <span class="rx-studio-btn-icon">↺</span>
+                <span>Reset</span>
+              </button>
+              <button type="button" class="rx-focused-close-btn" id="rxFocusedCloseBtn" title="Exit Focus Mode (Esc)" aria-label="Exit Focus Mode">
+                <span class="rx-close-icon">✕</span>
+                <span>Exit Focus</span>
+              </button>
+            </div>
+          </header>
+
+          <!-- Studio Customisation Toolbar: Clean Grouped Layout -->
+          <div class="rx-studio-toolbar" id="rxStudioToolbar" role="toolbar" aria-label="Reading customisation controls">
+            <!-- Group 1: Typography (Font family & Size) -->
+            <div class="rx-studio-section rx-studio-typography-section" aria-label="Typography controls">
+              <span class="rx-studio-section-label">Typography</span>
+              
+              <!-- Font Family Dropdown -->
+              <div class="rx-studio-control-group rx-group-font" title="Font Family">
+                <label for="rxStudioFontSelect" class="rx-studio-label">Font</label>
+                <div class="rx-select-wrapper">
+                  <select id="rxStudioFontSelect" class="rx-studio-select" aria-label="Choose font family">
+                    <option value="'Lexend', sans-serif" selected>Lexend (Clean Dyslexia)</option>
+                    <option value="'OpenDyslexic-Focus', 'OpenDyslexic', 'Lexend', sans-serif">OpenDyslexic (Specialized)</option>
+                    <option value="'Inter', sans-serif">Inter (Modern Sans)</option>
+                    <option value="'Lora', serif">Lora (Editorial Serif)</option>
+                    <option value="'JetBrains Mono', monospace">JetBrains Mono (Monospace)</option>
+                  </select>
+                  <span class="rx-select-caret" aria-hidden="true">▾</span>
+                </div>
+              </div>
+
+              <!-- Font Size Stepper -->
+              <div class="rx-studio-control-group rx-group-size" title="Font Size (16px - 36px)">
+                <span class="rx-studio-label">Size</span>
+                <div class="rx-stepper">
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioFontDec" title="Decrease font size" aria-label="Decrease font size">A−</button>
+                  <span class="rx-studio-value-badge" id="rxStudioFontVal" aria-live="polite">24px</span>
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioFontInc" title="Increase font size" aria-label="Increase font size">A+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rx-studio-divider" role="separator" aria-orientation="vertical"></div>
+
+            <!-- Group 2: Spacing (Line, Letter, Word) -->
+            <div class="rx-studio-section rx-studio-spacing-section" aria-label="Spacing controls">
+              <span class="rx-studio-section-label">Spacing</span>
+
+              <!-- Line Height -->
+              <div class="rx-studio-control-group rx-group-line" title="Line Spacing (1.4 - 2.6)">
+                <span class="rx-studio-label">Line</span>
+                <div class="rx-stepper">
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioLineDec" title="Decrease line spacing" aria-label="Decrease line spacing">↕−</button>
+                  <span class="rx-studio-value-badge" id="rxStudioLineVal" aria-live="polite">2.0</span>
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioLineInc" title="Increase line spacing" aria-label="Increase line spacing">↕+</button>
+                </div>
+              </div>
+
+              <!-- Letter Spacing -->
+              <div class="rx-studio-control-group rx-group-letter" title="Letter Spacing (0.00em - 0.15em)">
+                <span class="rx-studio-label">Letter</span>
+                <div class="rx-stepper">
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioLetterDec" title="Decrease letter spacing" aria-label="Decrease letter spacing">↔−</button>
+                  <span class="rx-studio-value-badge" id="rxStudioLetterVal" aria-live="polite">0.035em</span>
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioLetterInc" title="Increase letter spacing" aria-label="Increase letter spacing">↔+</button>
+                </div>
+              </div>
+
+              <!-- Word Spacing -->
+              <div class="rx-studio-control-group rx-group-word" title="Word Spacing (0.00em - 0.30em)">
+                <span class="rx-studio-label">Word</span>
+                <div class="rx-stepper">
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioWordDec" title="Decrease word spacing" aria-label="Decrease word spacing">⇥−</button>
+                  <span class="rx-studio-value-badge" id="rxStudioWordVal" aria-live="polite">0.08em</span>
+                  <button type="button" class="rx-studio-step-btn" id="rxStudioWordInc" title="Increase word spacing" aria-label="Increase word spacing">⇥+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rx-studio-divider" role="separator" aria-orientation="vertical"></div>
+
+            <!-- Group 3: Color Contrast Presets -->
+            <div class="rx-studio-section rx-studio-theme-section" aria-label="Color and contrast presets">
+              <span class="rx-studio-section-label">Theme</span>
+              <div class="rx-studio-control-group rx-group-theme" title="Color and contrast presets">
+                <div class="rx-studio-swatches" role="radiogroup" aria-label="Color preset">
+                  <button type="button" class="rx-studio-swatch active" data-theme="dark" title="Dark Graphite (High Contrast Dark)" aria-label="Dark Graphite Theme" role="radio" aria-checked="true">
+                    <span class="swatch-preview theme-dark"></span>
+                    <span class="swatch-label">Dark</span>
+                  </button>
+                  <button type="button" class="rx-studio-swatch" data-theme="cream" title="Warm Cream (Soothing Sepia / Irlen filter)" aria-label="Warm Cream Theme" role="radio" aria-checked="false">
+                    <span class="swatch-preview theme-cream"></span>
+                    <span class="swatch-label">Cream</span>
+                  </button>
+                  <button type="button" class="rx-studio-swatch" data-theme="blue" title="Soft Blue (Visual stress and glare relief)" aria-label="Soft Blue Theme" role="radio" aria-checked="false">
+                    <span class="swatch-preview theme-blue"></span>
+                    <span class="swatch-label">Blue</span>
+                  </button>
+                  <button type="button" class="rx-studio-swatch" data-theme="green" title="Soft Green (Reading fatigue filter)" aria-label="Soft Green Theme" role="radio" aria-checked="false">
+                    <span class="swatch-preview theme-green"></span>
+                    <span class="swatch-label">Green</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reading Content Body -->
+          <div class="rx-focused-line-body">
+            <div class="rx-focused-line-text" id="rxFocusedLineText"></div>
+          </div>
+
+          <!-- Footer with preset badge and keyboard shortcuts -->
+          <footer class="rx-focused-card-footer">
+            <div class="rx-focused-status-group">
+              <span class="rx-focused-status" id="rxFocusedStatus">Reading Studio Active</span>
+              <span class="rx-focused-status-dot">•</span>
+              <span class="rx-focused-preset-name" id="rxFocusedPresetName">Dark Graphite</span>
+            </div>
+            <div class="rx-focused-shortcuts">
+              <span class="rx-focused-hint"><kbd>Space</kbd> Read Aloud</span>
+              <span class="rx-focused-hint"><kbd>Esc</kbd> Exit Focus</span>
+            </div>
+          </footer>
+        </div>
       </div>
 
       <!-- AI Result Drawer / Modal Panel -->

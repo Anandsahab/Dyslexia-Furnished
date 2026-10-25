@@ -7918,3 +7918,638 @@ body.dyslexia-mode[data-theme="light"] .rx-pdf-text-layer {
     width: 100%;
   }
 }
+/* ============================================================
+   DYSLEXIA FOCUS READING STUDIO & LINE FOCUS OVERLAY
+   Accessible interactive reading studio enhancement
+   ============================================================ */
+
+/* Scoped Focus-only OpenDyslexic font-face loaded from reliable woff2 CDN.
+   Scoped family name guarantees loading this font does NOT alter existing ReadX elements. */
+@font-face {
+  font-family: 'OpenDyslexic-Focus';
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic-Focus';
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic-Focus';
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Ensure the standard document view (Normal PDF reader) strictly preserves original typography outside Focus Mode */
+#modalStandardContainer .standard-doc-view,
+#modalStandardContainer .standard-doc-view p,
+#modalStandardContainer .standard-doc-view span,
+#modalStandardContainer .standard-doc-view li,
+#modalStandardContainer .standard-doc-view div {
+  font-family: var(--font-sans) !important;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+
+#modalStandardContainer .standard-doc-view .rx-doc-heading,
+#modalStandardContainer .standard-doc-view h1,
+#modalStandardContainer .standard-doc-view h2 {
+  font-family: var(--font-display) !important;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+#modalStandardContainer .standard-doc-view .rx-doc-subheading,
+#modalStandardContainer .standard-doc-view h3,
+#modalStandardContainer .standard-doc-view h4 {
+  font-family: var(--font-sans) !important;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Dimming & subtle blurring of surrounding reading content */
+.rx-reading-dimmed {
+  filter: blur(4px) opacity(0.32) !important;
+  transition: filter 240ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Dyslexia Focus Line Reading Overlay Container */
+.rx-line-focus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  pointer-events: auto;
+  animation: rxFocusOverlayFadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rxFocusOverlayFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.rx-line-focus-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 16, 12, 0.72);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+/* The Focused Line Card - Personalised Reading Studio */
+.rx-focused-line-card {
+  --rx-focus-font-family: 'Lexend', sans-serif;
+  --rx-focus-font-size: 24px;
+  --rx-focus-line-height: 2.0;
+  --rx-focus-letter-spacing: 0.035em;
+  --rx-focus-word-spacing: 0.08em;
+  --rx-focus-bg: #1B1E17;
+  --rx-focus-card-bg: #23271F;
+  --rx-focus-text: #F1EFE7;
+  --rx-focus-border: rgba(138, 149, 96, 0.45);
+  --rx-focus-accent: #C6D19B;
+  --rx-focus-toolbar-bg: rgba(0, 0, 0, 0.28);
+  --rx-focus-btn-bg: rgba(138, 149, 96, 0.18);
+  --rx-focus-btn-text: #F1EFE7;
+  --rx-focus-btn-border: rgba(138, 149, 96, 0.35);
+  --rx-focus-highlight: rgba(198, 209, 155, 0.38);
+
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 960px;
+  max-height: 85vh;
+  background: var(--rx-focus-bg);
+  border: 1px solid var(--rx-focus-border);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 28px rgba(138, 149, 96, 0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(-8px);
+  animation: rxFocusPopUp 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  outline: none;
+  color: var(--rx-focus-text);
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+@keyframes rxFocusPopUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1);
+  }
+}
+
+/* Card Header */
+.rx-focused-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--rx-focus-border);
+  background: var(--rx-focus-card-bg);
+  gap: 1rem;
+}
+
+.rx-focused-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.rx-focused-tag-icon {
+  font-size: 1.15rem;
+}
+
+.rx-focused-tag-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.rx-focused-tag-text {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--rx-focus-accent);
+}
+
+.rx-focused-tag-sub {
+  font-size: 0.7rem;
+  color: var(--rx-focus-btn-text);
+  opacity: 0.7;
+}
+
+.rx-focused-card-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.rx-focused-action-btn {
+  background: var(--rx-focus-btn-bg);
+  border: 1px solid var(--rx-focus-btn-border);
+  color: var(--rx-focus-btn-text);
+  padding: 0.45rem 0.95rem;
+  min-height: 36px;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.rx-focused-action-btn:hover {
+  background: var(--rx-focus-accent);
+  color: #151713;
+  border-color: var(--rx-focus-accent);
+  transform: translateY(-1px);
+}
+
+.rx-focused-action-btn.speaking {
+  background: var(--rx-focus-accent) !important;
+  color: #151713 !important;
+  border-color: var(--rx-focus-accent) !important;
+  box-shadow: 0 0 14px rgba(198, 209, 155, 0.5);
+}
+
+.rx-studio-reset-btn {
+  background: transparent !important;
+  border: 1px solid var(--rx-focus-btn-border) !important;
+  color: var(--rx-focus-btn-text) !important;
+}
+
+.rx-studio-reset-btn:hover {
+  background: var(--rx-focus-btn-bg) !important;
+  color: #FFFFFF !important;
+  border-color: var(--rx-focus-accent) !important;
+}
+
+.rx-focused-close-btn {
+  background: transparent;
+  border: 1px solid var(--rx-focus-btn-border);
+  color: var(--rx-focus-btn-text);
+  padding: 0.45rem 0.95rem;
+  min-height: 36px;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rx-focused-close-btn:hover {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: #FF8F8F;
+}
+
+/* ── Redesigned Reading Studio Customisation Toolbar ───────────────── */
+.rx-studio-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1.4rem;
+  background: var(--rx-focus-toolbar-bg);
+  border-bottom: 1px solid var(--rx-focus-border);
+  backdrop-filter: blur(8px);
+}
+
+.rx-studio-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.35rem 0.65rem;
+}
+
+.rx-studio-section-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-focus-accent);
+  opacity: 0.9;
+  user-select: none;
+}
+
+.rx-studio-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--rx-focus-border);
+  opacity: 0.45;
+  margin: 0 0.15rem;
+}
+
+.rx-studio-control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.rx-studio-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--rx-focus-text);
+  opacity: 0.85;
+  user-select: none;
+}
+
+.rx-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rx-studio-select {
+  appearance: none;
+  background: var(--rx-focus-btn-bg);
+  border: 1px solid var(--rx-focus-btn-border);
+  color: var(--rx-focus-btn-text);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.32rem 1.6rem 0.32rem 0.6rem;
+  border-radius: 7px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.rx-studio-select:focus {
+  border-color: var(--rx-focus-accent);
+  box-shadow: 0 0 0 2px rgba(198, 209, 155, 0.25);
+}
+
+.rx-select-caret {
+  position: absolute;
+  right: 0.5rem;
+  pointer-events: none;
+  font-size: 0.7rem;
+  color: var(--rx-focus-btn-text);
+  opacity: 0.7;
+}
+
+.rx-studio-select option {
+  background: #1E211B;
+  color: #F1EFE7;
+}
+
+/* Stepper Component */
+.rx-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 2px 4px;
+  border-radius: 7px;
+}
+
+.rx-studio-step-btn {
+  background: var(--rx-focus-btn-bg);
+  border: 1px solid var(--rx-focus-btn-border);
+  color: var(--rx-focus-btn-text);
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 140ms ease, transform 120ms ease, opacity 140ms ease;
+}
+
+.rx-studio-step-btn:hover:not(:disabled) {
+  background: var(--rx-focus-accent);
+  color: #151713;
+  border-color: var(--rx-focus-accent);
+}
+
+.rx-studio-step-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.rx-studio-step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.rx-studio-value-badge {
+  min-width: 48px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rx-focus-text);
+  padding: 0 0.25rem;
+}
+
+/* Accessible Theme Swatches */
+.rx-studio-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.rx-studio-swatch {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 3px 6px 3px 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.rx-studio-swatch:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rx-studio-swatch.active {
+  border-color: var(--rx-focus-accent);
+  background: rgba(198, 209, 155, 0.12);
+}
+
+.swatch-preview {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+}
+
+.swatch-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--rx-focus-btn-text);
+  user-select: none;
+}
+
+.swatch-preview.theme-dark {
+  background: #1B1E17;
+  border: 1px solid #C6D19B;
+}
+
+.swatch-preview.theme-cream {
+  background: #FBF9F1;
+  border: 1px solid #7A5E2E;
+}
+
+.swatch-preview.theme-blue {
+  background: #EAF2F8;
+  border: 1px solid #205E9E;
+}
+
+.swatch-preview.theme-green {
+  background: #EBF5ED;
+  border: 1px solid #246D36;
+}
+
+/* ── Reading Content Body ────────────────────────────────────────── */
+.rx-focused-line-body {
+  padding: 2.25rem 2.75rem;
+  overflow-y: auto;
+  max-height: calc(85vh - 170px);
+}
+
+/* Crucial: High-specificity rule to guarantee focus typography properties */
+.rx-focused-line-card .rx-focused-line-text {
+  font-family: var(--rx-focus-font-family, 'Lexend', sans-serif) !important;
+  font-size: var(--rx-focus-font-size, 24px) !important;
+  line-height: var(--rx-focus-line-height, 2.0) !important;
+  letter-spacing: var(--rx-focus-letter-spacing, 0.035em) !important;
+  word-spacing: var(--rx-focus-word-spacing, 0.08em) !important;
+  color: var(--rx-focus-text, #F1EFE7) !important;
+  word-break: break-word;
+  white-space: pre-wrap;
+  transition: font-size 100ms ease, line-height 100ms ease, letter-spacing 100ms ease, word-spacing 100ms ease;
+}
+
+/* Ensure inner spans or sentences inherit all typography settings */
+.rx-focused-line-card .rx-focused-line-text * {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  word-spacing: inherit !important;
+  color: inherit !important;
+}
+
+/* Highlight current sentence during speech */
+.rx-focused-line-card .rx-focused-line-text .rx-focus-active-sentence {
+  background: var(--rx-focus-highlight, rgba(198, 209, 155, 0.38)) !important;
+  border-radius: 4px;
+  padding: 0.1rem 0.25rem;
+  box-shadow: 0 0 0 2px var(--rx-focus-highlight, rgba(198, 209, 155, 0.38)) !important;
+  transition: background-color 150ms ease;
+}
+
+/* Strictly isolate workspace UI controls, buttons, selects, and labels from custom focus typography */
+.rx-focused-line-card .rx-focused-card-header,
+.rx-focused-line-card .rx-studio-toolbar,
+.rx-focused-line-card .rx-focused-card-footer,
+.rx-focused-line-card .rx-focused-action-btn,
+.rx-focused-line-card .rx-focused-close-btn,
+.rx-focused-line-card .rx-studio-select,
+.rx-focused-line-card .rx-studio-step-btn,
+.rx-focused-line-card .rx-studio-label,
+.rx-focused-line-card .rx-studio-section-label,
+.rx-focused-line-card .rx-studio-value-badge,
+.rx-focused-line-card .swatch-label,
+.rx-focused-line-card .rx-focused-status,
+.rx-focused-line-card .rx-focused-preset-name,
+.rx-focused-line-card .rx-focused-hint {
+  font-family: var(--font-sans) !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+
+/* Footer */
+.rx-focused-card-footer {
+  padding: 0.7rem 1.5rem;
+  background: var(--rx-focus-card-bg);
+  border-top: 1px solid var(--rx-focus-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rx-focused-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rx-focused-status {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--rx-focus-accent);
+}
+
+.rx-focused-status-dot {
+  font-size: 0.75rem;
+  color: var(--rx-focus-btn-text);
+  opacity: 0.5;
+}
+
+.rx-focused-preset-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--rx-focus-btn-text);
+}
+
+.rx-focused-shortcuts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.rx-focused-hint {
+  font-size: 0.75rem;
+  color: rgba(241, 239, 231, 0.7);
+}
+
+.rx-focused-hint kbd {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  color: #F1EFE7;
+}
+
+/* Toolbar Speaking Indicator State */
+.rx-ai-btn.speaking {
+  background: #C6D19B !important;
+  color: #151713 !important;
+  box-shadow: 0 0 12px rgba(198, 209, 155, 0.45);
+}
+
+/* Responsive adjustments for Reading Studio */
+@media (max-width: 900px) {
+  .rx-studio-toolbar {
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+  }
+  .rx-studio-divider {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .rx-focused-line-card {
+    max-width: 96vw;
+    max-height: 90vh;
+    transform: translateY(-4px);
+  }
+  .rx-studio-toolbar {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .rx-studio-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .rx-focused-line-body {
+    padding: 1.5rem 1.25rem;
+  }
+  .rx-focused-card-footer {
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rx-line-focus-overlay,
+  .rx-focused-line-card {
+    animation: none !important;
+  }
+  .rx-reading-dimmed {
+    transition: none !important;
+  }
+}

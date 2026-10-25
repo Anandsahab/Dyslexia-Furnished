@@ -31,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentModalItem = null;
   let activeModalMode = 'standard';
   let isModalSpeaking = false;
+  let closeLineFocus = () => {};
+  let stopSelectionSpeech = () => {};
 
   // User-scoped persistent accessibility preferences
   function getReadXUserSettings() {
@@ -117,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.style.setProperty('word-spacing', wordSpacingStr, 'important');
     }
 
-    // Direct styling on all rendered document text elements across both ReadX and Standard modes
+    // Direct styling on all rendered document text elements strictly inside ReadX accessible canvas
     const readerTextElements = document.querySelectorAll(`
       #rxLayoutCCanvas,
       #rxLayoutCContent,
@@ -125,22 +127,15 @@ document.addEventListener('DOMContentLoaded', () => {
       #rxLayoutCContent span,
       #rxLayoutCContent li,
       #rxLayoutCContent div,
-      .rx-layout-c-text-content,
-      .rx-layout-c-text-content p,
-      .rx-layout-c-text-content span,
-      .rx-layout-c-text-content li,
-      .rx-page-block,
-      .rx-page-block p,
-      .rx-page-block span,
-      .rx-page-block li,
-      .standard-doc-view,
-      .standard-doc-view p,
-      .standard-doc-view span,
-      .standard-doc-view li,
-      #modalStandardContainer .standard-doc-view,
-      #modalStandardContainer .standard-doc-view p,
-      #modalStandardContainer .standard-doc-view span,
-      .rx-layout-c-text-content .sentence
+      #modalReadXContainer .rx-layout-c-text-content,
+      #modalReadXContainer .rx-layout-c-text-content p,
+      #modalReadXContainer .rx-layout-c-text-content span,
+      #modalReadXContainer .rx-layout-c-text-content li,
+      #modalReadXContainer .rx-page-block,
+      #modalReadXContainer .rx-page-block p,
+      #modalReadXContainer .rx-page-block span,
+      #modalReadXContainer .rx-page-block li,
+      #modalReadXContainer .sentence
     `);
 
     readerTextElements.forEach(el => {
@@ -560,6 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeModal() {
     if (!modal) return;
     stopModalSpeech();
+    stopSelectionSpeech();
+    closeLineFocus();
 
     const selToolbar = document.getElementById('rxSelectionAiToolbar');
     if (selToolbar) selToolbar.style.display = 'none';
@@ -581,6 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function switchModalMode(mode) {
     activeModalMode = mode;
+    stopSelectionSpeech();
+    closeLineFocus();
     const selToolbar = document.getElementById('rxSelectionAiToolbar');
     if (selToolbar) selToolbar.style.display = 'none';
     const modalFooterActions = document.getElementById('modalFooterActions');
@@ -600,7 +599,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (mode === 'standard') {
       if (modalBtnStandard) modalBtnStandard.classList.add('active');
-      if (modalStandardContainer) modalStandardContainer.style.display = 'block';
+      if (modalStandardContainer) {
+        modalStandardContainer.style.display = 'block';
+        const stdEls = modalStandardContainer.querySelectorAll('.standard-doc-view, .standard-doc-view *, .rx-page-block, .rx-page-block *');
+        stdEls.forEach(el => {
+          el.style.removeProperty('font-family');
+          el.style.removeProperty('font-size');
+          el.style.removeProperty('letter-spacing');
+          el.style.removeProperty('word-spacing');
+          el.style.removeProperty('line-height');
+        });
+      }
       if (modalFooterMeta) modalFooterMeta.textContent = 'Standard Reading Mode · Original Document';
       updateDocumentPagination();
     } else if (mode === 'readx') {
@@ -1407,11 +1416,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initPaginationEvents();
   initSelectionAiToolbar();
 
-  // Contextual Selection AI Toolbar (Works identically in Standard and ReadX modes)
+  // Contextual Selection Toolbar & Personalised Dyslexia Reading Studio (Works identically in Standard and ReadX modes)
   function initSelectionAiToolbar() {
     const toolbar = document.getElementById('rxSelectionAiToolbar');
-    const btnAnalyze = document.getElementById('rxAiBtnAnalyze');
-    const btnSummarize = document.getElementById('rxAiBtnSummarizeDoc');
+    const btnAnalyze = document.getElementById('rxAiBtnAnalyze'); // Focus Line
+    const btnSummarize = document.getElementById('rxAiBtnSummarizeDoc'); // Read Aloud
     const drawer = document.getElementById('rxAiResultDrawer');
     const drawerTitle = document.getElementById('rxAiDrawerTitle');
     const drawerQuote = document.getElementById('rxAiDrawerQuote');
@@ -1420,9 +1429,182 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawerClose = document.getElementById('rxAiDrawerClose');
     const copyBtn = document.getElementById('rxAiCopyBtn');
 
+    // Dyslexia Focus Line Reading Studio Overlay Elements
+    const focusOverlay = document.getElementById('rxLineFocusOverlay');
+    const focusBackdrop = document.getElementById('rxLineFocusBackdrop');
+    const focusCard = document.getElementById('rxFocusedLineCard');
+    const focusTextEl = document.getElementById('rxFocusedLineText');
+    const focusCloseBtn = document.getElementById('rxFocusedCloseBtn');
+    const focusTtsBtn = document.getElementById('rxFocusedTtsBtn');
+    const resetBtn = document.getElementById('rxStudioResetBtn');
+
+    // Studio Customisation Controls
+    const fontSelect = document.getElementById('rxStudioFontSelect');
+    const fontDecBtn = document.getElementById('rxStudioFontDec');
+    const fontIncBtn = document.getElementById('rxStudioFontInc');
+    const fontValBadge = document.getElementById('rxStudioFontVal');
+
+    const lineDecBtn = document.getElementById('rxStudioLineDec');
+    const lineIncBtn = document.getElementById('rxStudioLineInc');
+    const lineValBadge = document.getElementById('rxStudioLineVal');
+
+    const letterDecBtn = document.getElementById('rxStudioLetterDec');
+    const letterIncBtn = document.getElementById('rxStudioLetterInc');
+    const letterValBadge = document.getElementById('rxStudioLetterVal');
+
+    const wordDecBtn = document.getElementById('rxStudioWordDec');
+    const wordIncBtn = document.getElementById('rxStudioWordInc');
+    const wordValBadge = document.getElementById('rxStudioWordVal');
+
     if (!toolbar) return;
 
     let selectedText = '';
+    let currentFocusedText = '';
+    let isSelectionSpeaking = false;
+    let activeSpeakingBtn = null;
+    let sentenceSpans = [];
+
+    // ── Studio Settings & Accessible Color Themes ────────────────────────
+    const defaultStudioSettings = {
+      fontSize: 24, // in px (range: 16 - 36)
+      lineHeight: 2.0, // (range: 1.4 - 2.6)
+      letterSpacing: 0.035, // in em (range: 0.0 - 0.15)
+      wordSpacing: 0.08, // in em (range: 0.0 - 0.30)
+      fontFamily: "'Lexend', sans-serif",
+      theme: 'dark'
+    };
+
+    let studioSettings = { ...defaultStudioSettings };
+
+    const STUDIO_THEMES = {
+      dark: {
+        bg: '#1B1E17',
+        cardBg: '#23271F',
+        text: '#F1EFE7',
+        border: 'rgba(138, 149, 96, 0.45)',
+        accent: '#C6D19B',
+        toolbarBg: 'rgba(0, 0, 0, 0.28)',
+        btnBg: 'rgba(138, 149, 96, 0.18)',
+        btnText: '#F1EFE7',
+        btnBorder: 'rgba(138, 149, 96, 0.35)',
+        highlight: 'rgba(198, 209, 155, 0.38)'
+      },
+      cream: {
+        bg: '#FBF9F1',
+        cardBg: '#F3EFE4',
+        text: '#1D2018',
+        border: 'rgba(145, 125, 80, 0.35)',
+        accent: '#7A5E2E',
+        toolbarBg: 'rgba(235, 227, 214, 0.75)',
+        btnBg: 'rgba(145, 125, 80, 0.12)',
+        btnText: '#1D2018',
+        btnBorder: 'rgba(145, 125, 80, 0.3)',
+        highlight: 'rgba(215, 180, 110, 0.38)'
+      },
+      blue: {
+        bg: '#EAF2F8',
+        cardBg: '#DFECF5',
+        text: '#112333',
+        border: 'rgba(70, 115, 160, 0.35)',
+        accent: '#205E9E',
+        toolbarBg: 'rgba(215, 230, 242, 0.75)',
+        btnBg: 'rgba(70, 115, 160, 0.12)',
+        btnText: '#112333',
+        btnBorder: 'rgba(70, 115, 160, 0.3)',
+        highlight: 'rgba(90, 160, 230, 0.35)'
+      },
+      green: {
+        bg: '#ECF5EE',
+        cardBg: '#E0ECE2',
+        text: '#122A17',
+        border: 'rgba(65, 125, 75, 0.35)',
+        accent: '#246D36',
+        toolbarBg: 'rgba(216, 233, 219, 0.75)',
+        btnBg: 'rgba(65, 125, 75, 0.12)',
+        btnText: '#122A17',
+        btnBorder: 'rgba(65, 125, 75, 0.3)',
+        highlight: 'rgba(100, 195, 125, 0.35)'
+      }
+    };
+
+    function applyStudioSettings() {
+      if (!focusCard) return;
+
+      // 1. Update CSS custom variables on card container
+      focusCard.style.setProperty('--rx-focus-font-size', `${studioSettings.fontSize}px`);
+      focusCard.style.setProperty('--rx-focus-line-height', `${studioSettings.lineHeight}`);
+      focusCard.style.setProperty('--rx-focus-letter-spacing', `${studioSettings.letterSpacing}em`);
+      focusCard.style.setProperty('--rx-focus-word-spacing', `${studioSettings.wordSpacing}em`);
+      focusCard.style.setProperty('--rx-focus-font-family', studioSettings.fontFamily);
+
+      const theme = STUDIO_THEMES[studioSettings.theme] || STUDIO_THEMES.dark;
+      focusCard.style.setProperty('--rx-focus-bg', theme.bg);
+      focusCard.style.setProperty('--rx-focus-card-bg', theme.cardBg);
+      focusCard.style.setProperty('--rx-focus-text', theme.text);
+      focusCard.style.setProperty('--rx-focus-border', theme.border);
+      focusCard.style.setProperty('--rx-focus-accent', theme.accent);
+      focusCard.style.setProperty('--rx-focus-toolbar-bg', theme.toolbarBg);
+      focusCard.style.setProperty('--rx-focus-btn-bg', theme.btnBg);
+      focusCard.style.setProperty('--rx-focus-btn-text', theme.btnText);
+      focusCard.style.setProperty('--rx-focus-btn-border', theme.btnBorder);
+      focusCard.style.setProperty('--rx-focus-highlight', theme.highlight);
+
+      // 2. Enforce directly on focusTextEl with !important to defeat any conflicting rules
+      if (focusTextEl) {
+        focusTextEl.style.setProperty('font-family', studioSettings.fontFamily, 'important');
+        focusTextEl.style.setProperty('font-size', `${studioSettings.fontSize}px`, 'important');
+        focusTextEl.style.setProperty('line-height', `${studioSettings.lineHeight}`, 'important');
+        focusTextEl.style.setProperty('letter-spacing', `${studioSettings.letterSpacing}em`, 'important');
+        focusTextEl.style.setProperty('word-spacing', `${studioSettings.wordSpacing}em`, 'important');
+        focusTextEl.style.setProperty('color', theme.text, 'important');
+      }
+
+      // 3. Keep numeric value indicators synchronized
+      if (fontValBadge) fontValBadge.textContent = `${studioSettings.fontSize}px`;
+      if (lineValBadge) lineValBadge.textContent = studioSettings.lineHeight.toFixed(1);
+      if (letterValBadge) letterValBadge.textContent = `${studioSettings.letterSpacing.toFixed(3)}em`;
+      if (wordValBadge) wordValBadge.textContent = `${studioSettings.wordSpacing.toFixed(2)}em`;
+
+      // 4. Update button disabled states when limits are reached
+      if (fontDecBtn) fontDecBtn.disabled = studioSettings.fontSize <= 16;
+      if (fontIncBtn) fontIncBtn.disabled = studioSettings.fontSize >= 36;
+      if (lineDecBtn) lineDecBtn.disabled = studioSettings.lineHeight <= 1.4;
+      if (lineIncBtn) lineIncBtn.disabled = studioSettings.lineHeight >= 2.6;
+      if (letterDecBtn) letterDecBtn.disabled = studioSettings.letterSpacing <= 0.00;
+      if (letterIncBtn) letterIncBtn.disabled = studioSettings.letterSpacing >= 0.15;
+      if (wordDecBtn) wordDecBtn.disabled = studioSettings.wordSpacing <= 0.00;
+      if (wordIncBtn) wordIncBtn.disabled = studioSettings.wordSpacing >= 0.30;
+
+      // 5. Synchronize font family select dropdown
+      if (fontSelect && fontSelect.value !== studioSettings.fontFamily) {
+        fontSelect.value = studioSettings.fontFamily;
+      }
+
+      // 6. Synchronize active theme swatch
+      const swatchesEl = focusCard.querySelectorAll('.rx-studio-swatch');
+      swatchesEl.forEach(s => {
+        const isCurrent = s.getAttribute('data-theme') === studioSettings.theme;
+        s.classList.toggle('active', isCurrent);
+        s.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+      });
+
+      // 7. Update footer theme indicator if present
+      const presetNameEl = document.getElementById('rxFocusedPresetName');
+      if (presetNameEl) {
+        const names = { dark: 'Dark Graphite', cream: 'Warm Cream', blue: 'Soft Blue', green: 'Soft Green' };
+        presetNameEl.textContent = names[studioSettings.theme] || 'Custom';
+      }
+    }
+
+    function resetStudioSettings() {
+      studioSettings = { ...defaultStudioSettings };
+      applyStudioSettings();
+    }
+
+    // Prevent toolbar click from clearing the current text selection
+    toolbar.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
 
     function hideToolbar() {
       if (toolbar) {
@@ -1432,7 +1614,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateToolbarPosition() {
-      // Only active when the reader modal is visible
       const modalEl = document.getElementById('rxReaderModal');
       if (!modalEl || !modalEl.classList.contains('active')) {
         hideToolbar();
@@ -1451,10 +1632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Avoid triggering when selection happens inside AI drawer or toolbar itself
       const anchorNode = selection.anchorNode;
       const anchorEl = anchorNode?.nodeType === Node.ELEMENT_NODE ? anchorNode : anchorNode?.parentElement;
-      if (!anchorEl || anchorEl.closest('#rxSelectionAiToolbar') || anchorEl.closest('#rxAiResultDrawer')) {
+      if (!anchorEl || anchorEl.closest('#rxSelectionAiToolbar') || anchorEl.closest('#rxAiResultDrawer') || anchorEl.closest('#rxFocusedLineCard')) {
         return;
       }
 
@@ -1464,17 +1644,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      if (isSelectionSpeaking && selectedText && selectedText !== text) {
+        stopSelectionSpeech();
+      }
+
       selectedText = text;
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
 
-      // If selection is zero-size or completely off-screen
       if ((rect.width === 0 && rect.height === 0) || rect.bottom < 50 || rect.top > window.innerHeight - 20) {
         hideToolbar();
         return;
       }
 
-      // Make toolbar visible and measure rendered dimensions
       toolbar.style.display = 'inline-flex';
       toolbar.removeAttribute('aria-hidden');
 
@@ -1482,28 +1664,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const tbHeight = toolbar.offsetHeight || 38;
       const gap = 10;
 
-      // 1. Calculate Horizontal Center directly relative to the selected text's bounding box
       const selCenter = rect.left + (rect.width / 2);
       let left = selCenter - (tbWidth / 2);
 
-      // Clamp horizontal boundaries to prevent going off-screen
       const minLeft = 16;
       const maxLeft = window.innerWidth - tbWidth - 16;
       left = Math.max(minLeft, Math.min(left, maxLeft));
 
-      // 2. Calculate Vertical Position (Default: directly ABOVE selected text)
       const modalHeader = document.querySelector('.rx-modal-header');
       const topBoundary = modalHeader ? (modalHeader.getBoundingClientRect().bottom + 8) : 58;
       
       let top = rect.top - tbHeight - gap;
-      
-      // If there is not enough room above the selection (too close to top of viewport or header)
       if (top < topBoundary) {
-        // Automatically place directly BELOW the selection
         top = rect.bottom + gap;
       }
 
-      // Clamp vertical to prevent toolbar from extending past bottom of viewport
       const maxTop = window.innerHeight - tbHeight - 16;
       top = Math.max(topBoundary, Math.min(top, maxTop));
 
@@ -1511,19 +1686,18 @@ document.addEventListener('DOMContentLoaded', () => {
       toolbar.style.left = `${Math.round(left)}px`;
     }
 
-    // Capture text selection in BOTH Standard and ReadX modes
     document.addEventListener('mouseup', (e) => {
-      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer') || e.target.closest('#rxFocusedLineCard')) return;
       setTimeout(updateToolbarPosition, 30);
     });
 
     document.addEventListener('touchend', (e) => {
-      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer') || e.target.closest('#rxFocusedLineCard')) return;
       setTimeout(updateToolbarPosition, 80);
     });
 
     document.addEventListener('keyup', (e) => {
-      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer')) return;
+      if (e.target.closest('#rxSelectionAiToolbar') || e.target.closest('#rxAiResultDrawer') || e.target.closest('#rxFocusedLineCard')) return;
       setTimeout(updateToolbarPosition, 30);
     });
 
@@ -1538,12 +1712,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('mousedown', (e) => {
-      if (!e.target.closest('#rxSelectionAiToolbar') && !e.target.closest('#rxAiResultDrawer')) {
+      if (!e.target.closest('#rxSelectionAiToolbar') && !e.target.closest('#rxAiResultDrawer') && !e.target.closest('#rxFocusedLineCard')) {
         hideToolbar();
       }
     });
 
-    // Real-time recalculation on scroll and resize so toolbar remains attached to selection
     const onScrollOrResize = () => {
       if (toolbar && toolbar.style.display !== 'none') {
         requestAnimationFrame(updateToolbarPosition);
@@ -1562,66 +1735,412 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBody = document.querySelector('.rx-modal-body');
     if (modalBody) modalBody.addEventListener('scroll', onScrollOrResize, { passive: true });
 
-    // Action 1: Analyze Selected Text
-    if (btnAnalyze) {
-      btnAnalyze.addEventListener('click', async (e) => {
+    // ── Sentence Highlighting Helpers for Read Aloud ─────────────
+    function setupSentenceSpans(text) {
+      if (!focusTextEl) return;
+      const regex = /[^.!?]+(?:[.!?]+["']?(?:\s+|$)|$)/g;
+      const matches = text.match(regex);
+      if (!matches || matches.length <= 1) {
+        focusTextEl.textContent = text;
+        sentenceSpans = [];
+        return;
+      }
+
+      focusTextEl.innerHTML = '';
+      sentenceSpans = [];
+      let cumulativeLength = 0;
+
+      matches.forEach((sentence, idx) => {
+        const span = document.createElement('span');
+        span.className = 'rx-focus-sentence';
+        span.id = `rxFocusSent_${idx}`;
+        span.textContent = sentence;
+        span.dataset.start = cumulativeLength;
+        span.dataset.end = cumulativeLength + sentence.length;
+        cumulativeLength += sentence.length;
+
+        focusTextEl.appendChild(span);
+        sentenceSpans.push(span);
+      });
+    }
+
+    function clearSentenceHighlights() {
+      if (focusTextEl && currentFocusedText) {
+        focusTextEl.textContent = currentFocusedText;
+      }
+      sentenceSpans = [];
+    }
+
+    // ── Focus Line Studio Opening & Closing ────────────────────────
+    function openLineFocus(text) {
+      if (isSelectionSpeaking) {
+        stopSelectionSpeech();
+      }
+
+      if (!text || !text.trim()) return;
+      currentFocusedText = text;
+
+      // 1. Subtle blur and dim surrounding reading content
+      if (stdContainer) stdContainer.classList.add('rx-reading-dimmed');
+      if (rxContainer) rxContainer.classList.add('rx-reading-dimmed');
+
+      // 2. Display selected text exactly in focused card
+      if (focusTextEl) {
+        focusTextEl.textContent = currentFocusedText;
+      }
+
+      // 3. Apply active studio customisations immediately
+      applyStudioSettings();
+
+      // 4. Reveal overlay
+      if (focusOverlay) {
+        focusOverlay.style.display = 'flex';
+        focusOverlay.removeAttribute('aria-hidden');
+      }
+
+      // 5. Reset card TTS button to idle state
+      if (focusTtsBtn) {
+        focusTtsBtn.classList.remove('speaking');
+        const icon = focusTtsBtn.querySelector('.rx-focused-tts-icon');
+        const label = focusTtsBtn.querySelector('.rx-focused-tts-label');
+        if (icon) icon.textContent = '🔊';
+        if (label) label.textContent = 'Read Aloud';
+      }
+
+      hideToolbar();
+      if (focusCard) {
+        try { focusCard.focus(); } catch (e) {}
+      }
+    }
+
+    closeLineFocus = function () {
+      if (isSelectionSpeaking) {
+        stopSelectionSpeech();
+      }
+      clearSentenceHighlights();
+
+      if (stdContainer) stdContainer.classList.remove('rx-reading-dimmed');
+      if (rxContainer) rxContainer.classList.remove('rx-reading-dimmed');
+
+      if (focusOverlay) {
+        focusOverlay.style.display = 'none';
+        focusOverlay.setAttribute('aria-hidden', 'true');
+      }
+      if (focusTextEl) {
+        focusTextEl.textContent = '';
+      }
+      currentFocusedText = '';
+    };
+
+    // ── Read Aloud Logic (Selected text only) ──────────────────────
+    function updateSpeechButtonUI(speaking, btn) {
+      if (!btn) return;
+      if (btn === focusTtsBtn) {
+        const icon = btn.querySelector('.rx-focused-tts-icon');
+        const label = btn.querySelector('.rx-focused-tts-label');
+        if (speaking) {
+          btn.classList.add('speaking');
+          btn.setAttribute('aria-label', 'Stop reading aloud');
+          if (icon) icon.textContent = '⏹️';
+          if (label) label.textContent = 'Stop';
+        } else {
+          btn.classList.remove('speaking');
+          btn.setAttribute('aria-label', 'Read focused text aloud');
+          if (icon) icon.textContent = '🔊';
+          if (label) label.textContent = 'Read Aloud';
+        }
+      } else if (btn === btnSummarize) {
+        if (speaking) {
+          btn.classList.add('speaking');
+          btn.setAttribute('aria-label', 'Stop reading aloud');
+          btn.innerHTML = '<span class="rx-ai-icon">⏹️</span> Stop';
+        } else {
+          btn.classList.remove('speaking');
+          btn.setAttribute('aria-label', 'Read selected text aloud');
+          btn.innerHTML = '<span class="rx-ai-icon">🔊</span> Read Aloud';
+        }
+      }
+    }
+
+    function toggleSelectionSpeech(text, btnEl) {
+      if (!text || !text.trim()) return;
+
+      if (isSelectionSpeaking) {
+        stopSelectionSpeech();
+        return;
+      }
+
+      if (!('speechSynthesis' in window)) {
+        console.warn('Speech synthesis is not supported in this browser.');
+        return;
+      }
+
+      stopModalSpeech();
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text.trim());
+      utterance.rate = selectedSpeechRate || 1.0;
+
+      // Setup non-destructive sentence spans if reading in studio
+      if (focusOverlay && focusOverlay.style.display !== 'none' && currentFocusedText === text) {
+        setupSentenceSpans(text.trim());
+      }
+
+      isSelectionSpeaking = true;
+      activeSpeakingBtn = btnEl;
+      updateSpeechButtonUI(true, btnEl);
+
+      utterance.onboundary = (e) => {
+        if (sentenceSpans.length > 0 && typeof e.charIndex === 'number') {
+          const charIdx = e.charIndex;
+          sentenceSpans.forEach(span => {
+            const start = parseInt(span.dataset.start, 10);
+            const end = parseInt(span.dataset.end, 10);
+            const isActive = charIdx >= start && charIdx < end;
+            span.classList.toggle('rx-focus-active-sentence', isActive);
+          });
+        }
+      };
+
+      utterance.onend = () => {
+        isSelectionSpeaking = false;
+        updateSpeechButtonUI(false, btnEl);
+        clearSentenceHighlights();
+        activeSpeakingBtn = null;
+      };
+
+      utterance.onerror = () => {
+        isSelectionSpeaking = false;
+        updateSpeechButtonUI(false, btnEl);
+        clearSentenceHighlights();
+        activeSpeakingBtn = null;
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    stopSelectionSpeech = function () {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      isSelectionSpeaking = false;
+      clearSentenceHighlights();
+      if (activeSpeakingBtn) {
+        updateSpeechButtonUI(false, activeSpeakingBtn);
+        activeSpeakingBtn = null;
+      }
+      if (btnSummarize) updateSpeechButtonUI(false, btnSummarize);
+      if (focusTtsBtn) updateSpeechButtonUI(false, focusTtsBtn);
+    };
+
+    // ── Studio Control Event Listeners ─────────────────────────────
+    // Font Family Selection
+    if (fontSelect) {
+      fontSelect.addEventListener('change', (e) => {
+        studioSettings.fontFamily = e.target.value;
+        applyStudioSettings();
+      });
+    }
+
+    // Font Size Adjusters (16px to 36px)
+    if (fontDecBtn) {
+      fontDecBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!selectedText) return;
-        if (drawerLoading && drawerLoading.style.display === 'flex') return;
-        hideToolbar();
-        openAiDrawer('Text Analysis', selectedText);
+        studioSettings.fontSize = Math.max(16, studioSettings.fontSize - 2);
+        applyStudioSettings();
+      });
+    }
+    if (fontIncBtn) {
+      fontIncBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.fontSize = Math.min(36, studioSettings.fontSize + 2);
+        applyStudioSettings();
+      });
+    }
 
-        try {
-          if (drawerLoading) drawerLoading.style.display = 'flex';
-          if (drawerContent) drawerContent.innerHTML = '';
+    // Line Height Adjusters (1.4 to 2.6)
+    if (lineDecBtn) {
+      lineDecBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.lineHeight = Math.max(1.4, Math.round((studioSettings.lineHeight - 0.1) * 10) / 10);
+        applyStudioSettings();
+      });
+    }
+    if (lineIncBtn) {
+      lineIncBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.lineHeight = Math.min(2.6, Math.round((studioSettings.lineHeight + 0.1) * 10) / 10);
+        applyStudioSettings();
+      });
+    }
 
-          const result = await ReadXGemini.explainConcept(selectedText);
-          renderFormattedAiResult(result);
-        } catch (err) {
-          renderAiError(err.message);
-        } finally {
-          if (drawerLoading) drawerLoading.style.display = 'none';
+    // Letter Spacing Adjusters (0.00em to 0.15em)
+    if (letterDecBtn) {
+      letterDecBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.letterSpacing = Math.max(0.0, Math.round((studioSettings.letterSpacing - 0.01) * 1000) / 1000);
+        applyStudioSettings();
+      });
+    }
+    if (letterIncBtn) {
+      letterIncBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.letterSpacing = Math.min(0.15, Math.round((studioSettings.letterSpacing + 0.01) * 1000) / 1000);
+        applyStudioSettings();
+      });
+    }
+
+    // Word Spacing Adjusters (0.00em to 0.30em)
+    if (wordDecBtn) {
+      wordDecBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.wordSpacing = Math.max(0.0, Math.round((studioSettings.wordSpacing - 0.02) * 100) / 100);
+        applyStudioSettings();
+      });
+    }
+    if (wordIncBtn) {
+      wordIncBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        studioSettings.wordSpacing = Math.min(0.30, Math.round((studioSettings.wordSpacing + 0.02) * 100) / 100);
+        applyStudioSettings();
+      });
+    }
+
+    // Contrast / Color Theme Presets
+    if (focusCard) {
+      const swatches = focusCard.querySelectorAll('.rx-studio-swatch');
+      swatches.forEach(swatch => {
+        swatch.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const chosenTheme = swatch.getAttribute('data-theme');
+          if (chosenTheme && STUDIO_THEMES[chosenTheme]) {
+            studioSettings.theme = chosenTheme;
+            applyStudioSettings();
+          }
+        });
+      });
+    }
+
+    // Reset All Studio Settings
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetStudioSettings();
+      });
+    }
+
+    // Action 1: Focus Line (Replaces Analyze)
+    if (btnAnalyze) {
+      btnAnalyze.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const textToFocus = selectedText || (window.getSelection() ? window.getSelection().toString().trim() : '');
+        if (!textToFocus) return;
+        openLineFocus(textToFocus);
+      });
+    }
+
+    // Action 2: Read Aloud (Replaces Summarize PDF)
+    if (btnSummarize) {
+      btnSummarize.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const textToRead = selectedText || currentFocusedText || (window.getSelection() ? window.getSelection().toString().trim() : '');
+        if (!textToRead) return;
+        toggleSelectionSpeech(textToRead, btnSummarize);
+      });
+    }
+
+    // Card Exit and Read Aloud Controls
+    if (focusCloseBtn) {
+      focusCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLineFocus();
+      });
+    }
+
+    if (focusBackdrop) {
+      focusBackdrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLineFocus();
+      });
+    }
+
+    if (focusTtsBtn) {
+      focusTtsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentFocusedText) {
+          toggleSelectionSpeech(currentFocusedText, focusTtsBtn);
         }
       });
     }
 
-    // Action 2: Summarize Entire Document / PDF
-    if (btnSummarize) {
-      btnSummarize.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (drawerLoading && drawerLoading.style.display === 'flex') return;
-        hideToolbar();
-
-        let docText = '';
-        if (currentModalItem && currentModalItem.content && currentModalItem.content.trim()) {
-          docText = currentModalItem.content;
-        } else {
-          const stdDoc = document.getElementById('modalStandardContainer');
-          const rxDoc = document.getElementById('rxLayoutCContent');
-          docText = (stdDoc?.textContent || rxDoc?.textContent || '').trim();
+        // Keyboard Shortcuts: Esc to Exit, Space to Toggle Read Aloud
+    document.addEventListener('keydown', (e) => {
+      if (focusOverlay && focusOverlay.style.display !== 'none') {
+        if (e.key === 'Escape') {
+          closeLineFocus();
+        } else if (e.key === ' ') {
+          const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+          if (activeTag !== 'select' && activeTag !== 'input' && activeTag !== 'textarea') {
+            e.preventDefault();
+            if (currentFocusedText) {
+              toggleSelectionSpeech(currentFocusedText, focusTtsBtn);
+            }
+          }
         }
+      }
+    });
 
-        if (!docText || docText.length < 10) {
-          openAiDrawer('Document Summary', '');
-          renderAiError('No readable document content found to summarize.');
-          return;
-        }
+    // ── AI Drawer Functionality & Backwards Compatibility ──────────
+    async function analyzeSelectedText(text) {
+      if (!text) return;
+      openAiDrawer('Text Analysis', text);
+      try {
+        if (drawerLoading) drawerLoading.style.display = 'flex';
+        if (drawerContent) drawerContent.innerHTML = '';
+        const result = await ReadXGemini.explainConcept(text);
+        renderFormattedAiResult(result);
+      } catch (err) {
+        renderAiError(err.message);
+      } finally {
+        if (drawerLoading) drawerLoading.style.display = 'none';
+      }
+    }
 
-        const docName = (currentModalItem && (currentModalItem.filename || currentModalItem.title)) || 'Document';
-        openAiDrawer(`Summary · ${docName}`, docText.slice(0, 160) + '...');
+    async function summarizeDocument() {
+      let docText = '';
+      if (currentModalItem && currentModalItem.content && currentModalItem.content.trim()) {
+        docText = currentModalItem.content;
+      } else {
+        const stdDoc = document.getElementById('modalStandardContainer');
+        const rxDoc = document.getElementById('rxLayoutCContent');
+        docText = (stdDoc?.textContent || rxDoc?.textContent || '').trim();
+      }
+      if (!docText || docText.length < 10) {
+        openAiDrawer('Document Summary', '');
+        renderAiError('No readable document content found to summarize.');
+        return;
+      }
+      const docName = (currentModalItem && (currentModalItem.filename || currentModalItem.title)) || 'Document';
+      openAiDrawer(`Summary · ${docName}`, docText.slice(0, 160) + '...');
+      try {
+        if (drawerLoading) drawerLoading.style.display = 'flex';
+        if (drawerContent) drawerContent.innerHTML = '';
+        const result = await ReadXGemini.summarizeText(docText);
+        renderFormattedAiResult(result);
+      } catch (err) {
+        renderAiError(err.message);
+      } finally {
+        if (drawerLoading) drawerLoading.style.display = 'none';
+      }
+    }
 
-        try {
-          if (drawerLoading) drawerLoading.style.display = 'flex';
-          if (drawerContent) drawerContent.innerHTML = '';
-
-          const result = await ReadXGemini.summarizeText(docText);
-          renderFormattedAiResult(result);
-        } catch (err) {
-          renderAiError(err.message);
-        } finally {
-          if (drawerLoading) drawerLoading.style.display = 'none';
-        }
-      });
+    if (typeof window !== 'undefined') {
+      window.ReadXSelectionAI = {
+        analyzeSelectedText,
+        summarizeDocument,
+        openAiDrawer,
+        closeAiDrawer
+      };
     }
 
     function openAiDrawer(title, quote) {
@@ -1688,7 +2207,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
   }
-
   // TTS Speed Select
   const modalTtsSpeedSelect = document.getElementById('modalTtsSpeedSelect');
   if (modalTtsSpeedSelect) {
