@@ -7,7 +7,7 @@
 
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Regular.otf') format('opentype');
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Regular.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -15,7 +15,7 @@
 
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Bold.otf') format('opentype');
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Bold.woff2') format('woff2');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -23,7 +23,7 @@
 
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/open-dyslexic/OpenDyslexic-Italic.otf') format('opentype');
+  src: url('https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Italic.woff2') format('woff2');
   font-weight: normal;
   font-style: italic;
   font-display: swap;
@@ -204,11 +204,11 @@ body {
   --readx-letter-spacing: 0;
   --readx-word-spacing: 0;
 
-  font-family: var(--readx-font);
-  font-size: var(--readx-font-size);
-  line-height: var(--readx-line-height);
-  letter-spacing: var(--readx-letter-spacing);
-  word-spacing: var(--readx-word-spacing);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: 0;
+  word-spacing: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -222,11 +222,7 @@ body {
 
   transition:
     background-color 380ms var(--ease),
-    color 380ms var(--ease),
-    font-size 380ms var(--ease),
-    line-height 380ms var(--ease),
-    letter-spacing 380ms var(--ease),
-    word-spacing 380ms var(--ease);
+    color 380ms var(--ease);
 }
 
 body.dyslexia-mode {
@@ -238,7 +234,49 @@ body.dyslexia-mode {
   --readx-para-spacing: 1.6em;
   --readx-max-width: var(--user-reading-width);
   --readx-text-align: left;
-  --font-display: var(--readx-font);
+}
+
+/* Ensure ReadX Mode typography is strictly scoped to reading content,
+   preserving original website typography across navbar, headings, and buttons */
+body.dyslexia-mode .navbar,
+body.dyslexia-mode .navbar a,
+body.dyslexia-mode .navbar button,
+body.dyslexia-mode .btn,
+body.dyslexia-mode .nav-btn,
+body.dyslexia-mode .comfort-toggle-btn,
+body.dyslexia-mode .settings-icon-btn,
+body.dyslexia-mode .hero-content,
+body.dyslexia-mode .hero-title,
+body.dyslexia-mode .hero-desc {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+body.dyslexia-mode .nav-logo a {
+  letter-spacing: 0.16em;
+}
+
+body.dyslexia-mode .eyebrow {
+  letter-spacing: 0.18em;
+}
+
+body.dyslexia-mode h1,
+body.dyslexia-mode h2,
+body.dyslexia-mode h3,
+body.dyslexia-mode h4,
+body.dyslexia-mode h5,
+body.dyslexia-mode h6,
+body.dyslexia-mode .hero-title {
+  font-family: var(--font-display);
+}
+
+body.dyslexia-mode .navbar,
+body.dyslexia-mode .navbar a,
+body.dyslexia-mode .navbar button,
+body.dyslexia-mode .btn,
+body.dyslexia-mode .nav-btn,
+body.dyslexia-mode .comfort-toggle-btn {
+  font-family: var(--font-sans);
 }
 
 /* Ambient depth layer — quiet tonal washes + subtle film grain.
@@ -653,7 +691,6 @@ body.dyslexia-mode .reading-content p:last-child {
 .ws-explanation,
 #articleContent,
 #modalReadXContainer,
-#modalStandardContainer .standard-doc-view,
 #rxLayoutCCanvas,
 #rxLayoutCContent,
 .rx-layout-c-text-content,
@@ -662,8 +699,7 @@ body.dyslexia-mode .text-readx,
 body.dyslexia-mode .reading-content,
 body.dyslexia-mode .reading-content.text-readx,
 body.dyslexia-mode .ws-explanation,
-body.dyslexia-mode #modalReadXContainer,
-body.dyslexia-mode #modalStandardContainer .standard-doc-view {
+body.dyslexia-mode #modalReadXContainer {
   font-family: var(--user-font-family, var(--readx-font, 'OpenDyslexic', 'Lexend', sans-serif)) !important;
   font-size: var(--user-font-size, 18px) !important;
   letter-spacing: var(--user-letter-spacing, 0.05em) !important;

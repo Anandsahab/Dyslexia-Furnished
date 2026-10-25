@@ -12,11 +12,11 @@ const ReadingAssist = {
   init() {
     this.isReadingPage = !!document.querySelector('.reading-article');
     
+    this.chunkText();
+    this.initRuler();
+    this.initSentenceFocus();
+    this.initFocusHighlight();
     if (this.isReadingPage) {
-      this.chunkText();
-      this.initRuler();
-      this.initSentenceFocus();
-      this.initFocusHighlight();
       this.injectTTSControls();
       this.initProgress();
     }
@@ -49,28 +49,47 @@ const ReadingAssist = {
   },
 
   initRuler() {
-    const ruler = document.createElement('div');
-    ruler.className = 'reading-ruler';
-    ruler.innerHTML = '<div class="ruler-band" id="rulerBand"></div>';
-    document.body.appendChild(ruler);
+    let ruler = document.querySelector('.reading-ruler');
+    if (!ruler) {
+      ruler = document.createElement('div');
+      ruler.className = 'reading-ruler';
+      ruler.innerHTML = '<div class="ruler-band" id="rulerBand"></div>';
+      document.body.appendChild(ruler);
+    }
 
     const band = document.getElementById('rulerBand');
     
-    document.addEventListener('mousemove', (e) => {
-      if (document.body.classList.contains('dyslexia-mode') && document.body.getAttribute('data-focus') === 'on') {
+    const updateRulerPos = (clientY) => {
+      if (document.body.classList.contains('dyslexia-mode') && document.body.getAttribute('data-ruler') === 'on') {
         document.body.classList.add('ruler-active');
-        band.style.top = e.clientY + 'px';
+        if (band) band.style.top = clientY + 'px';
       } else {
         document.body.classList.remove('ruler-active');
       }
+    };
+
+    document.addEventListener('mousemove', (e) => {
+      updateRulerPos(e.clientY);
     });
 
     document.addEventListener('touchstart', (e) => {
-      if (document.body.classList.contains('dyslexia-mode') && document.body.getAttribute('data-focus') === 'on') {
-        document.body.classList.add('ruler-active');
-        band.style.top = e.touches[0].clientY + 'px';
+      if (e.touches && e.touches[0]) {
+        updateRulerPos(e.touches[0].clientY);
       }
-    });
+    }, { passive: true });
+  },
+
+  updateRulerState() {
+    const isRulerOn = document.body.classList.contains('dyslexia-mode') && document.body.getAttribute('data-ruler') === 'on';
+    if (isRulerOn) {
+      document.body.classList.add('ruler-active');
+      const band = document.getElementById('rulerBand');
+      if (band && !band.style.top) {
+        band.style.top = (window.innerHeight / 2) + 'px';
+      }
+    } else {
+      document.body.classList.remove('ruler-active');
+    }
   },
 
   initSentenceFocus() {
@@ -80,7 +99,7 @@ const ReadingAssist = {
       const sentence = e.target.closest('.sentence');
       if (sentence) {
         const wasFocused = sentence.classList.contains('focused');
-        this.sentences.forEach(s => s.classList.remove('focused'));
+        document.querySelectorAll('.sentence.focused').forEach(s => s.classList.remove('focused'));
         
         if (!wasFocused) {
           sentence.classList.add('focused');
@@ -88,14 +107,15 @@ const ReadingAssist = {
 
           // If Read Aloud is running, continue from the newly active sentence
           if (this.tts && this.tts.isActive()) {
-            const idx = this.sentences.indexOf(sentence);
+            const allSentences = Array.from(document.querySelectorAll('.sentence'));
+            const idx = allSentences.indexOf(sentence);
             if (idx !== -1) this.tts.readFrom(idx);
           }
         } else {
           document.body.classList.remove('sentence-focus-active');
         }
-      } else {
-        this.sentences.forEach(s => s.classList.remove('focused'));
+      } else if (!e.target.closest('#comfortSettingsPanel') && !e.target.closest('#comfortSettingsBtn') && !e.target.closest('#comfortModeBtn') && !e.target.closest('.tts-controls-container')) {
+        document.querySelectorAll('.sentence.focused').forEach(s => s.classList.remove('focused'));
         document.body.classList.remove('sentence-focus-active');
       }
 
@@ -145,11 +165,20 @@ const ReadingAssist = {
     bar.classList.remove('scrolling');
 
     const inFocusMode = document.body.classList.contains('dyslexia-mode') &&
-      document.body.getAttribute('data-focus') === 'on' &&
-      document.body.classList.contains('sentence-focus-active');
-    const focused = this.sentences.find(s => s.classList.contains('focused'));
+      document.body.getAttribute('data-focus') === 'on';
 
-    if (!inFocusMode || !focused) {
+    let focused = document.querySelector('.sentence.focused');
+
+    if (inFocusMode && !focused) {
+      const first = document.querySelector('.reading-content .sentence, .reading-article .sentence, #articleContent .sentence, #wsContent .sentence, .sentence');
+      if (first) {
+        first.classList.add('focused');
+        document.body.classList.add('sentence-focus-active');
+        focused = first;
+      }
+    }
+
+    if (!inFocusMode || !focused || !document.body.classList.contains('sentence-focus-active')) {
       bar.classList.remove('visible');
       return;
     }
@@ -422,11 +451,15 @@ const ReadingAssist = {
 
 const App = {
   defaultSettings: {
-    letterSpacing: '0.04', // Wide
-    textSize: '18',
-    readingWidth: 'comfortable',
+    textSize: 18,
+    letterSpacing: 0.05,
+    wordSpacing: 0.12,
+    lineHeight: 1.8,
+    fontFamily: "'OpenDyslexic', 'Lexend', sans-serif",
     theme: 'warm',
-    readingFocus: false
+    readingWidth: 'comfortable',
+    readingFocus: false,
+    rulerEnabled: false
   },
 
   init() {
@@ -811,10 +844,56 @@ const App = {
           document.body.removeAttribute('data-theme');
         }
 
+        document.body.removeAttribute('data-focus');
+        document.body.removeAttribute('data-ruler');
+        document.body.classList.remove('ruler-active');
+        if (typeof ReadingAssist.updateRulerState === 'function') ReadingAssist.updateRulerState();
+
         if (ReadingAssist.tts) ReadingAssist.tts.stop();
-        ReadingAssist.sentences.forEach(s => s.classList.remove('focused'));
+        document.querySelectorAll('.sentence.focused').forEach(s => s.classList.remove('focused'));
         document.body.classList.remove('sentence-focus-active');
-        ReadingAssist.updateFocusBar();
+        if (typeof ReadingAssist.updateFocusBar === 'function') ReadingAssist.updateFocusBar();
+
+        const readingSelectors = `
+        .text-readx,
+        .reading-content,
+        .reading-article p,
+        .reading-article li,
+        .rx-text-overlay-panel,
+        .ws-explanation,
+        .ws-explanation p,
+        .typo-preview-text,
+        .diff-doc-text.readx-adapted-text,
+        .quiz-question,
+        .wt-question-text,
+        .weekly-desc,
+        #articleContent,
+        #modalReadXContainer,
+        #rxLayoutCCanvas,
+        #rxLayoutCContent,
+        #rxLayoutCContent p,
+        #rxLayoutCContent span,
+        #rxLayoutCContent li,
+        #modalReadXContainer .rx-layout-c-text-content,
+        #modalReadXContainer .rx-layout-c-text-content p,
+        #modalReadXContainer .rx-layout-c-text-content span,
+        #modalReadXContainer .rx-layout-c-text-content li,
+        #modalReadXContainer .rx-page-block,
+        #modalReadXContainer .rx-page-block p,
+        #modalReadXContainer .rx-page-block span,
+        #modalReadXContainer .rx-page-block li,
+        .reading-content .sentence,
+        #articleContent .sentence,
+        #modalReadXContainer .sentence,
+        .live-reading-card.readx-mode-active .live-sentence
+      `;
+        document.querySelectorAll(readingSelectors).forEach(el => {
+          el.style.removeProperty('font-family');
+          el.style.removeProperty('word-spacing');
+          el.style.removeProperty('line-height');
+          el.style.removeProperty('letter-spacing');
+          el.style.removeProperty('font-size');
+        });
 
         const panel = document.getElementById('comfortSettingsPanel');
         if (panel) panel.setAttribute('hidden', '');
@@ -893,53 +972,61 @@ const App = {
     if (s.readingWidth === 'wide') widthVal = '100ch';
     root.style.setProperty('--user-reading-width', widthVal);
 
-    document.body.setAttribute('data-theme', s.theme || 'warm');
-    document.body.setAttribute('data-focus', s.readingFocus ? 'on' : 'off');
-    document.body.setAttribute('data-ruler', s.rulerEnabled ? 'on' : 'off');
+    if (document.body.classList.contains('dyslexia-mode')) {
+      document.body.setAttribute('data-theme', s.theme || 'warm');
+      document.body.setAttribute('data-focus', s.readingFocus ? 'on' : 'off');
+      document.body.setAttribute('data-ruler', s.rulerEnabled ? 'on' : 'off');
+    }
 
     localStorage.setItem('readxRulerEnabled', s.rulerEnabled ? 'true' : 'false');
     localStorage.setItem('readxFocusEnabled', s.readingFocus ? 'true' : 'false');
 
     // Keep all active reading content and document text elements in sync immediately
-    const readingSelectors = `
-      .text-readx,
-      .reading-content,
-      .rx-text-overlay-panel,
-      .ws-explanation,
-      .live-sentence,
-      #articleContent,
-      #modalReadXContainer,
-      #rxLayoutCCanvas,
-      #rxLayoutCContent,
-      #rxLayoutCContent p,
-      #rxLayoutCContent span,
-      #rxLayoutCContent li,
-      .rx-layout-c-text-content,
-      .rx-layout-c-text-content p,
-      .rx-layout-c-text-content span,
-      .rx-layout-c-text-content li,
-      .rx-page-block,
-      .rx-page-block p,
-      .rx-page-block span,
-      .rx-page-block li,
-      .standard-doc-view,
-      .standard-doc-view p,
-      .standard-doc-view span,
-      .standard-doc-view li,
-      #modalStandardContainer .standard-doc-view,
-      #modalStandardContainer .standard-doc-view p,
-      #modalStandardContainer .standard-doc-view span,
-      .sentence
-    `;
-    document.querySelectorAll(readingSelectors).forEach(el => {
-      el.style.setProperty('font-family', fontFamilyVal, 'important');
-      el.style.setProperty('word-spacing', wordSpacingVal, 'important');
-      el.style.setProperty('line-height', lineHeightVal, 'important');
-      el.style.setProperty('letter-spacing', letterSpacingVal, 'important');
-      el.style.setProperty('font-size', textSizeVal, 'important');
-    });
+    if (document.body.classList.contains('dyslexia-mode')) {
+      const readingSelectors = `
+        .text-readx,
+        .reading-content,
+        .reading-article p,
+        .reading-article li,
+        .rx-text-overlay-panel,
+        .ws-explanation,
+        .ws-explanation p,
+        .typo-preview-text,
+        .diff-doc-text.readx-adapted-text,
+        .quiz-question,
+        .wt-question-text,
+        .weekly-desc,
+        #articleContent,
+        #modalReadXContainer,
+        #rxLayoutCCanvas,
+        #rxLayoutCContent,
+        #rxLayoutCContent p,
+        #rxLayoutCContent span,
+        #rxLayoutCContent li,
+        #modalReadXContainer .rx-layout-c-text-content,
+        #modalReadXContainer .rx-layout-c-text-content p,
+        #modalReadXContainer .rx-layout-c-text-content span,
+        #modalReadXContainer .rx-layout-c-text-content li,
+        #modalReadXContainer .rx-page-block,
+        #modalReadXContainer .rx-page-block p,
+        #modalReadXContainer .rx-page-block span,
+        #modalReadXContainer .rx-page-block li,
+        .reading-content .sentence,
+        #articleContent .sentence,
+        #modalReadXContainer .sentence,
+        .live-reading-card.readx-mode-active .live-sentence
+      `;
+      document.querySelectorAll(readingSelectors).forEach(el => {
+        el.style.setProperty('font-family', fontFamilyVal, 'important');
+        el.style.setProperty('word-spacing', wordSpacingVal, 'important');
+        el.style.setProperty('line-height', lineHeightVal, 'important');
+        el.style.setProperty('letter-spacing', letterSpacingVal, 'important');
+        el.style.setProperty('font-size', textSizeVal, 'important');
+      });
+    }
 
     if (typeof ReadingAssist.updateFocusBar === 'function') ReadingAssist.updateFocusBar();
+    if (typeof ReadingAssist.updateRulerState === 'function') ReadingAssist.updateRulerState();
 
     try {
       window.dispatchEvent(new CustomEvent('readx:settings-changed', { detail: s }));
@@ -967,6 +1054,21 @@ const App = {
       if (document.getElementById('setTextSize')) document.getElementById('setTextSize').value = s.textSize;
       if (document.getElementById('setWordSpacing')) document.getElementById('setWordSpacing').value = s.wordSpacing;
       if (document.getElementById('setLineHeight')) document.getElementById('setLineHeight').value = s.lineHeight;
+
+      const valSpacing = document.getElementById('valLetterSpacing');
+      const valSize = document.getElementById('valTextSize');
+      const valWordSpacing = document.getElementById('valWordSpacing');
+      const valLineHeight = document.getElementById('valLineHeight');
+
+      const wordSpacingVal = typeof s.wordSpacing === 'number' || (!isNaN(parseFloat(s.wordSpacing)) && !String(s.wordSpacing).includes('em')) ? s.wordSpacing + 'em' : String(s.wordSpacing || '0.12em');
+      const letterSpacingVal = typeof s.letterSpacing === 'number' || (!isNaN(parseFloat(s.letterSpacing)) && !String(s.letterSpacing).includes('em')) ? s.letterSpacing + 'em' : String(s.letterSpacing || '0.05em');
+      const textSizeVal = typeof s.textSize === 'number' || (!isNaN(parseInt(s.textSize, 10)) && !String(s.textSize).includes('px')) ? s.textSize + 'px' : String(s.textSize || '18px');
+      const lineHeightVal = String(s.lineHeight || '1.8');
+
+      if (valSpacing) valSpacing.textContent = letterSpacingVal;
+      if (valSize) valSize.textContent = textSizeVal;
+      if (valWordSpacing) valWordSpacing.textContent = wordSpacingVal;
+      if (valLineHeight) valLineHeight.textContent = lineHeightVal;
       
       document.querySelectorAll('#setFontControl .seg-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.val === s.fontFamily);
@@ -976,8 +1078,8 @@ const App = {
         b.classList.toggle('active', b.dataset.val === s.theme);
       });
       
-      if (document.getElementById('setFocusMode')) document.getElementById('setFocusMode').checked = s.readingFocus;
-      if (document.getElementById('setRulerMode')) document.getElementById('setRulerMode').checked = s.rulerEnabled;
+      if (document.getElementById('setFocusMode')) document.getElementById('setFocusMode').checked = Boolean(s.readingFocus);
+      if (document.getElementById('setRulerMode')) document.getElementById('setRulerMode').checked = Boolean(s.rulerEnabled);
     };
 
     populateUI(this.getSettings());
