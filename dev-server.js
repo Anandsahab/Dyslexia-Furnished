@@ -40,6 +40,7 @@ loadEnv();
 
 const handler = require('./api/gemini.js');
 const notesHandler = require('./api/notes.js');
+const streakHandler = require('./api/streak.js');
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 
@@ -172,6 +173,43 @@ const server = http.createServer(async (req, res) => {
       await notesHandler(req, res);
     } catch (err) {
       console.error('[DEV SERVER NOTES API ERROR]:', err);
+      if (!res.writableEnded) {
+        res.status(500).json({ success: false, error: err.message });
+      }
+    }
+    return;
+  }
+
+  if (pathname === '/api/streak' || pathname === '/api/streak.js') {
+    req.query = parsedUrl.query || {};
+
+    // Collect request body for POST/PUT/DELETE requests
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') {
+      const chunks = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', async () => {
+        const rawBody = Buffer.concat(chunks).toString('utf8');
+        try {
+          req.body = rawBody ? JSON.parse(rawBody) : {};
+        } catch (e) {
+          req.body = rawBody;
+        }
+        try {
+          await streakHandler(req, res);
+        } catch (err) {
+          console.error('[DEV SERVER STREAK API ERROR]:', err);
+          if (!res.writableEnded) {
+            res.status(500).json({ success: false, error: err.message });
+          }
+        }
+      });
+      return;
+    }
+
+    try {
+      await streakHandler(req, res);
+    } catch (err) {
+      console.error('[DEV SERVER STREAK API ERROR]:', err);
       if (!res.writableEnded) {
         res.status(500).json({ success: false, error: err.message });
       }

@@ -2976,24 +2976,152 @@ const ReadXData = {
       continueReading: null,
       streak: {
         current: 0,
+        currentStreak: 0,
         longest: 0,
-        historyDates: []
+        longestStreak: 0,
+        lastLoginDate: null,
+        loginDates: [],
+        historyDates: [],
+        coins: 0,
+        coinsBalance: 0,
+        lastCoinDate: null,
+        lastCoinAwardDate: null
+      },
+      coins: {
+        balance: 0,
+        coinsBalance: 0,
+        lastCoinDate: null,
+        lastCoinAwardDate: null,
+        awardedToday: false
       }
     };
+
+    let fallbackStreak = null;
+    let fallbackCoins = null;
+    try {
+      const sKey = this.getUserStorageKey('login-streak', uid);
+      const rawStreak = localStorage.getItem(sKey);
+      if (rawStreak) fallbackStreak = JSON.parse(rawStreak);
+
+      const cKey = this.getUserStorageKey('daily-coins', uid);
+      const rawCoins = localStorage.getItem(cKey);
+      if (rawCoins) fallbackCoins = JSON.parse(rawCoins);
+    } catch (e) {}
 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        const existingStreakCoins = typeof parsed.streak?.coins === 'number'
+          ? parsed.streak.coins
+          : (typeof parsed.streak?.coinsBalance === 'number'
+            ? parsed.streak.coinsBalance
+            : (typeof parsed.coins?.balance === 'number'
+              ? parsed.coins.balance
+              : (typeof parsed.coins?.coinsBalance === 'number'
+                ? parsed.coins.coinsBalance
+                : (fallbackStreak && typeof fallbackStreak.coins === 'number'
+                  ? fallbackStreak.coins
+                  : (fallbackCoins && typeof fallbackCoins.balance === 'number' ? fallbackCoins.balance : 0)))));
+
+        const existingLastCoinDate = parsed.coins?.lastCoinDate
+          || parsed.coins?.lastCoinAwardDate
+          || parsed.streak?.lastCoinDate
+          || parsed.streak?.lastCoinAwardDate
+          || (fallbackCoins && (fallbackCoins.lastCoinDate || fallbackCoins.lastCoinAwardDate))
+          || (fallbackStreak && (fallbackStreak.lastCoinDate || fallbackStreak.lastCoinAwardDate))
+          || null;
+
+        const existingCurrent = typeof parsed.streak?.current === 'number'
+          ? parsed.streak.current
+          : (typeof parsed.streak?.currentStreak === 'number'
+            ? parsed.streak.currentStreak
+            : (fallbackStreak && typeof fallbackStreak.current === 'number' ? fallbackStreak.current : 0));
+
+        const existingLongest = typeof parsed.streak?.longest === 'number'
+          ? parsed.streak.longest
+          : (typeof parsed.streak?.longestStreak === 'number'
+            ? parsed.streak.longestStreak
+            : (fallbackStreak && typeof fallbackStreak.longest === 'number' ? fallbackStreak.longest : 0));
+
+        const existingLastLogin = parsed.streak?.lastLoginDate
+          || (fallbackStreak && fallbackStreak.lastLoginDate)
+          || null;
+
+        const existingLoginDates = Array.isArray(parsed.streak && parsed.streak.loginDates)
+          ? parsed.streak.loginDates
+          : (Array.isArray(parsed.streak && parsed.streak.historyDates)
+            ? parsed.streak.historyDates
+            : (fallbackStreak && Array.isArray(fallbackStreak.loginDates) ? fallbackStreak.loginDates : []));
+
         return {
           ...defaults,
           ...parsed,
           readingHistory: parsed.readingHistory || {},
           recentActivity: parsed.recentActivity || [],
-          streak: { ...defaults.streak, ...(parsed.streak || {}) }
+          streak: {
+            ...defaults.streak,
+            ...(parsed.streak || {}),
+            current: existingCurrent,
+            currentStreak: existingCurrent,
+            longest: existingLongest,
+            longestStreak: existingLongest,
+            lastLoginDate: existingLastLogin,
+            coins: existingStreakCoins,
+            coinsBalance: existingStreakCoins,
+            lastCoinDate: existingLastCoinDate,
+            lastCoinAwardDate: existingLastCoinDate,
+            loginDates: existingLoginDates,
+            historyDates: existingLoginDates
+          },
+          coins: {
+            ...defaults.coins,
+            ...(parsed.coins || {}),
+            balance: existingStreakCoins,
+            coinsBalance: existingStreakCoins,
+            lastCoinDate: existingLastCoinDate,
+            lastCoinAwardDate: existingLastCoinDate,
+            awardedToday: existingLastCoinDate === this.toLocalCalendarDate(new Date())
+          }
         };
       } catch (e) {
         console.error('Error parsing user learning stats', e);
       }
+    }
+
+    if (fallbackStreak || fallbackCoins) {
+      const fbCoins = typeof fallbackStreak?.coins === 'number'
+        ? fallbackStreak.coins
+        : (typeof fallbackCoins?.balance === 'number' ? fallbackCoins.balance : 0);
+      const fbLastCoin = fallbackCoins?.lastCoinDate || fallbackStreak?.lastCoinDate || null;
+      const fbCurrent = typeof fallbackStreak?.current === 'number' ? fallbackStreak.current : 0;
+      const fbLongest = typeof fallbackStreak?.longest === 'number' ? fallbackStreak.longest : 0;
+      const fbDates = Array.isArray(fallbackStreak?.loginDates) ? fallbackStreak.loginDates : [];
+
+      return {
+        ...defaults,
+        streak: {
+          ...defaults.streak,
+          current: fbCurrent,
+          currentStreak: fbCurrent,
+          longest: fbLongest,
+          longestStreak: fbLongest,
+          lastLoginDate: fallbackStreak?.lastLoginDate || null,
+          loginDates: fbDates,
+          historyDates: fbDates,
+          coins: fbCoins,
+          coinsBalance: fbCoins,
+          lastCoinDate: fbLastCoin,
+          lastCoinAwardDate: fbLastCoin
+        },
+        coins: {
+          ...defaults.coins,
+          balance: fbCoins,
+          coinsBalance: fbCoins,
+          lastCoinDate: fbLastCoin,
+          lastCoinAwardDate: fbLastCoin,
+          awardedToday: fbLastCoin === this.toLocalCalendarDate(new Date())
+        }
+      };
     }
 
     return defaults;
@@ -3136,7 +3264,17 @@ const ReadXData = {
   },
 
   toLocalCalendarDate(d = new Date()) {
-    const dateObj = typeof d === 'string' || typeof d === 'number' ? new Date(d) : d;
+    let dateObj;
+    if (d instanceof Date) {
+      dateObj = d;
+    } else if (typeof d === 'string' || typeof d === 'number') {
+      dateObj = new Date(d);
+    } else {
+      dateObj = new Date();
+    }
+    if (isNaN(dateObj.getTime())) {
+      dateObj = new Date();
+    }
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -3168,63 +3306,286 @@ const ReadXData = {
         stats.readingHistory[todayStr] = (stats.readingHistory[todayStr] || 0) + elapsedMinutes;
       }
 
-      this.recalculateStreak(stats, todayStr);
+      // Reading activity does NOT overwrite login streak
       this.saveLearningStats(stats, uid);
     } catch (e) {
       console.error('Error ending reading session', e);
     }
   },
 
+  getDaysDifference(dateStr1, dateStr2) {
+    if (!dateStr1 || !dateStr2) return null;
+    const s1 = String(dateStr1).split('T')[0].trim();
+    const s2 = String(dateStr2).split('T')[0].trim();
+    const p1 = s1.split('-').map(Number);
+    const p2 = s2.split('-').map(Number);
+    if (p1.length !== 3 || p2.length !== 3) return null;
+    if (isNaN(p1[0]) || isNaN(p1[1]) || isNaN(p1[2])) return null;
+    if (isNaN(p2[0]) || isNaN(p2[1]) || isNaN(p2[2])) return null;
+    const utc1 = Date.UTC(p1[0], p1[1] - 1, p1[2]);
+    const utc2 = Date.UTC(p2[0], p2[1] - 1, p2[2]);
+    return Math.round((utc2 - utc1) / (24 * 60 * 60 * 1000));
+  },
+
+  calculateStreakOnLogin(existingStreak, todayDateStr) {
+    const current = existingStreak && (typeof existingStreak.current === 'number'
+      ? existingStreak.current
+      : (typeof existingStreak.currentStreak === 'number' ? existingStreak.currentStreak : 0)) || 0;
+    const longest = existingStreak && (typeof existingStreak.longest === 'number'
+      ? existingStreak.longest
+      : (typeof existingStreak.longestStreak === 'number' ? existingStreak.longestStreak : 0)) || 0;
+    const lastLogin = (existingStreak && existingStreak.lastLoginDate) || null;
+    let dates = Array.isArray(existingStreak && (existingStreak.loginDates || existingStreak.historyDates))
+      ? [...(existingStreak.loginDates || existingStreak.historyDates)]
+      : [];
+
+    const existingCoins = existingStreak && (typeof existingStreak.coins === 'number'
+      ? existingStreak.coins
+      : (typeof existingStreak.coinsBalance === 'number' ? existingStreak.coinsBalance : 0)) || 0;
+    const lastCoinDate = (existingStreak && (existingStreak.lastCoinDate || existingStreak.lastCoinAwardDate)) || null;
+
+    let newCoins = existingCoins;
+    let coinAwardedToday = false;
+    let newLastCoinDate = lastCoinDate;
+
+    if (lastCoinDate !== todayDateStr) {
+      newCoins = existingCoins + 1;
+      newLastCoinDate = todayDateStr;
+      coinAwardedToday = true;
+    }
+
+    const buildResult = (curr, long, lastLog, updatedDates) => ({
+      current: curr,
+      currentStreak: curr,
+      longest: long,
+      longestStreak: long,
+      lastLoginDate: lastLog,
+      loginDates: updatedDates,
+      historyDates: updatedDates,
+      coins: newCoins,
+      coinsBalance: newCoins,
+      lastCoinDate: newLastCoinDate,
+      lastCoinAwardDate: newLastCoinDate,
+      coinAwardedToday
+    });
+
+    if (!lastLogin || dates.length === 0 || current === 0) {
+      const updatedDates = Array.from(new Set(dates.concat(todayDateStr))).sort();
+      return buildResult(1, Math.max(longest, 1), todayDateStr, updatedDates);
+    }
+
+    const diff = this.getDaysDifference(lastLogin, todayDateStr);
+
+    if (diff === 0) {
+      // Multiple logins on the same calendar day: idempotent
+      const updatedDates = Array.from(new Set(dates.concat(todayDateStr))).sort();
+      return buildResult(current, longest, todayDateStr, updatedDates);
+    }
+
+    if (diff === 1) {
+      // Next consecutive calendar day: increment streak by 1
+      const newCurrent = current + 1;
+      const newLongest = Math.max(longest, newCurrent);
+      const updatedDates = Array.from(new Set(dates.concat(todayDateStr))).sort();
+      return buildResult(newCurrent, newLongest, todayDateStr, updatedDates);
+    }
+
+    if (diff > 1) {
+      // Missed one or more calendar days: reset active streak to 1 on next login while preserving longest
+      const newCurrent = 1;
+      const newLongest = Math.max(longest, 1);
+      const updatedDates = Array.from(new Set(dates.concat(todayDateStr))).sort();
+      return buildResult(newCurrent, newLongest, todayDateStr, updatedDates);
+    }
+
+    // diff < 0 (backdated login)
+    const updatedDates = Array.from(new Set(dates.concat(todayDateStr))).sort();
+    return buildResult(current, longest, lastLogin, updatedDates);
+  },
+
+  recordUserLogin(userId, dateStr) {
+    const uid = userId || this.getCurrentUserId();
+    if (!uid) return null;
+
+    const stats = this.getLearningStats(uid);
+    const todayStr = dateStr || this.toLocalCalendarDate(new Date());
+
+    const updatedStreak = this.calculateStreakOnLogin(stats.streak, todayStr);
+    stats.streak = updatedStreak;
+    stats.coins = {
+      balance: updatedStreak.coins,
+      coinsBalance: updatedStreak.coins,
+      lastCoinDate: updatedStreak.lastCoinDate,
+      lastCoinAwardDate: updatedStreak.lastCoinDate,
+      awardedToday: updatedStreak.coinAwardedToday
+    };
+    this.saveLearningStats(stats, uid);
+
+    try {
+      const streakKey = this.getUserStorageKey('login-streak', uid);
+      localStorage.setItem(streakKey, JSON.stringify(updatedStreak));
+      const coinsKey = this.getUserStorageKey('daily-coins', uid);
+      localStorage.setItem(coinsKey, JSON.stringify(stats.coins));
+    } catch (e) {}
+
+    // Persist to MongoDB Atlas backend asynchronously if reachable
+    if (typeof fetch === 'function') {
+      const isLocalhost = typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const isNon3000 = isLocalhost && window.location.port && window.location.port !== '3000';
+      const apiUrl = isNon3000
+        ? 'http://localhost:3000/api/streak'
+        : '/api/streak';
+
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          loginDate: todayStr
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success && data.streak) {
+          const remote = data.streak;
+          const currentStats = this.getLearningStats(uid);
+          const remoteCoins = typeof remote.coins === 'number'
+            ? remote.coins
+            : (typeof remote.coinsBalance === 'number' ? remote.coinsBalance : currentStats.streak.coins);
+          const remoteLastCoin = remote.lastCoinDate || remote.lastCoinAwardDate || currentStats.streak.lastCoinDate;
+
+          currentStats.streak = {
+            current: typeof remote.current === 'number' ? remote.current : currentStats.streak.current,
+            currentStreak: typeof remote.current === 'number' ? remote.current : currentStats.streak.current,
+            longest: typeof remote.longest === 'number' ? remote.longest : currentStats.streak.longest,
+            longestStreak: typeof remote.longest === 'number' ? remote.longest : currentStats.streak.longest,
+            lastLoginDate: remote.lastLoginDate || currentStats.streak.lastLoginDate,
+            loginDates: remote.loginDates || currentStats.streak.loginDates || [],
+            historyDates: remote.loginDates || currentStats.streak.loginDates || [],
+            coins: remoteCoins,
+            coinsBalance: remoteCoins,
+            lastCoinDate: remoteLastCoin,
+            lastCoinAwardDate: remoteLastCoin,
+            coinAwardedToday: typeof remote.coinAwardedToday === 'boolean' ? remote.coinAwardedToday : currentStats.streak.coinAwardedToday
+          };
+          currentStats.coins = {
+            balance: remoteCoins,
+            coinsBalance: remoteCoins,
+            lastCoinDate: remoteLastCoin,
+            lastCoinAwardDate: remoteLastCoin,
+            awardedToday: currentStats.streak.coinAwardedToday
+          };
+          this.saveLearningStats(currentStats, uid);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('readx:streak-updated', { detail: currentStats }));
+          }
+        }
+      })
+      .catch(() => {});
+    }
+
+    return updatedStreak;
+  },
+
+  syncStreakFromBackend(userId, callback) {
+    const uid = userId || this.getCurrentUserId();
+    if (!uid || typeof fetch !== 'function') return;
+
+    const isLocalhost = typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const isNon3000 = isLocalhost && window.location.port && window.location.port !== '3000';
+    const apiUrl = isNon3000
+      ? `http://localhost:3000/api/streak?userId=${encodeURIComponent(uid)}`
+      : `/api/streak?userId=${encodeURIComponent(uid)}`;
+
+    fetch(apiUrl)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success && data.streak) {
+          const remote = data.streak;
+          const currentStats = this.getLearningStats(uid);
+          if (remote.lastLoginDate) {
+            const remoteCoins = typeof remote.coins === 'number'
+              ? remote.coins
+              : (typeof remote.coinsBalance === 'number' ? remote.coinsBalance : currentStats.streak.coins);
+            const remoteLastCoin = remote.lastCoinDate || remote.lastCoinAwardDate || currentStats.streak.lastCoinDate;
+
+            currentStats.streak = {
+              current: typeof remote.current === 'number' ? remote.current : currentStats.streak.current,
+              currentStreak: typeof remote.current === 'number' ? remote.current : currentStats.streak.current,
+              longest: typeof remote.longest === 'number' ? remote.longest : currentStats.streak.longest,
+              longestStreak: typeof remote.longest === 'number' ? remote.longest : currentStats.streak.longest,
+              lastLoginDate: remote.lastLoginDate,
+              loginDates: remote.loginDates || currentStats.streak.loginDates || [],
+              historyDates: remote.loginDates || currentStats.streak.loginDates || [],
+              coins: remoteCoins,
+              coinsBalance: remoteCoins,
+              lastCoinDate: remoteLastCoin,
+              lastCoinAwardDate: remoteLastCoin,
+              coinAwardedToday: !!remote.todayRewardEarned
+            };
+            currentStats.coins = {
+              balance: remoteCoins,
+              coinsBalance: remoteCoins,
+              lastCoinDate: remoteLastCoin,
+              lastCoinAwardDate: remoteLastCoin,
+              awardedToday: !!remote.todayRewardEarned
+            };
+            this.saveLearningStats(currentStats, uid);
+            if (typeof callback === 'function') {
+              callback(currentStats);
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  },
+
+  getCoinBalance(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+    if (stats.coins && typeof stats.coins.balance === 'number') return stats.coins.balance;
+    if (stats.coins && typeof stats.coins.coinsBalance === 'number') return stats.coins.coinsBalance;
+    if (stats.streak && typeof stats.streak.coins === 'number') return stats.streak.coins;
+    if (stats.streak && typeof stats.streak.coinsBalance === 'number') return stats.streak.coinsBalance;
+    if (typeof stats.coinsBalance === 'number') return stats.coinsBalance;
+    return 0;
+  },
+
+  isTodayCoinEarned(userId, dateStr) {
+    const uid = userId || this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+    const todayStr = dateStr || this.toLocalCalendarDate(new Date());
+    const lastDate = stats.coins?.lastCoinDate || stats.coins?.lastCoinAwardDate || stats.streak?.lastCoinDate || stats.streak?.lastCoinAwardDate;
+    return lastDate === todayStr;
+  },
+
+  getStreak(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+    return stats.streak;
+  },
+
+  getLoginStreak(userId) {
+    return this.getStreak(userId);
+  },
+
+  getCoins(userId) {
+    const uid = userId || this.getCurrentUserId();
+    const stats = this.getLearningStats(uid);
+    return stats.coins || {
+      balance: this.getCoinBalance(uid),
+      coinsBalance: this.getCoinBalance(uid),
+      lastCoinDate: stats.streak?.lastCoinDate || null,
+      lastCoinAwardDate: stats.streak?.lastCoinDate || null,
+      awardedToday: this.isTodayCoinEarned(uid)
+    };
+  },
+
   recalculateStreak(stats, todayStr) {
-    if (!stats.streak) {
-      stats.streak = { current: 0, longest: 0, historyDates: [] };
+    // Legacy compatibility method
+    if (stats && stats.streak) {
+      return stats.streak;
     }
-    const history = stats.readingHistory || {};
-    const datesWithActivity = Object.keys(history).filter(d => history[d] > 0).sort();
-
-    stats.streak.historyDates = datesWithActivity;
-
-    if (datesWithActivity.length === 0) {
-      stats.streak.current = 0;
-      stats.streak.longest = 0;
-      return;
-    }
-
-    const today = new Date();
-    const todayISO = this.toLocalCalendarDate(today);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayISO = this.toLocalCalendarDate(yesterday);
-
-    let current = 0;
-
-    if (history[todayISO] && history[todayISO] > 0) {
-      let checkDate = new Date(today);
-      while (true) {
-        const dStr = this.toLocalCalendarDate(checkDate);
-        if (history[dStr] && history[dStr] > 0) {
-          current++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
-        }
-      }
-    } else if (history[yesterdayISO] && history[yesterdayISO] > 0) {
-      let checkDate = new Date(yesterday);
-      while (true) {
-        const dStr = this.toLocalCalendarDate(checkDate);
-        if (history[dStr] && history[dStr] > 0) {
-          current++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
-        }
-      }
-    }
-
-    stats.streak.current = current;
-    stats.streak.longest = Math.max(stats.streak.longest || 0, current, 1);
   },
 
   recordTopicPractice(topicId, score, total, topicTitle) {
@@ -3383,3 +3744,6 @@ const ReadXData = {
   }
 };
 
+if (typeof window !== 'undefined') {
+  window.ReadXData = ReadXData;
+}

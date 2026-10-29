@@ -32,6 +32,12 @@ function initDashboardController() {
       refreshDashboard();
     }
   });
+
+  window.addEventListener('readx:streak-updated', (e) => {
+    if (e.detail) {
+      renderStreakWidget(e.detail);
+    }
+  });
 }
 
 function refreshDashboard() {
@@ -52,6 +58,13 @@ function refreshDashboard() {
 
   // 4. Reading Streak Widget
   renderStreakWidget(stats);
+
+  // Sync latest streak from backend asynchronously
+  if (typeof ReadXData !== 'undefined' && typeof ReadXData.syncStreakFromBackend === 'function') {
+    ReadXData.syncStreakFromBackend(currentUser.id, (updatedStats) => {
+      renderStreakWidget(updatedStats);
+    });
+  }
 
   // 5. Continue Reading Card
   renderContinueReadingCard(stats);
@@ -312,43 +325,93 @@ function renderReadingChart(stats) {
 }
 
 /* ============================================================
-   4. READING STREAK WIDGET
+   4. LIVE LOGIN STREAK & DAILY COINS WIDGET
    ============================================================ */
 function renderStreakWidget(stats) {
-  const streak = stats.streak || { current: 0, longest: 0, historyDates: [] };
-  const currentStreak = streak.current || 0;
-  const longestStreak = streak.longest || 0;
+  const streak = stats.streak || { current: 0, currentStreak: 0, longest: 0, longestStreak: 0, historyDates: [], loginDates: [], coins: 0, coinsBalance: 0 };
+  const currentStreak = typeof streak.current === 'number'
+    ? streak.current
+    : (typeof streak.currentStreak === 'number' ? streak.currentStreak : 0);
+  const longestStreak = typeof streak.longest === 'number'
+    ? streak.longest
+    : (typeof streak.longestStreak === 'number' ? streak.longestStreak : 0);
+  const coinsBalance = typeof stats.coins?.balance === 'number'
+    ? stats.coins.balance
+    : (typeof stats.coins?.coinsBalance === 'number'
+      ? stats.coins.coinsBalance
+      : (typeof streak.coins === 'number'
+        ? streak.coins
+        : (typeof streak.coinsBalance === 'number' ? streak.coinsBalance : 0)));
 
   const countEl = document.getElementById('streakCount');
   const longestEl = document.getElementById('streakLongest');
   const weekDotsEl = document.getElementById('streakWeekDots');
+  const coinBalanceEl = document.getElementById('coinBalance');
+  const heroCoinEl = document.getElementById('heroCoinCount');
+  const totalEarnedEl = document.getElementById('coinTotalEarned');
+  const rewardBadgeEl = document.getElementById('coinRewardBadge');
+  const rewardStatusEl = document.getElementById('coinRewardStatus');
 
   if (countEl) countEl.textContent = currentStreak;
-  if (longestEl) longestEl.textContent = `${longestStreak} days`;
+  if (longestEl) longestEl.textContent = `${longestStreak} ${longestStreak === 1 ? 'day' : 'days'}`;
+  if (coinBalanceEl) coinBalanceEl.textContent = coinsBalance;
+  if (heroCoinEl) heroCoinEl.textContent = coinsBalance;
+  if (totalEarnedEl) totalEarnedEl.textContent = `${coinsBalance} ${coinsBalance === 1 ? 'coin' : 'coins'}`;
+
+  // Calendar day checking for +1 coin reward indicator
+  const today = new Date();
+  const todayStr = (typeof ReadXData !== 'undefined' && ReadXData.toLocalCalendarDate)
+    ? ReadXData.toLocalCalendarDate(today)
+    : today.toISOString().split('T')[0];
+
+  const lastCoinDate = stats.coins?.lastCoinDate || stats.coins?.lastCoinAwardDate || streak.lastCoinDate || streak.lastCoinAwardDate || null;
+  const isTodayRewardEarned = lastCoinDate === todayStr;
+
+  if (rewardBadgeEl && rewardStatusEl) {
+    if (isTodayRewardEarned) {
+      rewardBadgeEl.className = 'coin-reward-badge earned active';
+      rewardStatusEl.textContent = 'earned today';
+      rewardBadgeEl.setAttribute('title', 'Today’s +1 daily login coin has been earned!');
+    } else {
+      rewardBadgeEl.className = 'coin-reward-badge pending';
+      rewardStatusEl.textContent = 'available on next login';
+      rewardBadgeEl.setAttribute('title', 'Log in tomorrow or on your next active day to earn +1 coin!');
+    }
+  }
 
   if (weekDotsEl) {
     weekDotsEl.innerHTML = '';
 
-    const today = new Date();
     const currentDayOfWeek = (today.getDay() + 6) % 7; // Monday = 0, Sunday = 6
 
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDayOfWeek);
+    // Use noon on Monday to eliminate daylight savings boundary edge cases
+    const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - currentDayOfWeek, 12, 0, 0);
 
     const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    const history = stats.readingHistory || {};
+    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const loginDates = streak.loginDates || streak.historyDates || [];
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const iso = d.toISOString().split('T')[0];
-      const hasRead = history[iso] && history[iso] > 0;
+      const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i, 12, 0, 0);
+      const iso = (typeof ReadXData !== 'undefined' && ReadXData.toLocalCalendarDate)
+        ? ReadXData.toLocalCalendarDate(d)
+        : d.toISOString().split('T')[0];
+      const hasLoggedIn = loginDates.includes(iso);
       const isToday = i === currentDayOfWeek;
 
+      const dayName = dayNames[i];
+      const statusText = hasLoggedIn ? 'Logged in' : 'No login';
+      const todayTag = isToday ? ' (Today)' : '';
+      const accessibleLabel = `${dayName}, ${iso}: ${statusText}${todayTag}`;
+
       const dayDot = document.createElement('div');
-      dayDot.className = `streak-day-dot ${hasRead ? 'active' : ''} ${isToday ? 'today' : ''}`;
+      dayDot.className = `streak-day-dot ${hasLoggedIn ? 'active' : ''} ${isToday ? 'today' : ''}`;
+      dayDot.setAttribute('title', accessibleLabel);
+      dayDot.setAttribute('aria-label', accessibleLabel);
+      dayDot.setAttribute('data-date', iso);
+
       dayDot.innerHTML = `
-        <div class="streak-dot-circle">${hasRead ? '✓' : ''}</div>
+        <div class="streak-dot-circle" title="${accessibleLabel}" aria-label="${accessibleLabel}">${hasLoggedIn ? '✓' : ''}</div>
         <span class="streak-dot-label">${dayLabels[i]}</span>
       `;
       weekDotsEl.appendChild(dayDot);

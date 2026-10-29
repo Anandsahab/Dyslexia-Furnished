@@ -41,8 +41,9 @@ const ReadXAuth = {
 
     // Sync session to ReadXData profile if logged in
     const currentUser = this.getCurrentUser();
-    if (currentUser && typeof ReadXData !== 'undefined') {
-      ReadXData.saveProfile({
+    const dataStore = typeof ReadXData !== 'undefined' ? ReadXData : (typeof window !== 'undefined' ? window.ReadXData : null);
+    if (currentUser && dataStore) {
+      dataStore.saveProfile({
         name: currentUser.name,
         email: currentUser.email,
         joined: currentUser.joined || new Date().toISOString().split('T')[0],
@@ -143,6 +144,12 @@ const ReadXAuth = {
     // Automatically create session for seamless onboarding
     this.createSession(newUser, true);
 
+    // Record initial login for newly created account
+    const dataStore = typeof ReadXData !== 'undefined' ? ReadXData : (typeof window !== 'undefined' ? window.ReadXData : null);
+    if (dataStore && typeof dataStore.recordUserLogin === 'function') {
+      dataStore.recordUserLogin(newUser.id);
+    }
+
     return { success: true, user: newUser };
   },
 
@@ -161,6 +168,13 @@ const ReadXAuth = {
     }
 
     this.createSession(user, rememberMe);
+
+    // Record genuine successful login for streak tracking
+    const dataStoreLogin = typeof ReadXData !== 'undefined' ? ReadXData : (typeof window !== 'undefined' ? window.ReadXData : null);
+    if (dataStoreLogin && typeof dataStoreLogin.recordUserLogin === 'function') {
+      dataStoreLogin.recordUserLogin(user.id);
+    }
+
     return { success: true, user };
   },
 
@@ -186,8 +200,9 @@ const ReadXAuth = {
       }
 
       // Keep ReadXData synchronized
-      if (typeof ReadXData !== 'undefined') {
-        ReadXData.saveProfile(sessionData);
+      const dataStore = typeof ReadXData !== 'undefined' ? ReadXData : (typeof window !== 'undefined' ? window.ReadXData : null);
+      if (dataStore) {
+        dataStore.saveProfile(sessionData);
       }
     } catch (e) {
       console.error('ReadXAuth: Error setting session', e);
@@ -417,3 +432,7 @@ const ReadXAuth = {
 
 // Initialize default data on load
 ReadXAuth.init();
+
+if (typeof window !== 'undefined') {
+  window.ReadXAuth = ReadXAuth;
+}

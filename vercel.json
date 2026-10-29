@@ -11,6 +11,14 @@
     {
       "source": "/api/gemini",
       "destination": "/api/gemini.js"
+    },
+    {
+      "source": "/api/notes",
+      "destination": "/api/notes.js"
+    },
+    {
+      "source": "/api/streak",
+      "destination": "/api/streak.js"
     }
   ]
 }

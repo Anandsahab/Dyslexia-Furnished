@@ -42,6 +42,12 @@
               <span id="profileDisplayEmail">learner@readx.app</span>
               <span class="meta-dot">•</span>
               <span id="profileJoinedDate">Joined August 2026</span>
+              <span class="meta-dot">•</span>
+              <span class="hero-coin-chip" id="heroCoinChip" title="Daily Coins Balance">
+                <span class="coin-glyph" aria-hidden="true">🪙</span>
+                <strong id="heroCoinCount">0</strong>
+                <span class="hero-coin-lbl">coins</span>
+              </span>
             </div>
           </div>
         </div>
@@ -124,18 +130,42 @@
           </div>
         </section>
 
-        <!-- READING STREAK -->
+        <!-- LIVE LOGIN STREAK & DAILY COINS -->
         <section class="dash-panel" data-reveal="right" data-reveal-delay="100">
-          <h2 class="dash-panel-title">READING STREAK</h2>
+          <h2 class="dash-panel-title">LIVE LOGIN STREAK &amp; DAILY COINS</h2>
           <div class="streak-card-body">
-            <div class="streak-hero-wrap">
-              <span class="streak-fire-icon">🔥</span>
-              <div class="streak-hero-count" id="streakCount">0</div>
-              <div class="streak-hero-unit">DAY STREAK</div>
+            <div class="streak-stats-row">
+              <div class="streak-hero-wrap">
+                <span class="streak-fire-icon" aria-hidden="true">🔥</span>
+                <div class="streak-hero-data">
+                  <div class="streak-hero-count" id="streakCount">0</div>
+                  <div class="streak-hero-unit">DAY STREAK</div>
+                </div>
+              </div>
+
+              <div class="streak-divider-v" aria-hidden="true"></div>
+
+              <div class="streak-hero-wrap coin-hero-wrap">
+                <span class="streak-coin-icon" aria-hidden="true">🪙</span>
+                <div class="streak-hero-data">
+                  <div class="streak-hero-count coin-count-val" id="coinBalance">0</div>
+                  <div class="streak-hero-unit">COINS BALANCE</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Clear +1 Coin Reward Indicator -->
+            <div class="coin-reward-container" id="coinRewardContainer">
+              <div class="coin-reward-badge earned active" id="coinRewardBadge">
+                <span class="reward-coin-icon" aria-hidden="true">🪙</span>
+                <span class="reward-tag">+1 coin</span>
+                <span class="reward-status-text" id="coinRewardStatus">earned today</span>
+                <span class="reward-check-icon" aria-hidden="true">✓</span>
+              </div>
             </div>
 
             <div class="streak-week-wrap">
-              <div class="streak-week-label">THIS WEEK</div>
+              <div class="streak-week-label">THIS WEEK'S LOGIN ACTIVITY</div>
               <div class="streak-days-row" id="streakWeekDots">
                 <!-- Mon..Sun dots -->
               </div>
@@ -143,6 +173,8 @@
 
             <div class="streak-footer-info">
               <span class="longest-badge">Longest streak: <strong id="streakLongest">0 days</strong></span>
+              <span class="meta-dot" style="margin: 0 0.5rem; color: var(--text-muted);" aria-hidden="true">•</span>
+              <span class="longest-badge">Total coins: <strong id="coinTotalEarned">0 coins</strong></span>
             </div>
           </div>
         </section>
